@@ -23,7 +23,11 @@ endif()
 
 include_directories(../../util)
 
+# ROCm <= 5.X
 set(ROCBLAS_FORTRAN_SOURCE ${HIP_TOOLKIT_ROOT_DIR}/rocblas/include/rocblas_module.f90 rocblas/rocblas_extra_module.f90 rocblas/quick_rocblas_module.f90)
+# ROCm >= 6.X
+#set(ROCBLAS_FORTRAN_SOURCE ${HIP_TOOLKIT_ROOT_DIR}/include/rocblas/rocblas_module.f90 rocblas/rocblas_extra_module.f90 rocblas/quick_rocblas_module.f90)
+
 
 add_library(rocblas_fortran_obj OBJECT ${ROCBLAS_FORTRAN_SOURCE})
 set_property(TARGET rocblas_fortran_obj PROPERTY COMPILE_OPTIONS ${OPT_FFLAGS}) 

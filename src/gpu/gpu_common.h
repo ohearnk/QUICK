@@ -83,50 +83,18 @@ static FILE *debugFile = NULL;
     /* constant for general purpose */
     #define SM_13_THREADS_PER_BLOCK (256)
     #define SM_2X_THREADS_PER_BLOCK (256)
-    /* constant for 1e-integral */
-    #define HIP_1E_THREADS_PER_BLOCK (512)
-    #define HIP_1E_GRAD_THREADS_PER_BLOCK (512)
     /* constant for 2e-integral */
     #define SM_13_2E_THREADS_PER_BLOCK (256)
     #define SM_2X_2E_THREADS_PER_BLOCK (256)
-    #define HIP_SP_2E_THREADS_PER_BLOCK (256)
-    #define HIP_SPD_2E_THREADS_PER_BLOCK (256)
-    #define HIP_SP_2E_WAVES_PER_CU (1)
-    #define HIP_SPD_2E_WAVES_PER_CU (1)
     /* constant for DFT Exchange-Correlation part */
     #define MAX_GRID (194)
     #define SM_13_XC_THREADS_PER_BLOCK (256)
-    #define SM_2X_XC_THREADS_PER_BLOCK (512)
-    #define HIP_XC_WAVES_PER_CU (1)
-    #define HIP_XC_DENSE_WAVES_PER_CU (1)
-    #define HIP_XC_THREADS_PER_BLOCK (512)
-    #define HIP_XC_DENSE_THREADS_PER_BLOCK (512)
+//    #define SM_2X_XC_THREADS_PER_BLOCK (512)
+    #define SM_2X_XC_THREADS_PER_BLOCK (256)
     //static const int HIP_XC_GRAD_THREADS_PER_BLOCK (384)
     /* constant for grad */
     #define SM_13_GRAD_THREADS_PER_BLOCK (256)
     #define SM_2X_GRAD_THREADS_PER_BLOCK (256)
-    #define HIP_SP_2E_GRAD_THREADS_PER_BLOCK (256)
-    #define HIP_SPD_2E_GRAD_THREADS_PER_BLOCK (512)
-    #define HIP_SPDF_2E_GRAD_THREADS_PER_BLOCK (256)
-    #define HIP_SPDF2_2E_GRAD_THREADS_PER_BLOCK (256)
-    #define HIP_SP_2E_GRAD_WAVES_PER_CU (1)
-    #define HIP_SPD_2E_GRAD_WAVES_PER_CU (1)
-    #define HIP_SPDF_2E_GRAD_WAVES_PER_CU (1)
-    #define HIP_SPDF2_2E_GRAD_WAVES_PER_CU (1)
-    /* constants for LRI */
-    #define HIP_LRI_THREADS_PER_BLOCK (512)
-    #define HIP_LRI_SPDF2_THREADS_PER_BLOCK (256)
-    #define HIP_LRI_GRAD_THREADS_PER_BLOCK (512)
-    #define HIP_LRI_GRAD_SPDF2_THREADS_PER_BLOCK (512)
-    #define HIP_LRI_WAVES_PER_CU (1)
-    #define HIP_LRI_SPDF2_WAVES_PER_CU (1)
-    #define HIP_LRI_GRAD_WAVES_PER_CU (1)
-    #define HIP_LRI_GRAD_SPDF2_WAVES_PER_CU (1)
-    /* constants for cew quad kernels */
-    #define HIP_CEW_QUAD_THREADS_PER_BLOCK (384)
-    #define HIP_CEW_QUAD_GRAD_THREADS_PER_BLOCK (384)
-    #define HIP_CEW_QUAD_WAVES_PER_CU (1)
-    #define HIP_CEW_QUAD_GRAD_WAVES_PER_CU (1)
   #else
     /* constant for general purpose */
     #define SM_13_THREADS_PER_BLOCK (256)

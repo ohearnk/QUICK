@@ -343,6 +343,7 @@ if(HIP)
 
         if("${QUICK_USER_ARCH}" MATCHES "gfx90a")
             message(STATUS "Configuring QUICK for gfx90a")
+	    #list(APPEND AMD_HIP_FLAGS -munsafe-fp-atomics -DAMD_ARCH_GFX90a)
             list(APPEND AMD_HIP_FLAGS -munsafe-fp-atomics -DAMD_ARCH_GFX90a)
             set(FOUND "TRUE")
         endif()

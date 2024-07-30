@@ -1,0 +1,229 @@
+| *********************************************************************************************************
+| **                                                                                                     **
+| **           888888888888                                                                              **
+| **         8888888888888888                                                                            **
+| **      888888888888888888                                                                             **
+| **     888888888888888888                                                                              **
+| **    888888888888888                                                                                  **
+| **   88888888888888888888                               88888                       8888:              **
+| **   8888888888888888888888Z                            88888                       8888:              **
+| **   888888888888888888888888?                          88888                       8888:              **
+| **   8888888888888      8888888                                        888888       8888:              **
+| **    88888888888         888888     8888:     88888    88888        888888888I     8888:    888888    **
+| **    8888888888           88888:    8888:     88888    88888      $888888888888    8888:   888888     **
+| **    I8Z 88888             88888    8888:     88888    88888    .888888     8888   8888: 888888       **
+| **    .8Z 88888             88888    8888:     88888    88888    $88888             8888:88888         **
+| **     8I 88888      .=88. .88888    8888:     88888    88888    88888              8888888888         **
+| **    :8  88888      888888$8888$    8888:     88888    88888    8888O              88888888888        **
+| **   ,7   +88888.     8888888888.    8888:     88888    88888    888888             88888O888888       **
+| **         $888888:.   .8888888      88888....888888    88888     888888     8888   8888:  888888      **
+| **          I8888888888888888888     888888888888888    88888     O888888888888O    8888:   888888     **
+| **            O888888888888888888     88888888888888    88888       88888888888$    8888:    888888    **
+| **               8888888Z     888      .8888I  88888    88888         8888888       8888:     888888   **
+| **                                                                                                     **
+| **                                                                                                     **
+| **                                         Copyright (c) 2024                                          **
+| **                          Regents of the University of California San Diego                          **
+| **                                    & Michigan State University                                      **
+| **                                        All Rights Reserved.                                         **
+| **                                                                                                     **
+| **             This software is subject to the terms of the Mozilla Public License, v. 2.0.            **
+| **                                                                                                     **
+| *********************************************************************************************************
+|                                                                                                          
+| Cite this work as:                                                                                       
+| Manathunga, M.; Shajan, A.; Smith, J.; Miao, Y.; He, X.; Ayers, K.; Brothers, E.; Goetz, A.W.; Merz, K.M.
+| QUICK-24.03 University of California San Diego, CA and Michigan State University, East Lansing, MI, 2024 
+|                                                                                                          
+| If you have any comments or queries, please reach out to us on GitHub issues or discussion sections:     
+| https://github.com/merzlab/QUICK.                                                                        
+|                                                                                                          
+| TASK STARTS ON: Tue Jul 30 14:38:45 2024
+| INPUT FILE :    ene_HF_rhf_sto3g_custom.in
+| OUTPUT FILE:    ene_HF_rhf_sto3g_custom.out
+| DATA FILE  :    ene_HF_rhf_sto3g_custom.dat
+| BASIS SET PATH: QUICK/install_mpi_cuda_hip-f-func-porting_turing_gcc13.3.1_openmpi4.1.5_cuda12.4.1/basis
+
+|------------ GPU INFORMATION ---------------
+| CUDA ENABLED DEVICE         :        1
+| CUDA DEVICE IN USE          :        0
+| CUDA DEVICE NAME            : NVIDIA T1200 Laptop GPU
+| CUDA DEVICE PM              :       16
+| CUDA DEVICE CORE FREQ(GHZ)  :     1.42
+| CUDA DEVICE MEMORY SIZE (MB):     3899
+| SUPPORTING CUDA VERSION     :      7.5
+|--------------------------------------------
+
+ @ Read Job And Atom
+
+  KEYWORD=HF  BASIS=CUSTOM CUTOFF=1.0E-9 DENSERMS=1.0E-6  ZMAKE ENERGY DIPOLE CHARGE=0                                                                                                                            
+ ============== JOB CARD =============
+ METHOD = HATREE FOCK
+ DIRECT SCF 
+ SAD INITAL GUESS 
+ USE DIIS SCF
+ PRINT ENERGY EVERY CYCLE
+ READ SAD GUESS FROM FILE
+ Z-MATRIX CONSTRUCTION
+ DIPOLE
+ MAX SCF CYCLES =    200
+ MAX DIIS CYCLES =   10
+ DELTA DENSITY START CYCLE =    3
+ COMPUTATIONAL CUTOFF: 
+      TWO-e INTEGRAL   =  0.100E-08
+      BASIS SET PRIME  =  0.100E-09
+      MATRIX ELEMENTS  =  0.100E-09
+      BASIS FUNCTION   =  0.100E-05
+ DENSITY MATRIX MAXIMUM RMS FOR CONVERGENCE  =  0.100E-05
+ BASIS SET = CUSTOM,  TYPE = CARTESIAN
+| BASIS FILE = QUICK/install_mpi_cuda_hip-f-func-porting_turing_gcc13.3.1_openmpi4.1.5_cuda12.4.1/basis/CUSTOM.BAS
+
+ @ Finish reading job
+
+
+ @ Begin SAD initial guess
+
+ For Atom Kind =    1
+ ELEMENT = F 
+ BASIS FUNCTIONS =   11
+
+ @ Begin SAD USCF
+
+                               USCF ENERGY
+| ------------------------------------------------------------------------
+| NCYC       ENERGY         DELTA_E      MAX_ERR    RMS_CHG    MAX_CHG
+| ------------------------------------------------------------------------
+|  1     18.650810883      ------    0.2822E+02  0.5977E+00  0.4533E+01
+|  2    -62.445118241  0.810959E+02  0.7354E-12  0.2792E-14  0.1066E-13
+| -------------- 2E-INT CUTOFF CHANGE TO 0.1000E-10 ------------
+|  3    -62.445118241  -.426326E-13  0.7324E-12  0.2792E-14  0.1066E-13
+|  4    -62.445118241  0.426326E-13  0.7354E-12  0.0000E+00  0.0000E+00
+| ------------------------------------------------------------------------
+| REACH CONVERGENCE AFTER   4 CYLCES
+| MAX ERROR = 0.735412E-12   RMS CHANGE = 0.000000E+00   MAX CHANGE = 0.000000E+00
+| -----------------------------------------------
+
+ @ End SAD USCF
+
+ For Atom Kind =    2
+ ELEMENT = H 
+ BASIS FUNCTIONS =    1
+
+ @ Begin SAD USCF
+
+                               USCF ENERGY
+| ------------------------------------------------------------------------
+| NCYC       ENERGY         DELTA_E      MAX_ERR    RMS_CHG    MAX_CHG
+| ------------------------------------------------------------------------
+|  1     -0.047884561      ------    0.0000E+00  0.1000E-07  0.1000E-07
+|  2     -0.047884561  -.478846E-09  0.0000E+00  0.0000E+00  0.0000E+00
+|  3     -0.047884561  0.000000E+00  0.0000E+00  0.0000E+00  0.0000E+00
+|  4     -0.047884561  0.000000E+00  0.0000E+00  0.0000E+00  0.0000E+00
+| ------------------------------------------------------------------------
+| REACH CONVERGENCE AFTER   4 CYLCES
+| MAX ERROR = 0.000000E+00   RMS CHANGE = 0.000000E+00   MAX CHANGE = 0.000000E+00
+| -----------------------------------------------
+
+ @ End SAD USCF
+
+
+ @ Finish SAD initial guess
+
+
+ @ Begin Reading Molecular Information
+
+
+ =========== Molecule Input ==========
+ TOTAL MOLECULAR CHARGE  =    0    MULTIPLICITY                =    1
+ TOTAL ATOM NUMBER       =    2    NUMBER OF ATOM TYPES        =    2
+ NUMBER OF HYDROGEN ATOM =    1    NUMBER OF NON-HYDROGEN ATOM =    1
+ NUMBER OF ELECTRONS     =   10
+
+ -- INPUT GEOMETRY -- :
+    F          -2.4622       0.9150       0.7028
+    H          -1.3622       0.9150       0.7028
+
+ -- DISTANCE MATRIX -- :
+              1           2
+      1     0.00000
+      2     2.07870     0.00000
+
+============== BASIS INFOS ==============
+ BASIS FUNCTIONS =   12
+ NSHELL =    4 NPRIM  =   16
+ JSHELL =    4 JBASIS =    8
+
+
+ @ End Reading Molecular Information 
+
+
+ @ Begin Energy Calculation
+
+                                         SCF ENERGY
+| ------------------------------------------------------------------------------------------------------------------------
+| NCYC       ENERGY         DELTA_E      SCF_TIME  DII_CYC   DII_TIME   O_TIME  DIAG_TIME    MAX_ERR    RMS_CHG    MAX_CHG
+| ------------------------------------------------------------------------------------------------------------------------
+|  1    -40.421634248      ------         0.012     1        0.00      0.01      0.00    0.3302E+01  0.5731E+00  0.4556E+01
+|  2    -61.045755113  0.206241E+02       0.011     2        0.00      0.01      0.00    0.7706E+00  0.5091E-02  0.4073E-01
+|  3    -61.057240529  0.114854E-01       0.011     3        0.00      0.01      0.00    0.8470E-01  0.7637E-03  0.5300E-02
+|  4    -61.057393009  0.152481E-03       0.011     4        0.00      0.01      0.00    0.3836E-03  0.2328E-04  0.1640E-03
+|  5    -61.057393045  0.355495E-07       0.011     5        0.00      0.01      0.00    0.2579E-04  0.1428E-05  0.1002E-04
+|  6    -61.057393045  -.450240E-09       0.011     6        0.00      0.01      0.00    0.1219E-05  0.7401E-08  0.4026E-07
+| ------------------------------------------------------------------------------------------------------------------------
+| REACH CONVERGENCE AFTER   6 CYCLES
+| MAX ERROR = 0.121912E-05   RMS CHANGE = 0.740071E-08   MAX CHANGE = 0.402573E-07
+| -----------------------------------------------
+ ELECTRONIC ENERGY    =    -65.387024751
+ CORE_CORE REPULSION  =      4.329631707
+ TOTAL ENERGY         =    -61.057393045
+
+ @ End Energy calculation
+
+
+ @ Begin Zmake conversion
+
+  
+ Z-MATRIX:
+
+   ATOM  ELEMENTAL  BOND LENGTH    BOND ANGLE    DIHEDRAL ANGLE
+  NUMBER  SYMBOL    (ANGSTROMS)    (DEGREES)       (DEGREES)
+     I                 I-NA         I-NA-NB        I-NA-NB-NC      NA   NB   NC
+
+     1      F        0.00000  0     0.00000  0      0.00000  0      0    0    0
+     2      H        1.10000  1     0.00000  0      0.00000  0      1    0    0
+
+ @ End Zmake conversion
+
+
+ @ Begin Charge and Dipole Calculation
+
+    ATOMIC CHARGES
+   ATOM          MULLIKEN            LOWDIN
+   F              0.9998             0.9998
+   H             -0.9998            -0.9998
+   TOTAL        -0.0000            -0.0000
+
+    DIPOLE (DEBYE)
+      X         Y         Z        TOTAL
+   -5.2725   -0.0000    0.0000    5.2725
+
+ @ End Charge and Dipole Calculation
+
+
+ @ Output Timing Information
+
+------------- TIMING ---------------
+| INITIAL GUESS TIME  =     0.597246000( 30.55%)
+| TOTAL SCF TIME      =     0.066763000(  3.41%)
+|       TOTAL OP TIME      =     0.055130000(  2.82%)
+|             TOTAL 1e TIME      =     0.000935000(  0.05%)
+|             TOTAL 2e TIME      =     0.053137000(  2.72%)
+|       TOTAL DII TIME      =     0.011624000(  0.59%)
+|             TOTAL DIAG TIME    =     0.009389000(  0.48%)
+| TOTAL TIME          =     1.955195000
+------------------------------------
+| Job cpu time:  0 days  0 hours  0 minutes  2.0 seconds.
+
+ @ Finish Output Timing Information
+
+| Normal Termination. Task Finished on: Tue Jul 30 14:38:47 2024
