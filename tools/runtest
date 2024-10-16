@@ -20,13 +20,11 @@
 #  !---------------------------------------------------------------------!
 #  ! QUICK version                                                       !
 #  !---------------------------------------------------------------------!
-
 QUICK_VERSION='QUICK-24.03'
 
 #  !---------------------------------------------------------------------!
 #  ! Variable definitions                                                !
 #  !---------------------------------------------------------------------!
-
 # directories
 installdir=`pwd`
 testdir="$installdir/test"
@@ -50,6 +48,9 @@ test_list=''
 
 # flag to indicate if mpirun is available
 ismpirun='no'
+
+# flag to indicate if GNU parallel is available
+has_parallel='no'
 
 # number of cores for mpi tests
 ncores=2
@@ -78,14 +79,34 @@ ncum_failed_tests=0
 # path to api executables
 apipath=''
 
+
 #  !---------------------------------------------------------------------!
 #  ! Function definitions                                                !
 #  !---------------------------------------------------------------------!
+# This function checks if required dependencies for this script
+# exist and are executable.
+#
+# arguments: required dependencies to check for.
+check_for_req_deps()
+{
+  for prog in $@; do
+    fullpath=`which $prog`
+    if [ ! -x "$fullpath" ]; then
+      if [ ! -f "$fullpath" ]; then
+        echo "Error: $fullpath not found. Install this program to run this test script."
+      else
+        echo "Error: $fullpath found but not executable. Install this program to run this test script."
+      fi
+      exit 1;
+    fi
+  done
+}
+
 
 # this function prints help page
-print_help(){
-
-echo  "                                                                                                                                       
+print_help()
+{
+  echo  "                                                                                                                                       
   Use this script as ./runtest [flags]                            
                                                                             
   Available flags are:                                                      
@@ -107,16 +128,17 @@ echo  "
   
   "
 
-exit 0;
-
+  exit 0;
 }
 
 
-print_test_info(){
-
+# arguments:
+#   $1: test name
+print_test_info()
+{
   ismp2='no'
   testinfo=""
-  case "$t" in
+  case "$1" in
     ene_AlH3_rhf_sto3g)                   testinfo="ALH3: RHF energy test: STO-3G basis set";;
     ene_BeH2_rhf_sto3g)                   testinfo="BeH2: RHF energy test: STO-3G basis set";;
     ene_BH3_rhf_sto3g)                    testinfo="BH3: RHF energy test: STO-3G basis set";;
@@ -321,13 +343,13 @@ print_test_info(){
   esac
 
   echo $testinfo | tee -a $QUICK_HOME/.quick.${buildtype}.runtest.log
-
 }
+
 
 # function to set correct quick executable and test list
 # must be called from a loop where $buildtype carries build type
-set_qexe_testlist(){
-
+set_qexe_testlist()
+{
   if [ "$buildtype" = 'serial' ]; then
     qexe='quick'
     apiexe='test-api'
@@ -419,13 +441,12 @@ set_qexe_testlist(){
       test_list="$testdir/testlist_short_cuda.txt"
     fi
   fi
-
 }
 
 
 # function to get the total number of tests
-get_total_tests(){
-
+get_total_tests()
+{
   if [ "$test_ene" = 'yes' ]; then
     tot_ene_tests=`awk '{print $1}' "$test_list"| grep "ene" | wc -l`
     total_tests=$((total_tests+tot_ene_tests))
@@ -445,53 +466,69 @@ get_total_tests(){
     tot_api_tests=`awk '{print $1}' "$test_list"| grep "api" | wc -l`
     total_tests=$((total_tests+tot_api_tests))
   fi
-
 }
+
 
 # function to set files for a test run
-set_test(){
+#
+# arguments:
+#   $1: test name
+#   $2: test directory
+set_test()
+{
   # copy input if the test is not an api test
-  if [ `echo "$t" | grep 'api_' | wc -l` -lt 1 ]; then
-    cp "$testdir/$t.in" ./
+  if [ `echo "$1" | grep 'api_' | wc -l` -lt 1 ]; then
+    cp "$2/$1.in" ./
   fi
 
-  cp "$testdir/saved/$t.out" "$t.ref.out"
+  cp "$2/saved/$1.out" "$1.ref.out"
 }
 
 
-# function to run tests. t, tc and total are test name, test count and 
-# total test count respectively. accuracy sets the tolerance. 
-run_test(){
+# function to run tests. accuracy sets the tolerance. 
+#
+# arguments:
+#   $1: test name
+#   $2: test number
+#   $3: total test number
+run_test()
+{
+    echo "Running test $2 of $3" | tee -a $QUICK_HOME/.quick.${buildtype}.runtest.log
 
-    echo "Running test $tc of $total_tests" | tee -a $QUICK_HOME/.quick.${buildtype}.runtest.log
-
-    print_test_info "$t"
+    print_test_info "$1"
 
     # Run the test case
     if [ $buildtype = 'mpi' ] || [ $buildtype = 'cudampi' ] || [ $buildtype = 'hipmpi' ] && [ $ismpirun = 'yes' ]; then
-      eval "$DO_PARALLEL $qbindir/$qexe $t.in" > /dev/null 2>&1
+      eval "$DO_PARALLEL $qbindir/$qexe $1.in" > /dev/null 2>&1
     else
-      "$qbindir/$qexe" "$t.in" > /dev/null 2>&1
+      "$qbindir/$qexe" "$1.in" > /dev/null 2>&1
     fi
 
-    if [ "$?" -ne 0 ] && [ `check_f_error` -eq 0 ]; then
+    if [ "$?" -ne 0 ] && [ `check_f_error $1` -eq 0 ]; then
       echo "Error: $qexe execution failed."
       echo ""
       exit 1
     fi
 
-    if [ `check_f_error` -eq 1 ]; then
+    if [ `check_f_error $1` -eq 1 ]; then
       echo "SKIPPED."
       echo "=============================================================="
       echo ""
     fi
 }
 
-# function to run api tests
-run_api_test(){
-    echo "Running test $tc of $total_tests" | tee -a $QUICK_HOME/.quick.${buildtype}.runtest.log
 
-    print_test_info "$t"
+# function to run api tests
+#
+# arguments:
+#   $1: test name
+#   $2: test number
+#   $3: total test number
+run_test_api()
+{
+    echo "Running test $2 of $3" | tee -a $QUICK_HOME/.quick.${buildtype}.runtest.log
+
+    print_test_info "$1"
    
     #Run test
     if [ $buildtype = 'mpi' ] || [ $buildtype = 'cudampi' ] || [ $buildtype = 'hipmpi' ] && [ $ismpirun = 'yes' ]; then
@@ -505,67 +542,166 @@ run_api_test(){
       echo ""
       exit 1
     fi
-
 }
 
-# check electronic, nuclear and total energy
-check_energy(){
+
+# wrapper function for energy tests.
+#
+# arguments:
+#   $1: test name
+#   $2: test number for this test
+#   $3: total number of tests
+#   $4: directory containing test files
+run_energy_test()
+{
+  set_test "$1" "$4"
+  run_test "$1" "$2" "$3"
+  if [ `check_f_error $1` -eq 0 ]; then
+    check_energy "$1" "$4"
+    check_dipole "$1" "$4"
+    clean_up "$1"
+         
+    echo ""
+  fi
+}
+
+
+# wrapper function for gradient tests.
+#
+# arguments:
+#   $1: test name
+#   $2: test number for this test
+#   $3: total number of tests
+#   $4: directory containing test files
+run_grad_test()
+{
+  set_test "$1" "$4"
+  run_test "$1" "$2" "$3"
+  if [ `check_f_error $1` -eq 0 ]; then
+      check_energy "$1" "$4"
+      check_gradient "$1" "$4"
+      check_dipole "$1" "$4"
+      clean_up "$1"
     
+      echo ""
+  fi
+}
+
+
+# wrapper function for geometry optimization tests.
+#
+# arguments:
+#   $1: test name
+#   $2: test number for this test
+#   $3: total number of tests
+#   $4: directory containing test files
+run_opt_test()
+{
+  set_test "$1" "$4"
+  run_test "$1" "$2" "$3"
+  if [ `check_f_error $1` -eq 0 ]; then
+      check_opt "$1" "$4"
+      check_dipole "$1" "$4"
+      clean_up "$1"
+     
+      echo ""
+  fi
+}
+
+
+# wrapper function for API tests.
+#
+# arguments:
+#   $1: test name
+#   $2: test number for this test
+#   $3: total number of tests
+#   $4: directory containing test files
+run_api_test()
+{
+  set_test "$1" "$4"
+  run_test_api "$1" "$2" "$3"
+  check_energy "$1" "$4"
+  check_gradient "$1" "$4"
+  clean_up "$1"
+}
+
+
+# check electronic, nuclear and total energy
+#
+# arguments:
+#   $1: test name
+#   $2: directory containing test files
+check_energy()
+{
     accuracy='4.0e-5'
 
-    awk '/Begin Energy Calculation/,/End Energy calculation/ {print}' "$t.ref.out" > "$t.ref.ene"
-    awk '/Begin Energy Calculation/,/End Energy calculation/ {print}' "$t.out" > "$t.ene"
+    awk '/Begin Energy Calculation/,/End Energy calculation/ {print}' "$1.ref.out" > "$1.ref.ene"
+    awk '/Begin Energy Calculation/,/End Energy calculation/ {print}' "$1.out" > "$1.ene"
 
-    "$testdir/dacdif" -k -a "$accuracy" "$t.ref.ene" "$t.ene" | tee -a $QUICK_HOME/.quick.${buildtype}.runtest.log
-
+    "$2/dacdif" -k -a "$accuracy" "$1.ref.ene" "$1.ene" | tee -a $QUICK_HOME/.quick.${buildtype}.runtest.log
 }
 
 
 # check nuclear and point charge gradients
-check_gradient(){
-
+#
+# arguments:
+#   $1: test name
+check_gradient()
+{
     accuracy='4.0e-3'
 
-    awk '/Begin Gradient Calculation/,/End Gradient Calculation/ {print}' "$t.ref.out" > "$t.ref.grad"
-    awk '/Begin Gradient Calculation/,/End Gradient Calculation/ {print}' "$t.out" > "$t.grad"
+    awk '/Begin Gradient Calculation/,/End Gradient Calculation/ {print}' "$1.ref.out" > "$1.ref.grad"
+    awk '/Begin Gradient Calculation/,/End Gradient Calculation/ {print}' "$1.out" > "$1.grad"
 
-    "$testdir/dacdif" -k -a "$accuracy" "$t.ref.grad" "$t.grad" | tee -a $QUICK_HOME/.quick.${buildtype}.runtest.log
+    "$2/dacdif" -k -a "$accuracy" "$1.ref.grad" "$1.grad" | tee -a $QUICK_HOME/.quick.${buildtype}.runtest.log
 }
+
 
 # check optimized geometry and force element
-check_opt(){
-
+#
+# arguments:
+#   $1: test name
+#   $2: directory containing test files
+check_opt()
+{
     accuracy='4.0e-3'
 
-    awk '/GEOMETRY INFORMATION/,/Finish Optimization Job/ {print}' "$t.ref.out" > "$t.ref.opt"
-    awk '/GEOMETRY INFORMATION/,/Finish Optimization Job/ {print}' "$t.out" > "$t.opt"
+    awk '/GEOMETRY INFORMATION/,/Finish Optimization Job/ {print}' "$1.ref.out" > "$1.ref.opt"
+    awk '/GEOMETRY INFORMATION/,/Finish Optimization Job/ {print}' "$1.out" > "$1.opt"
 
-    "$testdir/dacdif" -k -a "$accuracy" "$t.ref.opt" "$t.opt" | tee -a $QUICK_HOME/.quick.${buildtype}.runtest.log
-
+    "$2/dacdif" -k -a "$accuracy" "$1.ref.opt" "$1.opt" | tee -a $QUICK_HOME/.quick.${buildtype}.runtest.log
 }
+
 
 # check mulliken charges and dipole
-check_dipole(){
-
+#
+# arguments:
+#   $1: test name
+#   $2: directory containing test files
+check_dipole()
+{
     accuracy='4.0e-3'
 
-    awk '/Begin Charge and Dipole Calculation/,/End Charge and Dipole Calculation/ {print}' "$t.ref.out" > "$t.ref.dipole"
-    awk '/Begin Charge and Dipole Calculation/,/End Charge and Dipole Calculation/ {print}' "$t.out" > "$t.dipole"
+    awk '/Begin Charge and Dipole Calculation/,/End Charge and Dipole Calculation/ {print}' "$1.ref.out" > "$1.ref.dipole"
+    awk '/Begin Charge and Dipole Calculation/,/End Charge and Dipole Calculation/ {print}' "$1.out" > "$1.dipole"
 
-    "$testdir/dacdif" -k -a "$accuracy" "$t.ref.dipole" "$t.dipole" | tee -a $QUICK_HOME/.quick.${buildtype}.runtest.log
-
+    "$2/dacdif" -k -a "$accuracy" "$1.ref.dipole" "$1.dipole" | tee -a $QUICK_HOME/.quick.${buildtype}.runtest.log
 }
+
 
 # function to clean up files
-clean_up(){
-
-    rm -f "$t.ref.out" "$t.in" ddtmp* *.ene *.grad *.dipole *.opt
-
+#
+# arguments:
+#   $1: test name
+clean_up()
+{
+    rm -f "$1.ref.out" "$1.in" ddtmp* *.ene *.grad *.dipole *.opt
 }
 
-# function to report summary
-print_summary(){
 
+# function to report summary
+print_summary()
+{
   sum_header="======================== Test Summary ========================"
   sum_footer="=============================================================="  
 
@@ -576,7 +712,6 @@ print_summary(){
     echo "$sum_header" > $QUICK_HOME/.quick.runtest.summary.log
     echo "" >> $QUICK_HOME/.quick.runtest.summary.log
   fi
-
 
   for buildtype in $buildtypes; do
     total_ene=0
@@ -660,21 +795,26 @@ print_summary(){
   if [ "$log" = 'yes' ]; then
     echo "$sum_footer" >> $QUICK_HOME/.quick.runtest.summary.log
   fi
-
 }
+
 
 # Function to skip F tests if the code wasnt compiled with support
-check_f_error(){
-    f_error_string=`grep 'Error: Support for F functions is disabled' "$t.out"`
+#
+# arguments:
+#   $1: test name
+check_f_error()
+{
+    f_error_string=`grep 'Error: Support for F functions is disabled' "$1.out"`
 
     if [ -z "$f_error_string" ]; then echo 0 ; else echo 1 ; fi
-
 }
+
+
+check_for_req_deps "cat" "date" "echo" "rm" "tee" "awk" "sed"
 
 #  !---------------------------------------------------------------------!
 #  ! Read input                                                          !
 #  !---------------------------------------------------------------------
-
 while [ $# -gt 0 ]; do
   case "$1" in
     --serial)      serial='yes'; buildtypes="$buildtypes serial";;
@@ -699,7 +839,6 @@ done
 #  !---------------------------------------------------------------------!
 #  ! Check directories & executables                                     !
 #  !---------------------------------------------------------------------!
-
 if [ ! -d "$qbindir" ]; then
   if [ "$AMBERHOME" != "" ]; then
     # Assume we are in Amber
@@ -723,7 +862,6 @@ if [ ! -d "$testdir" ]; then
 fi
 
 if [ "$serial" = 'yes' -o "$mpi" = 'yes' -o "$cuda" = 'yes' -o "$cudampi" = 'yes' -o "$hip" = 'yes' -o "$hipmpi" = 'yes' ]; then
-
   if [ "$serial" = 'yes' ]; then
     if [ ! -x "$qbindir/quick" ]; then
       echo  "Error: $qbindir/quick not found."
@@ -791,7 +929,6 @@ if [ "$serial" = 'yes' -o "$mpi" = 'yes' -o "$cuda" = 'yes' -o "$cudampi" = 'yes
   fi
 
 else
-
   # automatically check for executables
   if [ -x "$qbindir/quick.cuda.MPI" ]; then
     cudampi='yes'
@@ -827,7 +964,6 @@ else
     echo  "Error: No QUICK executables found in $qbindir. "
     exit 1
   fi
-
 fi
 
 if [ ! -f "$testdir/testlist_short.txt" ]; then
@@ -849,7 +985,6 @@ if [ ! -f "$testdir/testlist_full_cuda.txt" ]; then
   echo  "Error: testlist_full_cuda.txt not found in $testdir. "
   exit 1
 fi
-
 
 # check for mpirun 
 if [ "$mpi" = 'yes' -o "$cudampi" = 'yes' -o "$hipmpi" = 'yes' ]; then
@@ -879,13 +1014,29 @@ if [ "$mpi" = 'yes' -o "$cudampi" = 'yes' -o "$hipmpi" = 'yes' ]; then
      echo "" >> $QUICK_HOME/.quick.hipmpi.runtest.log
      echo "$mpimsg" >> $QUICK_HOME/.quick.hipmpi.runtest.log
    fi
+fi
 
+# check for GNU parallel
+if [ -n "$PARALLEL_TEST_COUNT" ]; then
+  check_for_req_deps "parallel" "wc" "seq"
+  case $PARALLEL_TEST_COUNT in
+    ''|*[!0-9]*) is_integer='no';;
+    *) is_integer='yes';;
+  esac
+  if [ "$is_integer" = 'no' ]; then
+    echo "Error: PARALLEL_TEST_COUNT must be set to an integer value."
+    exit 1;
+  elif [ "$PARALLEL_TEST_COUNT" -le '0' ]; then
+    echo "Error: PARALLEL_TEST_COUNT must be greater than zero."
+  fi
+  has_parallel='yes'
+  export buildtype qbindir qexe apipath apiexe ismpirun
+  export -f set_test print_test_info run_test run_test_api run_energy_test run_grad_test run_opt_test run_api_test check_energy check_gradient check_opt check_dipole clean_up check_f_error
 fi
 
 #  !---------------------------------------------------------------------!
 #  ! Create required directories                                         !
 #  !---------------------------------------------------------------------!
-
 if [ ! -d "$testdir/runs" ]; then
   mkdir -p "$testdir/runs"
 fi
@@ -898,7 +1049,6 @@ done
 #  !---------------------------------------------------------------------!
 #  ! Set test tyeps                                                      !
 #  !---------------------------------------------------------------------!
-
 if [ "$uspec_test" = 'no' ]; then
   test_ene='yes'
   test_grad='yes'
@@ -909,19 +1059,14 @@ fi
 #  !---------------------------------------------------------------------!
 #  ! Run tests                                                           !
 #  !---------------------------------------------------------------------!
-
 cd "$testdir"
-
-
 for buildtype in $buildtypes; do
-
   cdate=`date +'%m/%d/%Y'`
   ctime=`date +'%r'`
 
   echo "" | tee -a $QUICK_HOME/.quick.${buildtype}.runtest.log
   echo  "Testing $QUICK_VERSION $buildtype version started on $cdate at $ctime. " | tee -a $QUICK_HOME/.quick.${buildtype}.runtest.log
   echo "" | tee -a $QUICK_HOME/.quick.${buildtype}.runtest.log
-  
 
   # set qexe and testlist
   set_qexe_testlist
@@ -937,62 +1082,65 @@ for buildtype in $buildtypes; do
 
   # Run energy tests
   if [ "$test_ene" = 'yes' ]; then
-    for t in `awk '{print $1}' "$test_list"| grep "ene"`; do
-      set_test
-      run_test
-      if [ `check_f_error` -eq 0 ]; then
-          check_energy
-          check_dipole
-          clean_up
-         
-          echo ""
-      fi
-      tc=$((tc+1))
-    done
+    tests=`awk '{print $1}' "$test_list" | grep "ene"`
+    if [ $has_parallel = 'no' ]; then
+      for t in $tests; do
+        run_energy_test "$t" "$tc" "$total_tests" "$testdir"
+        tc=$((tc+1))
+      done
+    elif [ $has_parallel = 'yes' ]; then
+      tc_start='1'
+      tc_end=`echo $tests | wc -w`
+      parallel --keep-order --jobs "$PARALLEL_TEST_COUNT" --will-cite run_energy_test {1} {2} $total_tests $testdir \
+	      ::: $tests :::+ `seq $tc_start $tc_end`
+    fi
   fi
 
   # Run gradient tests
   if [ "$test_grad" = 'yes' ]; then
-    for t in `awk '{print $1}' "$test_list" |grep "grad"`; do
-      set_test
-      run_test
-      if [ `check_f_error` -eq 0 ]; then
-          check_energy
-          check_gradient
-          check_dipole
-          clean_up
-        
-          echo ""
-      fi
-      tc=$((tc+1))
-    done
+    tests=`awk '{print $1}' "$test_list" | grep "grad"`
+    if [ $has_parallel = 'no' ]; then
+      for t in $tests; do
+        run_grad_test "$t" "$tc" "$total_tests" "$testdir"
+        tc=$((tc+1))
+      done
+    elif [ $has_parallel = 'yes' ]; then
+      tc_start=$((tc_end+1))
+      tc_end=$((tc_start+`echo $tests | wc -w`))
+      parallel --keep-order --jobs "$PARALLEL_TEST_COUNT" --will-cite run_grad_test {1} {2} $total_tests $testdir \
+	      ::: $tests :::+ `seq $tc_start $tc_end`
+    fi
   fi
 
   # Run geometry optimization tests
   if [ "$test_opt" = 'yes' ]; then
-    for t in `awk '{print $1}' "$test_list" | grep "opt"`; do
-      set_test
-      run_test
-      if [ `check_f_error` -eq 0 ]; then
-          check_opt
-          check_dipole
-          clean_up
-         
-          echo ""
-      fi
-      tc=$((tc+1))
-    done
+    tests=`awk '{print $1}' "$test_list" | grep "opt"`
+    if [ $has_parallel = 'no' ]; then
+      for t in $tests; do
+        run_opt_test "$t" "$tc" "$total_tests" "$testdir"
+        tc=$((tc+1))
+      done
+    elif [ $has_parallel = 'yes' ]; then
+      tc_start=$((tc_end+1))
+      tc_end=$((tc_start+`echo $tests | wc -w`))
+      parallel --keep-order --jobs "$PARALLEL_TEST_COUNT" --will-cite run_opt_test {1} {2} $total_tests $testdir \
+	      ::: $tests :::+ `seq $tc_start $tc_end`
+    fi
   fi
 
   # Run api tests
   if [ "$test_api" = 'yes' ]; then
-    for t in `awk '{print $1}' "$test_list" | grep "api_"`; do
-      set_test
-      run_api_test
-      check_energy
-      check_gradient
-      clean_up
-    done
+    tests=`awk '{print $1}' "$test_list" | grep "api_"`
+    if [ $has_parallel = 'no' ]; then
+      for t in $tests; do
+        run_api_test "$t" "$tc" "$total_tests" "$testdir"
+      done
+    elif [ $has_parallel = 'yes' ]; then
+      tc_start=$((tc_end+1))
+      tc_end=$((tc_start+`echo $tests | wc -w`))
+      parallel --keep-order --jobs "$PARALLEL_TEST_COUNT" --will-cite run_api_test {1} {2} $total_tests $testdir \
+	      ::: $tests :::+ `seq $tc_start $tc_end`
+    fi
   fi
 
   echo "All $buildtype tests are done. The output files are located in $testdir/runs/$buildtype." | tee -a $QUICK_HOME/.quick.${buildtype}.runtest.log
@@ -1023,10 +1171,9 @@ else
   done
 fi
 
-# shamefully exit if tests are failed.
+# exit if tests are failed.
 if [ $ncum_failed_tests -gt 0 ]; then
   exit 1
 else
   exit 0
 fi
-
