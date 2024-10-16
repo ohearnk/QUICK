@@ -448,22 +448,22 @@ set_qexe_testlist()
 get_total_tests()
 {
   if [ "$test_ene" = 'yes' ]; then
-    tot_ene_tests=`awk '{print $1}' "$test_list"| grep "ene" | wc -l`
+    tot_ene_tests=`awk '{print $1}' "$test_list" | grep "ene" | wc -l`
     total_tests=$((total_tests+tot_ene_tests))
   fi
 
   if [ "$test_grad" = 'yes' ]; then
-    tot_grad_tests=`awk '{print $1}' "$test_list"| grep "grad" | wc -l`
+    tot_grad_tests=`awk '{print $1}' "$test_list" | grep "grad" | wc -l`
     total_tests=$((total_tests+tot_grad_tests))
   fi
 
   if [ "$test_opt" = 'yes' ]; then
-    tot_opt_tests=`awk '{print $1}' "$test_list"| grep "opt" | wc -l`
+    tot_opt_tests=`awk '{print $1}' "$test_list" | grep "opt" | wc -l`
     total_tests=$((total_tests+tot_opt_tests))
   fi
 
   if [ "$test_api" = 'yes' ]; then
-    tot_api_tests=`awk '{print $1}' "$test_list"| grep "api" | wc -l`
+    tot_api_tests=`awk '{print $1}' "$test_list" | grep "api" | wc -l`
     total_tests=$((total_tests+tot_api_tests))
   fi
 }
@@ -695,7 +695,7 @@ check_dipole()
 #   $1: test name
 clean_up()
 {
-    rm -f "$1.ref.out" "$1.in" ddtmp* *.ene *.grad *.dipole *.opt
+    rm -f "$1.ref.out" "$1.in" "ddtmp.$1*" "$1.*ene" "$1.*grad" "$1.*dipole" "$1.*opt"
 }
 
 
@@ -787,7 +787,6 @@ print_summary()
     fi
  
     rm -f .quick.runtest.${buildtype}.summary.tmp1 .quick.runtest.${buildtype}.summary.tmp0
-    
   done
 
   echo "$sum_footer"
@@ -810,7 +809,7 @@ check_f_error()
 }
 
 
-check_for_req_deps "cat" "date" "echo" "rm" "tee" "awk" "sed"
+check_for_req_deps "cat" "date" "echo" "rm" "seq" "tee" "touch" "wc" "awk" "sed"
 
 #  !---------------------------------------------------------------------!
 #  ! Read input                                                          !
@@ -1018,20 +1017,26 @@ fi
 
 # check for GNU parallel
 if [ -n "$PARALLEL_TEST_COUNT" ]; then
-  check_for_req_deps "parallel" "wc" "seq"
+  check_for_req_deps "parallel"
+
   case $PARALLEL_TEST_COUNT in
     ''|*[!0-9]*) is_integer='no';;
     *) is_integer='yes';;
   esac
+
   if [ "$is_integer" = 'no' ]; then
     echo "Error: PARALLEL_TEST_COUNT must be set to an integer value."
     exit 1;
   elif [ "$PARALLEL_TEST_COUNT" -le '0' ]; then
     echo "Error: PARALLEL_TEST_COUNT must be greater than zero."
   fi
+
   has_parallel='yes'
+
+  # required exports for GNU parallel to have visibility of global shell varaibles and functions
   export buildtype qbindir qexe apipath apiexe ismpirun
-  export -f set_test print_test_info run_test run_test_api run_energy_test run_grad_test run_opt_test run_api_test check_energy check_gradient check_opt check_dipole clean_up check_f_error
+  export -f set_test print_test_info run_test run_test_api run_energy_test run_grad_test run_opt_test run_api_test \
+	  check_energy check_gradient check_opt check_dipole clean_up check_f_error
 fi
 
 #  !---------------------------------------------------------------------!
@@ -1089,7 +1094,7 @@ for buildtype in $buildtypes; do
         tc=$((tc+1))
       done
     elif [ $has_parallel = 'yes' ]; then
-      tc_start='1'
+      tc_start=1
       tc_end=`echo $tests | wc -w`
       parallel --keep-order --jobs "$PARALLEL_TEST_COUNT" --will-cite run_energy_test {1} {2} $total_tests $testdir \
 	      ::: $tests :::+ `seq $tc_start $tc_end`
