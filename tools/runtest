@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 #  !---------------------------------------------------------------------!
 #  ! Written by Madu Manathunga on 07/19/2020                            !
@@ -1034,6 +1034,10 @@ if [ -n "$PARALLEL_TEST_COUNT" ]; then
   has_parallel='yes'
 
   # required exports for GNU parallel to have visibility of global shell varaibles and functions
+  #
+  # note: function exporting for invocation with GNU parallel is bash-specific;
+  #       an alternative would be to install and use env_parallel (which for non-bash shells
+  #       utilizes a export and eval approach for string representation of shell functions)
   export buildtype qbindir qexe apipath apiexe ismpirun
   export -f set_test print_test_info run_test run_test_api run_energy_test run_grad_test run_opt_test run_api_test \
 	  check_energy check_gradient check_opt check_dipole clean_up check_f_error
@@ -1096,7 +1100,7 @@ for buildtype in $buildtypes; do
     elif [ $has_parallel = 'yes' ]; then
       tc_start=1
       tc_end=`echo $tests | wc -w`
-      parallel --keep-order --jobs "$PARALLEL_TEST_COUNT" --will-cite run_energy_test {1} {2} $total_tests $testdir \
+      parallel --keep-order --group --jobs "$PARALLEL_TEST_COUNT" --will-cite run_energy_test {1} {2} $total_tests $testdir \
 	      ::: $tests :::+ `seq $tc_start $tc_end`
     fi
   fi
@@ -1112,7 +1116,7 @@ for buildtype in $buildtypes; do
     elif [ $has_parallel = 'yes' ]; then
       tc_start=$((tc_end+1))
       tc_end=$((tc_start+`echo $tests | wc -w`))
-      parallel --keep-order --jobs "$PARALLEL_TEST_COUNT" --will-cite run_grad_test {1} {2} $total_tests $testdir \
+      parallel --keep-order --group --jobs "$PARALLEL_TEST_COUNT" --will-cite run_grad_test {1} {2} $total_tests $testdir \
 	      ::: $tests :::+ `seq $tc_start $tc_end`
     fi
   fi
@@ -1128,7 +1132,7 @@ for buildtype in $buildtypes; do
     elif [ $has_parallel = 'yes' ]; then
       tc_start=$((tc_end+1))
       tc_end=$((tc_start+`echo $tests | wc -w`))
-      parallel --keep-order --jobs "$PARALLEL_TEST_COUNT" --will-cite run_opt_test {1} {2} $total_tests $testdir \
+      parallel --keep-order --group --jobs "$PARALLEL_TEST_COUNT" --will-cite run_opt_test {1} {2} $total_tests $testdir \
 	      ::: $tests :::+ `seq $tc_start $tc_end`
     fi
   fi
@@ -1143,7 +1147,7 @@ for buildtype in $buildtypes; do
     elif [ $has_parallel = 'yes' ]; then
       tc_start=$((tc_end+1))
       tc_end=$((tc_start+`echo $tests | wc -w`))
-      parallel --keep-order --jobs "$PARALLEL_TEST_COUNT" --will-cite run_api_test {1} {2} $total_tests $testdir \
+      parallel --keep-order --group --jobs "$PARALLEL_TEST_COUNT" --will-cite run_api_test {1} {2} $total_tests $testdir \
 	      ::: $tests :::+ `seq $tc_start $tc_end`
     fi
   fi
