@@ -130,7 +130,7 @@ print_help()
 lock_file()
 {
   if [ $has_parallel = 'yes' ]; then
-    while [ ! "ln -s ${1} ${1}.lock" > /dev/null 2>&1 ]; do
+    while ! ln -s "${1}" "${1}.lock" > /dev/null 2>&1; do
       sleep 0.01;
     done
   fi
@@ -339,7 +339,6 @@ set_test()
 #   $5: log file
 run_test()
 {
-
   # Run the test case
   if [ $buildtype = 'mpi' ] || [ $buildtype = 'cudampi' ] || [ $buildtype = 'hipmpi' ] && [ $ismpirun = 'yes' ]; then
     eval "$DO_PARALLEL $qbindir/$qexe $1.in" > /dev/null 2>&1
