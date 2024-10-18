@@ -52,7 +52,7 @@ ismpirun='no'
 # flag to indicate if GNU parallel is available
 has_parallel='no'
 
-# test types
+# test types to run
 test_ene='no'
 test_grad='no'
 test_opt='no'
@@ -137,8 +137,8 @@ lock_file()
 }
 
 
-# this function removes an existing exclusive lock file for writing
-# using atomic operations
+# This function removes an existing exclusive lock file for writing
+# using atomic operations.
 #
 # arguments:
 #   $1: file with established lock file to unlock
@@ -150,20 +150,16 @@ unlock_file()
 }
 
 
-# arguments:
-#   $1: test name
-#   $2: log file
-print_test_info()
-{
-  echo "$1" | tee -a "$2"
-}
-
-
 # function to set correct quick executable and test list
 # must be called from a loop where $buildtype carries build type
 #
 # arguments:
 #   $1: QUICK version (a.k.a. build type) which to configure tests for
+# outputs:
+#   qexe: name of QUICK executable to use for running non-API tests
+#   apiexe: name of QUICK executable to use for running API tests
+#   apipath: directory containing QUICK executable for running API tests
+#   test_list: filename containing test list to execute
 set_qexe_testlist()
 {
   if [ "$1" = 'serial' ]; then
@@ -329,7 +325,7 @@ set_test()
 }
 
 
-# function to run tests. accuracy sets the tolerance. 
+# function to run tests.
 #
 # arguments:
 #   $1: test
@@ -353,7 +349,7 @@ run_test()
     # on failure, log header of failing test
     lock_file "$5"
     echo "Running test $3 of $4" | tee -a "$5"
-    print_test_info "$2" "$5"
+    echo "$2" | tee -a "$5"
     unlock_file "$5"
 
     exit 1
@@ -391,7 +387,7 @@ run_test_api()
     # on failure, log header of failing test
     lock_file "$5"
     echo "Running test $3 of $4" | tee -a "$5"
-    print_test_info "$2" "$5"
+    echo "$2" | tee -a "$5"
     unlock_file "$5"
 
     exit 1
@@ -414,7 +410,7 @@ run_energy_test()
   run_test "$1" "$2" "$3" "$4" "$6"
   lock_file "$6"
   echo "Running test $3 of $4" | tee -a "$6"
-  print_test_info "$2" "$6"
+  echo "$2" | tee -a "$6"
   if [ `check_f_error $1` -eq 0 ]; then
     check_energy "$1" "$5" "$6"
     check_dipole "$1" "$5" "$6"
@@ -442,7 +438,7 @@ run_grad_test()
   run_test "$1" "$2" "$3" "$4" "$6"
   lock_file "$6"
   echo "Running test $3 of $4" | tee -a "$6"
-  print_test_info "$2" "$6"
+  echo "$2" | tee -a "$6"
   if [ `check_f_error $1` -eq 0 ]; then
     check_energy "$1" "$5" "$6"
     check_gradient "$1" "$5" "$6"
@@ -471,7 +467,7 @@ run_opt_test()
   run_test "$1" "$2" "$3" "$4" "$6"
   lock_file "$6"
   echo "Running test $3 of $4" | tee -a "$6"
-  print_test_info "$2" "$6"
+  echo "$2" | tee -a "$6"
   if [ `check_f_error $1` -eq 0 ]; then
     check_opt "$1" "$5" "$6"
     check_dipole "$1" "$5" "$6"
@@ -499,7 +495,7 @@ run_api_test()
   run_test_api "$1" "$2" "$3" "$4" "$6"
   lock_file "$6"
   echo "Running test $3 of $4" | tee -a "$6"
-  print_test_info "$2" "$6"
+  echo "$2" | tee -a "$6"
   check_energy "$1" "$5" "$6"
   check_gradient "$1" "$5" "$6"
   clean_up "$1"
@@ -509,7 +505,8 @@ run_api_test()
 }
 
 
-# check electronic, nuclear, and total energy from test
+# check electronic, nuclear, and total energy output from test.
+# accuracy sets the tolerance. 
 #
 # arguments:
 #   $1: test name
@@ -526,7 +523,8 @@ check_energy()
 }
 
 
-# check nuclear and point charge gradients from test
+# check nuclear and point charge gradients output from test.
+# accuracy sets the tolerance. 
 #
 # arguments:
 #   $1: test name
@@ -543,7 +541,8 @@ check_gradient()
 }
 
 
-# check optimized geometry and force element from test
+# check optimized geometry and force element output from test.
+# accuracy sets the tolerance. 
 #
 # arguments:
 #   $1: test name
@@ -560,7 +559,8 @@ check_opt()
 }
 
 
-# check mulliken charges and dipole from test
+# check mulliken charges and dipole output from test.
+# accuracy sets the tolerance. 
 #
 # arguments:
 #   $1: test name
@@ -926,7 +926,7 @@ if [ -n "$PARALLEL_TEST_COUNT" ]; then
   #       an alternative would be to install and use env_parallel (which for non-bash shells
   #       utilizes a export and eval approach for string representation of shell functions)
   export buildtype qbindir qexe apipath apiexe ismpirun has_parallel
-  export -f set_test print_test_info run_test run_test_api run_energy_test run_grad_test run_opt_test run_api_test \
+  export -f set_test run_test run_test_api run_energy_test run_grad_test run_opt_test run_api_test \
 	  check_energy check_gradient check_opt check_dipole clean_up check_f_error lock_file unlock_file
 fi
 
@@ -978,8 +978,11 @@ for buildtype in $buildtypes; do
   fi
 
   # Run energy tests
+  tc_start=0
+  tc_end=0
+
   if [ "$test_ene" = 'yes' ]; then
-    tc_start='1'
+    tc_start=1
     tc_end="$tot_ene_tests"
     if [ $has_parallel = 'no' ]; then
       for tc in `seq $tc_start $tc_end`; do
@@ -988,7 +991,7 @@ for buildtype in $buildtypes; do
     elif [ $has_parallel = 'yes' ]; then
       parallel --keep-order --group --jobs "$PARALLEL_TEST_COUNT" --will-cite run_energy_test {1} {2} {3} \
 	      "$total_tests" "$testdir" "$QUICK_HOME/.quick.${buildtype}.runtest.log" \
-	      ::: "${tests[@]:$((tc_start-1)):$((tc_end-1))}" :::+ "${test_names[@]:$((tc_start-1)):$((tc_end-1))}" :::+ `seq $tc_start $tc_end`
+	      ::: "${tests[@]:$((tc_start-1)):$tc_end}" :::+ "${test_names[@]:$((tc_start-1)):$tc_end}" :::+ `seq $tc_start $tc_end`
     fi
   fi
 
@@ -1003,7 +1006,7 @@ for buildtype in $buildtypes; do
     elif [ $has_parallel = 'yes' ]; then
       parallel --keep-order --group --jobs "$PARALLEL_TEST_COUNT" --will-cite run_grad_test {1} {2} {3} \
 	      "$total_tests" "$testdir" "$QUICK_HOME/.quick.${buildtype}.runtest.log" \
-	      ::: "${tests[@]:$((tc_start-1)):$((tc_end-1))}" :::+ "${test_names[@]:$((tc_start-1)):$((tc_end-1))}" :::+ `seq $tc_start $tc_end`
+	      ::: "${tests[@]:$((tc_start-1)):$tc_end}" :::+ "${test_names[@]:$((tc_start-1)):$tc_end}" :::+ `seq $tc_start $tc_end`
     fi
   fi
 
@@ -1018,7 +1021,7 @@ for buildtype in $buildtypes; do
     elif [ $has_parallel = 'yes' ]; then
       parallel --keep-order --group --jobs "$PARALLEL_TEST_COUNT" --will-cite run_opt_test {1} {2} {3} \
 	      "$total_tests" "$testdir" "$QUICK_HOME/.quick.${buildtype}.runtest.log" \
-	      ::: "${tests[@]:$((tc_start-1)):$((tc_end-1))}" :::+ "${test_names[@]:$((tc_start-1)):$((tc_end-1))}" :::+ `seq $tc_start $tc_end`
+	      ::: "${tests[@]:$((tc_start-1)):$tc_end}" :::+ "${test_names[@]:$((tc_start-1)):$tc_end}" :::+ `seq $tc_start $tc_end`
     fi
   fi
 
@@ -1033,7 +1036,7 @@ for buildtype in $buildtypes; do
     elif [ $has_parallel = 'yes' ]; then
       parallel --keep-order --group --jobs "$PARALLEL_TEST_COUNT" --will-cite run_api_test {1} {2} {3} \
 	      "$total_tests" "$testdir" "$QUICK_HOME/.quick.${buildtype}.runtest.log" \
-	      ::: "${tests[@]:$((tc_start-1)):$((tc_end-1))}" :::+ "${test_names[@]:$((tc_start-1)):$((tc_end-1))}" :::+ `seq $tc_start $tc_end`
+	      ::: "${tests[@]:$((tc_start-1)):$tc_end}" :::+ "${test_names[@]:$((tc_start-1)):$tc_end}" :::+ `seq $tc_start $tc_end`
     fi
   fi
 
