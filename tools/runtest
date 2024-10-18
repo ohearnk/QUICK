@@ -30,7 +30,7 @@ installdir=`pwd`
 testdir="$installdir/test"
 qbasisdir="$installdir/basis"
 qbindir="$installdir/bin"
-export QUICK_HOME=$installdir
+export QUICK_HOME="$installdir"
 
 # executables
 qexe=''
@@ -51,16 +51,6 @@ ismpirun='no'
 
 # flag to indicate if GNU parallel is available
 has_parallel='no'
-
-# number of cores for mpi tests
-ncores=2
-
-# flag for a mp2 calculation
-ismp2=''
-
-# current date time variable
-cdate=''
-ctime=''
 
 # test types
 test_ene='no'
@@ -132,225 +122,51 @@ print_help()
 }
 
 
+# this function creates an exclusive lock on an existing file for writing
+# using atomic operations
+#
+# arguments:
+#   $1: file to lock
+lock_file()
+{
+  if [ $has_parallel = 'yes' ]; then
+    while [ ! "ln -s ${1} ${1}.lock" > /dev/null 2>&1 ]; do
+      sleep 0.01;
+    done
+  fi
+}
+
+
+# this function removes an existing exclusive lock file for writing
+# using atomic operations
+#
+# arguments:
+#   $1: file with established lock file to unlock
+unlock_file()
+{
+  if [ $has_parallel = 'yes' ]; then
+    mv "${1}.lock" "${1}.deleteme" && rm -f "${1}.deleteme"
+  fi
+}
+
+
 # arguments:
 #   $1: test name
+#   $2: log file
 print_test_info()
 {
-  ismp2='no'
-  testinfo=""
-  case "$1" in
-    ene_AlH3_rhf_sto3g)                   testinfo="ALH3: RHF energy test: STO-3G basis set";;
-    ene_BeH2_rhf_sto3g)                   testinfo="BeH2: RHF energy test: STO-3G basis set";;
-    ene_BH3_rhf_sto3g)                    testinfo="BH3: RHF energy test: STO-3G basis set";;
-    ene_CaCl2_rhf_sto3g)                  testinfo="CaCl2: RHF energy test: STO-3G basis set";;
-    ene_CH4_rhf_sto3g)                    testinfo="CH4: RHF energy test: STO-3G basis set";;
-    ene_H2O_rhf_sto3g)                    testinfo="H2O: RHF energy test: STO-3G basis set";;
-    ene_HBr_rhf_sto3g)                    testinfo="HBr: RHF energy test: STO-3G basis set";;
-    ene_HI_rhf_sto3g)                     testinfo="HI: RHF energy test: STO-3G basis set";;
-    ene_KCl_rhf_sto3g)                    testinfo="KCl: RHF energy test: STO-3G basis set";;
-    ene_LiF_rhf_sto3g)                    testinfo="LiF: RHF energy test: STO-3G basis set";;
-    ene_MgO_rhf_sto3g)                    testinfo="MgO: RHF energy test: STO-3G basis set";;
-    ene_NaCl_rhf_sto3g)                   testinfo="NaCl: RHF energy test: STO-3G basis set";;
-    ene_NH4_rhf_sto3g)                    testinfo="NH4: RHF energy test: STO-3G basis set";;
-    ene_PO4_3_rhf_sto3g)                  testinfo="PO4-3: RHF energy test: STO-3G basis set";;
-    ene_SiH4_rhf_sto3g)                   testinfo="SiH4: RHF energy test: STO-3G basis set";;
-    ene_SO2_rhf_sto3g)                    testinfo="SO2: RHF energy test: STO-3G basis set";;
-    ene_AlH3_rhf_321g)                    testinfo="ALH3: RHF energy test: 3-21G basis set";;
-    ene_BeH2_rhf_321g)                    testinfo="BeH2: RHF energy test: 3-21G basis set";;
-    ene_BH3_rhf_321g)                     testinfo="BH3: RHF energy test: 3-21G basis set";;
-    ene_CaCl2_rhf_321g)                   testinfo="CaCl2: RHF energy test: 3-21G basis set";;
-    ene_CH4_rhf_321g)                     testinfo="CH4: RHF energy test: 3-21G basis set";;
-    ene_H2O_rhf_321g)                     testinfo="H2O: RHF energy test: 3-21G basis set";;
-    ene_HBr_rhf_321g)                     testinfo="HBr: RHF energy test: 3-21G basis set";;
-    ene_HI_rhf_321g)                      testinfo="HI: RHF energy test: 3-21G basis set";;
-    ene_KCl_rhf_321g)                     testinfo="KCl: RHF energy test: 3-21G basis set";;
-    ene_LiF_rhf_321g)                     testinfo="LiF: RHF energy test: 3-21G basis set";;
-    ene_MgO_rhf_321g)                     testinfo="MgO: RHF energy test: 3-21G basis set";;
-    ene_NaCl_rhf_321g)                    testinfo="NaCl: RHF energy test: 3-21G basis set";;
-    ene_NH4_rhf_321g)                     testinfo="NH4: RHF energy test: 3-21G basis set";;
-    ene_PO4_3_rhf_321g)                   testinfo="PO4-3: RHF energy test: 3-21G basis set";;
-    ene_SiH4_rhf_321g)                    testinfo="SiH4: RHF energy test: 3-21G basis set";;
-    ene_SO2_rhf_321g)                     testinfo="SO2: RHF energy test: 3-21G basis set";;
-    ene_AlH3_rhf_631g)                    testinfo="ALH3: RHF energy test: 6-31G basis set";;
-    ene_BeH2_rhf_631g)                    testinfo="BeH2: RHF energy test: 6-31G basis set";;
-    ene_BH3_rhf_631g)                     testinfo="BH3: RHF energy test: 6-31G basis set";;
-    ene_CaCl2_rhf_631g)                   testinfo="CaCl2: RHF energy test: 6-31G basis set";;            # currently disabled
-    ene_CH4_rhf_631g)                     testinfo="CH4: RHF energy test: 6-31G basis set";;
-    ene_H2O_rhf_631g)                     testinfo="H2O: RHF energy test: 6-31G basis set";;
-    ene_HBr_rhf_631g)                     testinfo="HBr: RHF energy test: 6-31G basis set";;              # currently disabled
-    ene_KCl_rhf_631g)                     testinfo="KCl: RHF energy test: 6-31G basis set";;              # currently disabled
-    ene_LiF_rhf_631g)                     testinfo="LiF: RHF energy test: 6-31G basis set";;
-    ene_MgO_rhf_631g)                     testinfo="MgO: RHF energy test: 6-31G basis set";;
-    ene_NaCl_rhf_631g)                    testinfo="NaCl: RHF energy test: 6-31G basis set";;
-    ene_NH4_rhf_631g)                     testinfo="NH4: RHF energy test: 6-31G basis set";;
-    ene_PO4_3_rhf_631g)                   testinfo="PO4-3: RHF energy test: 6-31G basis set";;
-    ene_SiH4_rhf_631g)                    testinfo="SiH4: RHF energy test: 6-31G basis set";;
-    ene_SO2_rhf_631g)                     testinfo="SO2: RHF energy test: 6-31G basis set";;
-    ene_AlH3_rhf_631gs)                   testinfo="ALH3: RHF energy test: 6-31G* basis set";;
-    ene_BeH2_rhf_631gs)                   testinfo="BeH2: RHF energy test: 6-31G* basis set";;
-    ene_BH3_rhf_631gs)                    testinfo="BH3: RHF energy test: 6-31G* basis set";;
-    ene_CaCl2_rhf_631gs)                  testinfo="CaCl2: RHF energy test: 6-31G* basis set";;           # currently disabled
-    ene_CH4_rhf_631gs)                    testinfo="CH4: RHF energy test: 6-31G* basis set";;
-    ene_H2O_rhf_631gs)                    testinfo="H2O: RHF energy test: 6-31G* basis set";;
-    ene_HBr_rhf_631gs)                    testinfo="HBr: RHF energy test: 6-31G* basis set";;             # currently disabled
-    ene_KCl_rhf_631gs)                    testinfo="KCl: RHF energy test: 6-31G* basis set";;             # currently disabled
-    ene_LiF_rhf_631gs)                    testinfo="LiF: RHF energy test: 6-31G* basis set";;
-    ene_MgO_rhf_631gs)                    testinfo="MgO: RHF energy test: 6-31G* basis set";;
-    ene_NaCl_rhf_631gs)                   testinfo="NaCl: RHF energy test: 6-31G* basis set";;
-    ene_NH4_rhf_631gs)                    testinfo="NH4: RHF energy test: 6-31G* basis set";;
-    ene_PO4_3_rhf_631gs)                  testinfo="PO4-3: RHF energy test: 6-31G* basis set";;
-    ene_SiH4_rhf_631gs)                   testinfo="SiH4: RHF energy test: 6-31G* basis set";;
-    ene_SO2_rhf_631gs)                    testinfo="SO2: RHF energy test: 6-31G* basis set";;
-    ene_AlH3_rhf_631gss)                  testinfo="ALH3: RHF energy test: 6-31G** basis set";;
-    ene_BeH2_rhf_631gss)                  testinfo="BeH2: RHF energy test: 6-31G** basis set";;
-    ene_BH3_rhf_631gss)                   testinfo="BH3: RHF energy test: 6-31G** basis set";;
-    ene_CaCl2_rhf_631gss)                 testinfo="CaCl2: RHF energy test: 6-31G** basis set";;          # currently disabled
-    ene_CH4_rhf_631gss)                   testinfo="CH4: RHF energy test: 6-31G** basis set";;
-    ene_H2O_rhf_631gss)                   testinfo="H2O: RHF energy test: 6-31G** basis set";;
-    ene_HBr_rhf_631gss)                   testinfo="HBr: RHF energy test: 6-31G** basis set";;            # currently disabled
-    ene_KCl_rhf_631gss)                   testinfo="KCl: RHF energy test: 6-31G** basis set";;            # currently disabled
-    ene_LiF_rhf_631gss)                   testinfo="LiF: RHF energy test: 6-31G** basis set";;
-    ene_MgO_rhf_631gss)                   testinfo="MgO: RHF energy test: 6-31G** basis set";;
-    ene_NaCl_rhf_631gss)                  testinfo="NaCl: RHF energy test: 6-31G** basis set";;
-    ene_NH4_rhf_631gss)                   testinfo="NH4: RHF energy test: 6-31G** basis set";;
-    ene_PO4_3_rhf_631gss)                 testinfo="PO4-3: RHF energy test: 6-31G** basis set";;
-    ene_SiH4_rhf_631gss)                  testinfo="SiH4: RHF energy test: 6-31G** basis set";;
-    ene_SO2_rhf_631gss)                   testinfo="SO2: RHF energy test: 6-31G** basis set";;
-    ene_AlH3_rhf_ccpvdz)                  testinfo="ALH3: RHF energy test: cc-pVDZ basis set";;           # currently disabled
-    ene_BeH2_rhf_ccpvdz)                  testinfo="BeH2: RHF energy test: cc-pVDZ basis set";;
-    ene_BH3_rhf_ccpvdz)                   testinfo="BH3: RHF energy test: cc-pVDZ basis set";;
-    ene_CaCl2_rhf_ccpvdz)                 testinfo="CaCl2: RHF energy test: cc-pVDZ basis set";;          # currently disabled
-    ene_CH4_rhf_ccpvdz)                   testinfo="CH4: RHF energy test: cc-pVDZ basis set";;
-    ene_H2O_rhf_ccpvdz)                   testinfo="H2O: RHF energy test: cc-pVDZ basis set";;
-    ene_HBr_rhf_ccpvdz)                   testinfo="HBr: RHF energy test: cc-pVDZ basis set";;            # currently disabled
-    ene_KCl_rhf_ccpvdz)                   testinfo="KCl: RHF energy test: cc-pVDZ basis set";;            # currently disabled
-    ene_LiF_rhf_ccpvdz)                   testinfo="LiF: RHF energy test: cc-pVDZ basis set";;
-    ene_MgO_rhf_ccpvdz)                   testinfo="MgO: RHF energy test: cc-pVDZ basis set";;            # currently disabled
-    ene_NaCl_rhf_ccpvdz)                  testinfo="NaCl: RHF energy test: cc-pVDZ basis set";;           # currently disabled
-    ene_NH4_rhf_ccpvdz)                   testinfo="NH4: RHF energy test: cc-pVDZ basis set";;
-    ene_PH3_rhf_ccpvdz)                   testinfo="PH3: RHF energy test: cc-pVDZ basis set";;            # currently disabled
-    ene_SiH4_rhf_ccpvdz)                  testinfo="SiH4: RHF energy test: cc-pVDZ basis set";;           # currently disabled
-    ene_SO2_rhf_ccpvdz)                   testinfo="SO2: RHF energy test: cc-pVDZ basis set";;            # currently disabled
-    grad_AlH3_b3lyp_def2sv_p)             testinfo="ALH3: DFT gradient test: DEF2-SV(P) basis set";;
-    grad_BeH2_b3lyp_def2sv_p)             testinfo="BeH2: DFT gradient test: DEF2-SV(P) basis set";;
-    grad_BH3_b3lyp_def2sv_p)              testinfo="BH3: DFT gradient test: DEF2-SV(P) basis set";;       # currently disabled
-    grad_CaCl2_b3lyp_def2sv_p)            testinfo="CaCl2: DFT gradient test: DEF2-SV(P) basis set";;     # currently disabled
-    grad_CH4_b3lyp_def2sv_p)              testinfo="CH4: DFT gradient test: DEF2-SV(P) basis set";;       
-    grad_H2O_b3lyp_def2sv_p)              testinfo="H2O: DFT gradient test: DEF2-SV(P) basis set";;       
-    grad_HBr_b3lyp_def2sv_p)              testinfo="HBr: DFT gradient test: DEF2-SV(P) basis set";;       
-    grad_HI_b3lyp_def2sv_p)               testinfo="HI: DFT gradient test: DEF2-SV(P) basis set";;        # currently disabled
-    grad_KCl_b3lyp_def2sv_p)              testinfo="KCl: DFT gradient test: DEF2-SV(P) basis set";;       
-    grad_LiF_b3lyp_def2sv_p)              testinfo="LiF: DFT gradient test: DEF2-SV(P) basis set";;       
-    grad_MgO_b3lyp_def2sv_p)              testinfo="MgO: DFT gradient test: DEF2-SV(P) basis set";;       
-    grad_NaCl_b3lyp_def2sv_p)             testinfo="NaCl: DFT gradient test: DEF2-SV(P) basis set";;      
-    grad_NH4_b3lyp_def2sv_p)              testinfo="NH4: DFT gradient test: DEF2-SV(P) basis set";;       
-    grad_PH3_b3lyp_def2sv_p)              testinfo="PH3: DFT gradient test: DEF2-SV(P) basis set";;       
-    grad_SiH4_b3lyp_def2sv_p)             testinfo="SiH4: DFT gradient test: DEF2-SV(P) basis set";;      
-    grad_SO2_b3lyp_def2sv_p)              testinfo="SO2: DFT gradient test: DEF2-SV(P) basis set";;       
-    grad_AlH3_b3lyp_def2svp)              testinfo="ALH3: DFT gradient test: DEF2-SVP basis set";;        
-    grad_BeH2_b3lyp_def2svp)              testinfo="BeH2: DFT gradient test: DEF2-SVP basis set";;        
-    grad_BH3_b3lyp_def2svp)               testinfo="BH3: DFT gradient test: DEF2-SVP basis set";;         
-    grad_CaCl2_b3lyp_def2svp)             testinfo="CaCl2: DFT gradient test: DEF2-SVP basis set";;       # currently disabled
-    grad_CH4_b3lyp_def2svp)               testinfo="CH4: DFT gradient test: DEF2-SVP basis set";;         
-    grad_H2O_b3lyp_def2svp)               testinfo="H2O: DFT gradient test: DEF2-SVP basis set";;         
-    grad_HBr_b3lyp_def2svp)               testinfo="HBr: DFT gradient test: DEF2-SVP basis set";;         
-    grad_HI_b3lyp_def2svp)                testinfo="HI: DFT gradient test: DEF2-SVP basis set";;          # currently disabled
-    grad_KCl_b3lyp_def2svp)               testinfo="KCl: DFT gradient test: DEF2-SVP basis set";;
-    grad_LiF_b3lyp_def2svp)               testinfo="LiF: DFT gradient test: DEF2-SVP basis set";;
-    grad_MgO_b3lyp_def2svp)               testinfo="MgO: DFT gradient test: DEF2-SVP basis set";;
-    grad_NaCl_b3lyp_def2svp)              testinfo="NaCl: DFT gradient test: DEF2-SVP basis set";;
-    grad_NH4_b3lyp_def2svp)               testinfo="NH4: DFT gradient test: DEF2-SVP basis set";;
-    grad_PH3_b3lyp_def2svp)               testinfo="PH3: DFT gradient test: DEF2-SVP basis set";;
-    grad_SiH4_b3lyp_def2svp)              testinfo="SiH4: DFT gradient test: DEF2-SVP basis set";;
-    grad_SO2_b3lyp_def2svp)               testinfo="SO2: DFT gradient test: DEF2-SVP basis set";;
-    grad_AlH3_b3lyp_def2svpd)             testinfo="ALH3: DFT gradient test: DEF2-SVPD basis set";;
-    grad_BeH2_b3lyp_def2svpd)             testinfo="BeH2: DFT gradient test: DEF2-SVPD basis set";;
-    grad_BH3_b3lyp_def2svpd)              testinfo="BH3: DFT gradient test: DEF2-SVPD basis set";;        # currently disabled
-    grad_CaCl2_b3lyp_def2svpd)            testinfo="CaCl2: DFT gradient test: DEF2-SVPD basis set";;      # currently disabled
-    grad_CH4_b3lyp_def2svpd)              testinfo="CH4: DFT gradient test: DEF2-SVPD basis set";;        
-    grad_H2O_b3lyp_def2svpd)              testinfo="H2O: DFT gradient test: DEF2-SVPD basis set";;        
-    grad_HBr_b3lyp_def2svpd)              testinfo="HBr: DFT gradient test: DEF2-SVPD basis set";;        # currently disabled
-    grad_HI_b3lyp_def2svpd)               testinfo="HI: DFT gradient test: DEF2-SVPD basis set";;         # currently disabled
-    grad_KCl_b3lyp_def2svpd)              testinfo="KCl: DFT gradient test: DEF2-SVPD basis set";;
-    grad_LiF_b3lyp_def2svpd)              testinfo="LiF: DFT gradient test: DEF2-SVPD basis set";;
-    grad_MgO_b3lyp_def2svpd)              testinfo="MgO: DFT gradient test: DEF2-SVPD basis set";;
-    grad_NaCl_b3lyp_def2svpd)             testinfo="NaCl: DFT gradient test: DEF2-SVPD basis set";;
-    grad_NH4_b3lyp_def2svpd)              testinfo="NH4: DFT gradient test: DEF2-SVPD basis set";;
-    grad_PH3_b3lyp_def2svpd)              testinfo="PH3: DFT gradient test: DEF2-SVPD basis set";;
-    grad_SiH4_b3lyp_def2svpd)             testinfo="SiH4: DFT gradient test: DEF2-SVPD basis set";;
-    grad_SO2_b3lyp_def2svpd)              testinfo="SO2: DFT gradient test: DEF2-SVPD basis set";;
-    ene_psb5_rhf_631g)                    testinfo="PSB5: RHF energy test: s and p basis functions";;
-    ene_psb5_rhf_631gss)                  testinfo="PSB5: RHF energy test: s, p and d basis functions";;
-    ene_acetone_rhf_321g)                 testinfo="Acetone: RHF energy test: s and p basis functions";;
-    ene_psb3_blyp_631g)                   testinfo="PSB3: DFT energy test: s and p basis functions, BLYP functional";;
-    ene_psb3_blyp_631gss)                 testinfo="PSB3: DFT energy test: s, p and d basis functions, BLYP functional";;
-    ene_psb3_b3lyp_631g)                  testinfo="PSB3: DFT energy test: s and p basis functions, native B3LYP functional";;
-    ene_psb3_b3lyp_631gss)                testinfo="PSB3: DFT energy test: s, p and d basis functions, native B3LYP functional";;
-    ene_C2H6_b3lyp_def2tzvp)              testinfo="C2H6: DFT energy test: s, p, d and f basis functions, native B3LYP functional";;
-    ene_psb3_libxc_lda_631g)              testinfo="PSB3: DFT energy test: s and p basis functions, libxc LDA functional";;
-    ene_psb3_libxc_gga_631g)              testinfo="PSB3: DFT energy test: s and p basis functions, libxc GGA functional";;
-    ene_psb3_libxc_hgga_631g)             testinfo="PSB3: DFT energy test: s and p basis functions, libxc hybrid GGA functional";;
-    ene_wat2_mp2_631g)                    testinfo="Water-2 MP2 energy test: s and p basis functions"; ismp2='yes';;
-    ene_wat2_mp2_631gss)                  testinfo="Water-2 MP2 energy test: s, p and d basis functions"; ismp2='yes';;
-    grad_psb3_b3lyp_631g)                 testinfo="PSB3: DFT gradient test: s and p basis functions";;
-    grad_psb3_b3lyp_631gss)               testinfo="PSB3: DFT gradient test: s and p and d basis functions";;
-    grad_psb3_b3lyp_d3bj_def2svp)         testinfo="PSB3: DFT gradient test: s and p basis functions, DFT-D3 dispersion correction";; 
-    grad_ch3conhch3_b3lyp_ccpvdz)         testinfo="CH3CONHCH3: DFT gradient test: s and p and d basis functions";;
-    grad_CH4_pbe0_6311g2df2pd)            testinfo="CH4: DFT gradient test: s, p, d and f basis functions";;
-    grad_ch5nos_b3lyp_6311g)              testinfo="CH5NOS: B3LYP gradient test with 6-311G basis set";;
-    grad_ch5nos_b3lyp_6311gd)             testinfo="CH5NOS: B3LYP gradient test with 6-311G(d) basis set";;
-    grad_ch5nos_b3lyp_6311gdp)            testinfo="CH5NOS: B3LYP gradient test with 6-311G(d,p) basis set";;
-    grad_ch5nos_b3lyp_631plgdp)           testinfo="CH5NOS: B3LYP gradient test with 6-31+G(d,p) basis set";;
-    grad_ch5nos_b3lyp_631plplgdp)         testinfo="CH5NOS: B3LYP gradient test with 6-31++G(d,p) basis set";;
-    grad_ch5nos_b3lyp_6311plg2dp)         testinfo="CH5NOS: B3LYP gradient test with 6-311+G(2d,p) basis set";;
-    grad_ch5nos_b3lyp_6311plplg2d2p)      testinfo="CH5NOS: B3LYP gradient test with 6-311++G(2d,2p) basis set";;
-    grad_ch5nos_b3lyp_pc0)                testinfo="CH5NOS: B3LYP gradient test with PC-0 basis set";; 
-    grad_ch5nos_b3lyp_pc1)                testinfo="CH5NOS: B3LYP gradient test with PC-1 basis set";;
-    grad_ch5nos_b97_631g)                 testinfo="CH5NOS: DFT gradient test: s and p basis functions, B97 functional";;
-    grad_ch5nos_b97-gga1_631g)            testinfo="CH5NOS: DFT gradient test: s and p basis functions, B97-GGA1 functional;";;
-    grad_ch5nos_bp86_631g)                testinfo="CH5NOS: DFT gradient test: s and p basis functions, BP86 functional";;
-    grad_ch5nos_o3lyp_631g)               testinfo="CH5NOS: DFT gradient test: s and p basis functions, O3LYP functional";;
-    grad_ch5nos_olyp_631g)                testinfo="CH5NOS: DFT gradient test: s and p basis functions, OLYP functional";;
-    grad_ch5nos_pbe0_631g)                testinfo="CH5NOS: DFT gradient test: s and p basis functions, PBE0 functional";;
-    grad_ch5nos_pbe_631g)                 testinfo="CH5NOS: DFT gradient test: s and p basis functions, PBE functional";;
-    grad_ch5nos_pw91_631g)                testinfo="CH5NOS: DFT gradient test: s and p basis functions, PW91 functional";;
-    grad_ch5nos_revpbe_631g)              testinfo="CH5NOS: DFT gradient test: s and p basis functions, revPBE functional";;
-    grad_nma_rhf_def2tzvp)                testinfo="NMA: RHF gradient test with DEF2-TZVP basis set: s, p, d and f basis functions";;
-    grad_wat_b3lyp_ccpvdz)                testinfo="Water: DFT point charge gradient test: s and p and d basis functions";;
-    grad_c10h9o2s_b3lyp_def2svp)          testinfo="C10H9O2S: DFT point charge gradient test: s and p and d basis functions";;
-    grad_daspi_meoh_b3lyp_sto3g)          testinfo="DASPI-DCM: DFT point charge gradient test: s and p basis functions";;
-    grad_hbdi_meoh_libxc_blyp_sto3g)      testinfo="HBDI-MeOH: DFT point charge gradient test: s and p basis functions";;
-    grad_naip_meoh_libxc_pbeh_sto3g)      testinfo="NAIP-MeOH: DFT point charge gradient test: s and p basis functions";;
-    grad_ncnaip_b3lyp_sto3g)              testinfo="NAIP2-MeOH: DFT point charge gradient test: s and p basis functions";;
-    grad_rpsb_meoh_rhf_sto3g)             testinfo="RPSB-MeOH: RHF point charge gradient test: s and p basis functions";;
-    grad_daspi_meoh_b3lyp_6-31g)          testinfo="DASPI-DCM: DFT point charge gradient test: s and p basis functions";;
-    grad_hbdi_meoh_libxc_blyp_def2sv_p)   testinfo="HBDI-MeOH: DFT point charge gradient test: s and p basis functions";;
-    grad_naip_meoh_libxc_pbeh_def2svp)    testinfo="NAIP-MeOH: DFT point charge gradient test: s and p basis functions";;
-    grad_ncnaip_b3lyp_631gss)             testinfo="NAIP2-MeOH: DFT point charge gradient test: s and p basis functions";;
-    grad_rpsb_meoh_rhf_321g)              testinfo="RPSB-MeOH: RHF point charge gradient test: s and p basis functions";;
-    grad_ohrad_b3lyp_631gss)              testinfo="OH radical: UDFT B3LYP gradient test";;
-    opt_wat_rhf_631g)                     testinfo="Water: RHF geometry optimization test: s and p basis functions (Legacy optimizer)";;
-    opt_wat_rhf_ccpvdz)                   testinfo="Water: RHF geometry optimization test: s, p and d basis functions (Legacy optimizer)";;
-    opt_wat_b3lyp_ccpvtz)                 testinfo="Water: RHF geometry optimization test: s, p, d and f basis functions (Legacy optimizer)";;
-    opt_nh4_pbe0_def2svp)                 testinfo="NH4+: DFT geometry optimization test: s, p and d basis functions (Legacy optimizer)";;
-    opt_caffeine_b3lyp_3-21g)             testinfo="Caffeine: DFT B3LYP DL-FIND geometry optimization test: s and p basis functions (Baker test set)";;
-    opt_merad_ub3lyp_631gss)              testinfo="Methyl radical: UDFT B3LYP geometry optimization test (Legacy optimizer)";;
-    opt_hsoh_pbe0_def2svp)                testinfo="Oxadisulfane: DFT PBE0 DL-FIND geometry optimization test with s, p and d basis functions";;
-    opt_c3h4_rhf_631g)                    testinfo="Allene: RHF DL-FIND geometry optimization test with s and p basis functions";;
-    opt_c2h5rad_uhf_631gss)               testinfo="Ethyl radical: UHF DL-FIND geometry optimization test";;
-    opt_c2hrad_ub3lyp_ccpvdz)             testinfo="Ethynyl radical: UDFT B3LYP DL-FIND geometry optimization test with s, p and d basis functions";;
-    api_water_rhf_631g)                   testinfo="Water: API test";;
-  esac
-
-  echo $testinfo | tee -a $QUICK_HOME/.quick.${buildtype}.runtest.log
+  echo "$1" | tee -a "$2"
 }
 
 
 # function to set correct quick executable and test list
 # must be called from a loop where $buildtype carries build type
+#
+# arguments:
+#   $1: QUICK version (a.k.a. build type) which to configure tests for
 set_qexe_testlist()
 {
-  if [ "$buildtype" = 'serial' ]; then
+  if [ "$1" = 'serial' ]; then
     qexe='quick'
     apiexe='test-api'
 
@@ -365,7 +181,7 @@ set_qexe_testlist()
     else
       test_list="$testdir/testlist_short.txt"
     fi
-  elif [ "$buildtype" = 'mpi' ]; then
+  elif [ "$1" = 'mpi' ]; then
     qexe='quick.MPI'
     apiexe='test-api.MPI'
 
@@ -380,7 +196,7 @@ set_qexe_testlist()
     else
       test_list="$testdir/testlist_short.txt"
     fi
-  elif [ "$buildtype" = 'cuda' ]; then
+  elif [ "$1" = 'cuda' ]; then
     qexe='quick.cuda'
     apiexe='test-api.cuda'
 
@@ -391,11 +207,11 @@ set_qexe_testlist()
     fi
 
     if [ "$test_length" = 'full' ]; then
-      test_list="$testdir/testlist_full_cuda.txt"
+      test_list="$testdir/testlist_full_gpu.txt"
     else
-      test_list="$testdir/testlist_short_cuda.txt"
+      test_list="$testdir/testlist_short_gpu.txt"
     fi
-  elif [ "$buildtype" = 'cudampi' ]; then
+  elif [ "$1" = 'cudampi' ]; then
     qexe='quick.cuda.MPI'
     apiexe='test-api.cuda.MPI'
 
@@ -406,11 +222,11 @@ set_qexe_testlist()
     fi
 
     if [ "$test_length" = 'full' ]; then
-      test_list="$testdir/testlist_full_cuda.txt"
+      test_list="$testdir/testlist_full_gpu.txt"
     else
-      test_list="$testdir/testlist_short_cuda.txt"
+      test_list="$testdir/testlist_short_gpu.txt"
     fi
-  elif [ "$buildtype" = 'hip' ]; then
+  elif [ "$1" = 'hip' ]; then
     qexe='quick.hip'
     apiexe='test-api.hip'
 
@@ -421,11 +237,11 @@ set_qexe_testlist()
     fi
 
     if [ "$test_length" = 'full' ]; then
-      test_list="$testdir/testlist_full_cuda.txt"
+      test_list="$testdir/testlist_full_gpu.txt"
     else
-      test_list="$testdir/testlist_short_cuda.txt"
+      test_list="$testdir/testlist_short_gpu.txt"
     fi
-  elif [ "$buildtype" = 'hipmpi' ]; then
+  elif [ "$1" = 'hipmpi' ]; then
     qexe='quick.hip.MPI'
     apiexe='test-api.hip.MPI'
 
@@ -436,35 +252,63 @@ set_qexe_testlist()
     fi
 
     if [ "$test_length" = 'full' ]; then
-      test_list="$testdir/testlist_full_cuda.txt"
+      test_list="$testdir/testlist_full_gpu.txt"
     else
-      test_list="$testdir/testlist_short_cuda.txt"
+      test_list="$testdir/testlist_short_gpu.txt"
     fi
   fi
 }
 
 
-# function to get the total number of tests
+# function to set the various test lists and counts
+#
+# arguments:
+#   $1: run energy tests ['yes'|'no']
+#   $2: run gradient tests ['yes'|'no']
+#   $3: run geometry optimization tests ['yes'|'no']
+#   $4: run API tests ['yes'|'no']
+#
+# outputs:
+#   tests: array of tests
+#   test_names: array of test names
+#   tot_{ene,grad,opt,api}_tests: counts for test lists by type
+#   total_tests: sum of counts for all test types
 get_total_tests()
 {
-  if [ "$test_ene" = 'yes' ]; then
-    tot_ene_tests=`awk '{print $1}' "$test_list" | grep "ene" | wc -l`
-    total_tests=$((total_tests+tot_ene_tests))
+  tests=()
+  test_names=()
+  total_tests=0 
+
+  if [ "$1" = 'yes' ]; then
+    tot_ene_tests="${#tests[@]}"
+    tests+=(`grep "^ene_" "$test_list" | awk '{print $1}'`)
+    readarray -t -O "${#test_names[@]}" test_names <<< `grep "^ene_" "$test_list" | awk 'BEGIN { FPAT="([^#]+)"; OFS="\n"; } {print $2}'`
+    total_tests="${#tests[@]}"
+    tot_ene_tests=$((total_tests-tot_ene_tests))
   fi
 
-  if [ "$test_grad" = 'yes' ]; then
-    tot_grad_tests=`awk '{print $1}' "$test_list" | grep "grad" | wc -l`
-    total_tests=$((total_tests+tot_grad_tests))
+  if [ "$2" = 'yes' ]; then
+    tot_grad_tests="${#tests[@]}"
+    tests+=(`grep "^grad_" "$test_list" | awk '{print $1}'`)
+    readarray -t -O "${#test_names[@]}" test_names <<< `grep "^grad_" "$test_list" | awk 'BEGIN { FPAT="([^#]+)"; OFS="\n"; } {print $2}'`
+    total_tests="${#tests[@]}"
+    tot_grad_tests=$((total_tests-tot_grad_tests))
   fi
 
-  if [ "$test_opt" = 'yes' ]; then
-    tot_opt_tests=`awk '{print $1}' "$test_list" | grep "opt" | wc -l`
-    total_tests=$((total_tests+tot_opt_tests))
+  if [ "$3" = 'yes' ]; then
+    tot_opt_tests="${#tests[@]}"
+    tests+=(`grep "^opt_" "$test_list" | awk '{print $1}'`)
+    readarray -t -O "${#test_names[@]}" test_names <<< `grep "^opt_" "$test_list" | awk 'BEGIN { FPAT="([^#]+)"; OFS="\n"; } {print $2}'`
+    total_tests="${#tests[@]}"
+    tot_opt_tests=$((total_tests-tot_opt_tests))
   fi
 
-  if [ "$test_api" = 'yes' ]; then
-    tot_api_tests=`awk '{print $1}' "$test_list" | grep "api" | wc -l`
-    total_tests=$((total_tests+tot_api_tests))
+  if [ "$4" = 'yes' ]; then
+    tot_api_tests="${#tests[@]}"
+    tests+=(`grep "^api_" "$test_list" | awk '{print $1}'`)
+    readarray -t -O "${#test_names[@]}" test_names <<< `grep "^api_" "$test_list" | awk 'BEGIN { FPAT="([^#]+)"; OFS="\n"; } {print $2}'`
+    total_tests="${#tests[@]}"
+    tot_api_tests=$((total_tests-tot_api_tests))
   fi
 }
 
@@ -488,214 +332,259 @@ set_test()
 # function to run tests. accuracy sets the tolerance. 
 #
 # arguments:
-#   $1: test name
-#   $2: test number
-#   $3: total test number
+#   $1: test
+#   $2: test name
+#   $3: test number
+#   $4: total number of tests
+#   $5: log file
 run_test()
 {
-    echo "Running test $2 of $3" | tee -a $QUICK_HOME/.quick.${buildtype}.runtest.log
 
-    print_test_info "$1"
+  # Run the test case
+  if [ $buildtype = 'mpi' ] || [ $buildtype = 'cudampi' ] || [ $buildtype = 'hipmpi' ] && [ $ismpirun = 'yes' ]; then
+    eval "$DO_PARALLEL $qbindir/$qexe $1.in" > /dev/null 2>&1
+  else
+    "$qbindir/$qexe" "$1.in" > /dev/null 2>&1
+  fi
 
-    # Run the test case
-    if [ $buildtype = 'mpi' ] || [ $buildtype = 'cudampi' ] || [ $buildtype = 'hipmpi' ] && [ $ismpirun = 'yes' ]; then
-      eval "$DO_PARALLEL $qbindir/$qexe $1.in" > /dev/null 2>&1
-    else
-      "$qbindir/$qexe" "$1.in" > /dev/null 2>&1
-    fi
+  if [ "$?" -ne 0 ] && [ `check_f_error $1` -eq 0 ]; then
+    echo "Error: $qexe execution failed."
+    echo ""
 
-    if [ "$?" -ne 0 ] && [ `check_f_error $1` -eq 0 ]; then
-      echo "Error: $qexe execution failed."
-      echo ""
-      exit 1
-    fi
+    # on failure, log header of failing test
+    lock_file "$5"
+    echo "Running test $3 of $4" | tee -a "$5"
+    print_test_info "$2" "$5"
+    unlock_file "$5"
 
-    if [ `check_f_error $1` -eq 1 ]; then
-      echo "SKIPPED."
-      echo "=============================================================="
-      echo ""
-    fi
+    exit 1
+  fi
+
+  if [ `check_f_error $1` -eq 1 ]; then
+    echo "SKIPPED."
+    echo "=============================================================="
+    echo ""
+  fi
 }
 
 
 # function to run api tests
 #
 # arguments:
-#   $1: test name
-#   $2: test number
-#   $3: total test number
+#   $1: test
+#   $2: test name
+#   $3: test number
+#   $4: total number of tests
+#   $5: log file
 run_test_api()
 {
-    echo "Running test $2 of $3" | tee -a $QUICK_HOME/.quick.${buildtype}.runtest.log
+  #Run test
+  if [ $buildtype = 'mpi' ] || [ $buildtype = 'cudampi' ] || [ $buildtype = 'hipmpi' ] && [ $ismpirun = 'yes' ]; then
+    eval "$DO_PARALLEL $apipath/$apiexe" > /dev/null 2>&1
+  else
+    "$apipath/$apiexe" > /dev/null 2>&1
+  fi
 
-    print_test_info "$1"
-   
-    #Run test
-    if [ $buildtype = 'mpi' ] || [ $buildtype = 'cudampi' ] || [ $buildtype = 'hipmpi' ] && [ $ismpirun = 'yes' ]; then
-      eval "$DO_PARALLEL $apipath/$apiexe" > /dev/null 2>&1
-    else
-      "$apipath/$apiexe" > /dev/null 2>&1
-    fi
+  if [ "$?" -ne 0 ]; then
+    echo "Error: $apiexe execution failed."
+    echo ""
 
-    if [ "$?" -ne 0 ]; then
-      echo "Error: $apiexe execution failed."
-      echo ""
-      exit 1
-    fi
+    # on failure, log header of failing test
+    lock_file "$5"
+    echo "Running test $3 of $4" | tee -a "$5"
+    print_test_info "$2" "$5"
+    unlock_file "$5"
+
+    exit 1
+  fi
 }
 
 
 # wrapper function for energy tests.
 #
 # arguments:
-#   $1: test name
-#   $2: test number for this test
-#   $3: total number of tests
-#   $4: directory containing test files
+#   $1: test
+#   $2: test name
+#   $3: test number for this test
+#   $4: total number of tests
+#   $5: directory containing test files and scripts
+#   $6: log file
 run_energy_test()
 {
-  set_test "$1" "$4"
-  run_test "$1" "$2" "$3"
+  set_test "$1" "$5"
+  run_test "$1" "$2" "$3" "$4" "$6"
+  lock_file "$6"
+  echo "Running test $3 of $4" | tee -a "$6"
+  print_test_info "$2" "$6"
   if [ `check_f_error $1` -eq 0 ]; then
-    check_energy "$1" "$4"
-    check_dipole "$1" "$4"
+    check_energy "$1" "$5" "$6"
+    check_dipole "$1" "$5" "$6"
     clean_up "$1"
          
     echo ""
+    echo "" | tee -a "$6"
   fi
+  unlock_file "$6"
 }
 
 
 # wrapper function for gradient tests.
 #
 # arguments:
-#   $1: test name
-#   $2: test number for this test
-#   $3: total number of tests
-#   $4: directory containing test files
+#   $1: test
+#   $2: test name
+#   $3: test number for this test
+#   $4: total number of tests
+#   $5: directory containing test files and scripts
+#   $6: log file
 run_grad_test()
 {
-  set_test "$1" "$4"
-  run_test "$1" "$2" "$3"
+  set_test "$1" "$5"
+  run_test "$1" "$2" "$3" "$4" "$6"
+  lock_file "$6"
+  echo "Running test $3 of $4" | tee -a "$6"
+  print_test_info "$2" "$6"
   if [ `check_f_error $1` -eq 0 ]; then
-      check_energy "$1" "$4"
-      check_gradient "$1" "$4"
-      check_dipole "$1" "$4"
-      clean_up "$1"
+    check_energy "$1" "$5" "$6"
+    check_gradient "$1" "$5" "$6"
+    check_dipole "$1" "$5" "$6"
+    clean_up "$1"
     
-      echo ""
+    echo ""
+    echo "" | tee -a "$6"
   fi
+  unlock_file "$6"
 }
 
 
 # wrapper function for geometry optimization tests.
 #
 # arguments:
-#   $1: test name
-#   $2: test number for this test
-#   $3: total number of tests
-#   $4: directory containing test files
+#   $1: test
+#   $2: test name
+#   $3: test number for this test
+#   $4: total number of tests
+#   $5: directory containing test files and scripts
+#   $6: log file
 run_opt_test()
 {
-  set_test "$1" "$4"
-  run_test "$1" "$2" "$3"
+  set_test "$1" "$5"
+  run_test "$1" "$2" "$3" "$4" "$6"
+  lock_file "$6"
+  echo "Running test $3 of $4" | tee -a "$6"
+  print_test_info "$2" "$6"
   if [ `check_f_error $1` -eq 0 ]; then
-      check_opt "$1" "$4"
-      check_dipole "$1" "$4"
-      clean_up "$1"
+    check_opt "$1" "$5" "$6"
+    check_dipole "$1" "$5" "$6"
+    clean_up "$1"
      
-      echo ""
+    echo ""
+    echo "" | tee -a "$6"
   fi
+  unlock_file "$6"
 }
 
 
 # wrapper function for API tests.
 #
 # arguments:
-#   $1: test name
-#   $2: test number for this test
-#   $3: total number of tests
-#   $4: directory containing test files
+#   $1: test
+#   $2: test name
+#   $3: test number for this test
+#   $4: total number of tests
+#   $5: directory containing test files and scripts
+#   $6: log file
 run_api_test()
 {
-  set_test "$1" "$4"
-  run_test_api "$1" "$2" "$3"
-  check_energy "$1" "$4"
-  check_gradient "$1" "$4"
+  set_test "$1" "$5"
+  run_test_api "$1" "$2" "$3" "$4" "$6"
+  lock_file "$6"
+  echo "Running test $3 of $4" | tee -a "$6"
+  print_test_info "$2" "$6"
+  check_energy "$1" "$5" "$6"
+  check_gradient "$1" "$5" "$6"
   clean_up "$1"
+  echo ""
+  echo "" | tee -a "$6"
+  unlock_file "$6"
 }
 
 
-# check electronic, nuclear and total energy
+# check electronic, nuclear, and total energy from test
 #
 # arguments:
 #   $1: test name
-#   $2: directory containing test files
+#   $2: directory containing test files and scripts
+#   $3: log file
 check_energy()
 {
-    accuracy='4.0e-5'
+  accuracy='4.0e-5'
 
-    awk '/Begin Energy Calculation/,/End Energy calculation/ {print}' "$1.ref.out" > "$1.ref.ene"
-    awk '/Begin Energy Calculation/,/End Energy calculation/ {print}' "$1.out" > "$1.ene"
+  awk '/Begin Energy Calculation/,/End Energy calculation/ {print}' "$1.ref.out" > "$1.ref.ene"
+  awk '/Begin Energy Calculation/,/End Energy calculation/ {print}' "$1.out" > "$1.ene"
 
-    "$2/dacdif" -k -a "$accuracy" "$1.ref.ene" "$1.ene" | tee -a $QUICK_HOME/.quick.${buildtype}.runtest.log
+  "$2/dacdif" -k -a "$accuracy" "$1.ref.ene" "$1.ene" | tee -a "$3"
 }
 
 
-# check nuclear and point charge gradients
+# check nuclear and point charge gradients from test
 #
 # arguments:
 #   $1: test name
+#   $2: directory containing test files and scripts
+#   $3: log file
 check_gradient()
 {
-    accuracy='4.0e-3'
+  accuracy='4.0e-3'
 
-    awk '/Begin Gradient Calculation/,/End Gradient Calculation/ {print}' "$1.ref.out" > "$1.ref.grad"
-    awk '/Begin Gradient Calculation/,/End Gradient Calculation/ {print}' "$1.out" > "$1.grad"
+  awk '/Begin Gradient Calculation/,/End Gradient Calculation/ {print}' "$1.ref.out" > "$1.ref.grad"
+  awk '/Begin Gradient Calculation/,/End Gradient Calculation/ {print}' "$1.out" > "$1.grad"
 
-    "$2/dacdif" -k -a "$accuracy" "$1.ref.grad" "$1.grad" | tee -a $QUICK_HOME/.quick.${buildtype}.runtest.log
+  "$2/dacdif" -k -a "$accuracy" "$1.ref.grad" "$1.grad" | tee -a "$3"
 }
 
 
-# check optimized geometry and force element
+# check optimized geometry and force element from test
 #
 # arguments:
 #   $1: test name
-#   $2: directory containing test files
+#   $2: directory containing test files and scripts
+#   $3: log file
 check_opt()
 {
-    accuracy='4.0e-3'
+  accuracy='4.0e-3'
 
-    awk '/GEOMETRY INFORMATION/,/Finish Optimization Job/ {print}' "$1.ref.out" > "$1.ref.opt"
-    awk '/GEOMETRY INFORMATION/,/Finish Optimization Job/ {print}' "$1.out" > "$1.opt"
+  awk '/GEOMETRY INFORMATION/,/Finish Optimization Job/ {print}' "$1.ref.out" > "$1.ref.opt"
+  awk '/GEOMETRY INFORMATION/,/Finish Optimization Job/ {print}' "$1.out" > "$1.opt"
 
-    "$2/dacdif" -k -a "$accuracy" "$1.ref.opt" "$1.opt" | tee -a $QUICK_HOME/.quick.${buildtype}.runtest.log
+  "$2/dacdif" -k -a "$accuracy" "$1.ref.opt" "$1.opt" | tee -a "$3"
 }
 
 
-# check mulliken charges and dipole
+# check mulliken charges and dipole from test
 #
 # arguments:
 #   $1: test name
-#   $2: directory containing test files
+#   $2: directory containing test files and scripts
+#   $3: log file
 check_dipole()
 {
-    accuracy='4.0e-3'
+  accuracy='4.0e-3'
 
-    awk '/Begin Charge and Dipole Calculation/,/End Charge and Dipole Calculation/ {print}' "$1.ref.out" > "$1.ref.dipole"
-    awk '/Begin Charge and Dipole Calculation/,/End Charge and Dipole Calculation/ {print}' "$1.out" > "$1.dipole"
+  awk '/Begin Charge and Dipole Calculation/,/End Charge and Dipole Calculation/ {print}' "$1.ref.out" > "$1.ref.dipole"
+  awk '/Begin Charge and Dipole Calculation/,/End Charge and Dipole Calculation/ {print}' "$1.out" > "$1.dipole"
 
-    "$2/dacdif" -k -a "$accuracy" "$1.ref.dipole" "$1.dipole" | tee -a $QUICK_HOME/.quick.${buildtype}.runtest.log
+  "$2/dacdif" -k -a "$accuracy" "$1.ref.dipole" "$1.dipole" | tee -a "$3"
 }
 
 
-# function to clean up files
+# function to clean up files from test
 #
 # arguments:
 #   $1: test name
 clean_up()
 {
-    rm -f "$1.ref.out" "$1.in" "ddtmp.$1*" "$1.*ene" "$1.*grad" "$1.*dipole" "$1.*opt"
+  rm -f "$1.ref.out" "$1.in" "ddtmp.$1*" "$1.*ene" "$1.*grad" "$1.*dipole" "$1.*opt"
 }
 
 
@@ -722,13 +611,12 @@ print_summary()
     failed_grad=0
     failed_opt=0
     failed_api=0
-    total_tests=0
  
     # set testlist
-    set_qexe_testlist
+    set_qexe_testlist "$buildtype"
  
     # get the number of tests to run
-    get_total_tests
+    get_total_tests "$test_ene" "$test_grad" "$test_opt" "$test_api"
  
     # grab stuff from temporary log files
     sed -n '/'$buildtype' version started/,/All '$buildtype' tests are done/p' $QUICK_HOME/.quick.${buildtype}.runtest.log > .quick.runtest.${buildtype}.summary.tmp1
@@ -975,13 +863,13 @@ if [ ! -f "$testdir/testlist_full.txt" ]; then
   exit 1
 fi
 
-if [ ! -f "$testdir/testlist_short_cuda.txt" ]; then
-  echo  "Error: testlist_short_cuda.txt not found in $testdir. "
+if [ ! -f "$testdir/testlist_short_gpu.txt" ]; then
+  echo  "Error: testlist_short_gpu.txt not found in $testdir. "
   exit 1
 fi
 
-if [ ! -f "$testdir/testlist_full_cuda.txt" ]; then
-  echo  "Error: testlist_full_cuda.txt not found in $testdir. "
+if [ ! -f "$testdir/testlist_full_gpu.txt" ]; then
+  echo  "Error: testlist_full_gpu.txt not found in $testdir. "
   exit 1
 fi
 
@@ -1017,7 +905,7 @@ fi
 
 # check for GNU parallel
 if [ -n "$PARALLEL_TEST_COUNT" ]; then
-  check_for_req_deps "parallel"
+  check_for_req_deps "parallel" "ln" "sleep"
 
   case $PARALLEL_TEST_COUNT in
     ''|*[!0-9]*) is_integer='no';;
@@ -1038,9 +926,9 @@ if [ -n "$PARALLEL_TEST_COUNT" ]; then
   # note: function exporting for invocation with GNU parallel is bash-specific;
   #       an alternative would be to install and use env_parallel (which for non-bash shells
   #       utilizes a export and eval approach for string representation of shell functions)
-  export buildtype qbindir qexe apipath apiexe ismpirun
+  export buildtype qbindir qexe apipath apiexe ismpirun has_parallel
   export -f set_test print_test_info run_test run_test_api run_energy_test run_grad_test run_opt_test run_api_test \
-	  check_energy check_gradient check_opt check_dipole clean_up check_f_error
+	  check_energy check_gradient check_opt check_dipole clean_up check_f_error lock_file unlock_file
 fi
 
 #  !---------------------------------------------------------------------!
@@ -1078,77 +966,75 @@ for buildtype in $buildtypes; do
   echo "" | tee -a $QUICK_HOME/.quick.${buildtype}.runtest.log
 
   # set qexe and testlist
-  set_qexe_testlist
-
-  # initialize the total number of test cases
-  total_tests=0 
+  set_qexe_testlist "$buildtype"
 
   # get the number of tests to run
-  get_total_tests
+  get_total_tests "$test_ene" "$test_grad" "$test_opt" "$test_api"
 
-  tc=1 # test count
   cd "$testdir/runs/$buildtype"
+
+  if [ $has_parallel = 'yes' ]; then
+    # ensure no leftover lock files from failed previous runs
+    rm -f "$QUICK_HOME/.quick.${buildtype}.runtest.log.lock" "$QUICK_HOME/.quick.${buildtype}.runtest.log.deleteme"
+  fi
 
   # Run energy tests
   if [ "$test_ene" = 'yes' ]; then
-    tests=`awk '{print $1}' "$test_list" | grep "ene"`
+    tc_start='1'
+    tc_end="$tot_ene_tests"
     if [ $has_parallel = 'no' ]; then
-      for t in $tests; do
-        run_energy_test "$t" "$tc" "$total_tests" "$testdir"
-        tc=$((tc+1))
+      for tc in `seq $tc_start $tc_end`; do
+        run_energy_test "${tests[$((tc-1))]}" "${test_names[$((tc-1))]}" "$tc" "$total_tests" "$testdir"
       done
     elif [ $has_parallel = 'yes' ]; then
-      tc_start=1
-      tc_end=`echo $tests | wc -w`
-      parallel --keep-order --group --jobs "$PARALLEL_TEST_COUNT" --will-cite run_energy_test {1} {2} $total_tests $testdir \
-	      ::: $tests :::+ `seq $tc_start $tc_end`
+      parallel --keep-order --group --jobs "$PARALLEL_TEST_COUNT" --will-cite run_energy_test {1} {2} {3} \
+	      "$total_tests" "$testdir" "$QUICK_HOME/.quick.${buildtype}.runtest.log" \
+	      ::: "${tests[@]:$((tc_start-1)):$((tc_end-1))}" :::+ "${test_names[@]:$((tc_start-1)):$((tc_end-1))}" :::+ `seq $tc_start $tc_end`
     fi
   fi
 
   # Run gradient tests
   if [ "$test_grad" = 'yes' ]; then
-    tests=`awk '{print $1}' "$test_list" | grep "grad"`
+    tc_start=$((tc_end+1))
+    tc_end=$((tc_end+tot_grad_tests))
     if [ $has_parallel = 'no' ]; then
-      for t in $tests; do
-        run_grad_test "$t" "$tc" "$total_tests" "$testdir"
-        tc=$((tc+1))
+      for tc in `seq $tc_start $tc_end`; do
+        run_grad_test "${tests[$((tc-1))]}" "${test_names[$((tc-1))]}" "$tc" "$total_tests" "$testdir"
       done
     elif [ $has_parallel = 'yes' ]; then
-      tc_start=$((tc_end+1))
-      tc_end=$((tc_start+`echo $tests | wc -w`))
-      parallel --keep-order --group --jobs "$PARALLEL_TEST_COUNT" --will-cite run_grad_test {1} {2} $total_tests $testdir \
-	      ::: $tests :::+ `seq $tc_start $tc_end`
+      parallel --keep-order --group --jobs "$PARALLEL_TEST_COUNT" --will-cite run_grad_test {1} {2} {3} \
+	      "$total_tests" "$testdir" "$QUICK_HOME/.quick.${buildtype}.runtest.log" \
+	      ::: "${tests[@]:$((tc_start-1)):$((tc_end-1))}" :::+ "${test_names[@]:$((tc_start-1)):$((tc_end-1))}" :::+ `seq $tc_start $tc_end`
     fi
   fi
 
   # Run geometry optimization tests
   if [ "$test_opt" = 'yes' ]; then
-    tests=`awk '{print $1}' "$test_list" | grep "opt"`
+    tc_start=$((tc_end+1))
+    tc_end=$((tc_end+tot_opt_tests))
     if [ $has_parallel = 'no' ]; then
-      for t in $tests; do
-        run_opt_test "$t" "$tc" "$total_tests" "$testdir"
-        tc=$((tc+1))
+      for tc in `seq $tc_start $tc_end`; do
+        run_opt_test "${tests[$((tc-1))]}" "${test_names[$((tc-1))]}" "$tc" "$total_tests" "$testdir"
       done
     elif [ $has_parallel = 'yes' ]; then
-      tc_start=$((tc_end+1))
-      tc_end=$((tc_start+`echo $tests | wc -w`))
-      parallel --keep-order --group --jobs "$PARALLEL_TEST_COUNT" --will-cite run_opt_test {1} {2} $total_tests $testdir \
-	      ::: $tests :::+ `seq $tc_start $tc_end`
+      parallel --keep-order --group --jobs "$PARALLEL_TEST_COUNT" --will-cite run_opt_test {1} {2} {3} \
+	      "$total_tests" "$testdir" "$QUICK_HOME/.quick.${buildtype}.runtest.log" \
+	      ::: "${tests[@]:$((tc_start-1)):$((tc_end-1))}" :::+ "${test_names[@]:$((tc_start-1)):$((tc_end-1))}" :::+ `seq $tc_start $tc_end`
     fi
   fi
 
   # Run api tests
   if [ "$test_api" = 'yes' ]; then
-    tests=`awk '{print $1}' "$test_list" | grep "api_"`
+    tc_start=$((tc_end+1))
+    tc_end=$((tc_end+tot_api_tests))
     if [ $has_parallel = 'no' ]; then
-      for t in $tests; do
-        run_api_test "$t" "$tc" "$total_tests" "$testdir"
+      for tc in `seq $tc_start $tc_end`; do
+        run_api_test "${tests[$((tc-1))]}" "${test_names[$((tc-1))]}" "$tc" "$total_tests" "$testdir"
       done
     elif [ $has_parallel = 'yes' ]; then
-      tc_start=$((tc_end+1))
-      tc_end=$((tc_start+`echo $tests | wc -w`))
-      parallel --keep-order --group --jobs "$PARALLEL_TEST_COUNT" --will-cite run_api_test {1} {2} $total_tests $testdir \
-	      ::: $tests :::+ `seq $tc_start $tc_end`
+      parallel --keep-order --group --jobs "$PARALLEL_TEST_COUNT" --will-cite run_api_test {1} {2} {3} \
+	      "$total_tests" "$testdir" "$QUICK_HOME/.quick.${buildtype}.runtest.log" \
+	      ::: "${tests[@]:$((tc_start-1)):$((tc_end-1))}" :::+ "${test_names[@]:$((tc_start-1)):$((tc_end-1))}" :::+ `seq $tc_start $tc_end`
     fi
   fi
 
