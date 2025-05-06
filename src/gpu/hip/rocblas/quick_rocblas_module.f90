@@ -21,7 +21,7 @@ module quick_rocblas_module
     implicit none
 
     private
-    public :: rocBlasInit, rocDGEMM, rocBlasFinalize
+    public :: rocBlasInit, rocDGEMM, rocDGEMV, rocBlasFinalize
     public :: handle, hinfo, dinfo, dA, dB, dC, hA, hB, hC ! Required for rocSolver
    
     ! global variables
@@ -39,6 +39,10 @@ module quick_rocblas_module
     interface rocDGEMM
         module procedure quick_rocblas_dgemm
     end interface rocDGEMM
+
+    interface rocDGEMV
+        module procedure quick_rocblas_dgemv
+    end interface rocDGEMV
 
     interface rocBlasInit
         module procedure rocblas_init
@@ -211,6 +215,111 @@ contains
         call rocBlasFinalize()
 
     end subroutine quick_rocblas_dgemm
+
+
+    ! MM: Wrapper function for rocblas_dgemv. 
+    subroutine quick_rocblas_dgemv(trans, m, n, alpha, A, lda, x, incx, beta, y, incy)
+        use iso_c_binding
+        use rocblas
+        use rocblas_enums
+        use rocblas_extra
+
+        implicit none
+
+        character, intent(in) :: trans
+        integer, intent(in) :: m, n, lda, incx, incy
+        double precision, intent(in) :: alpha, beta
+        double precision, dimension(lda,*), intent(in) :: A
+        double precision, dimension(*), intent(in) :: x
+        double precision, dimension(*), intent(inout) :: y
+
+        !internal variables
+        integer(c_int) :: rb_n, rb_m, rb_lda, rb_incx, rb_incy, rb_sizea, rb_sizex, rb_sizey
+        real(c_double), target :: rb_alpha, rb_beta
+        
+        integer(kind(rocblas_operation_none)) :: rb_trans
+
+        type(c_ptr), target :: dA     ! device matrix A
+        type(c_ptr), target :: dx     ! device vector x
+        type(c_ptr), target :: dy     ! device vector y
+        real(8), dimension(:), allocatable, target :: hA ! host matrix A
+        real(8), dimension(:), allocatable, target :: hx ! host vector x
+        real(8), dimension(:), allocatable, target :: hy ! host vector y
+
+        ! Initialize internal variables
+        rb_m = m
+        rb_n = n
+        rb_lda = lda
+        rb_incx = incx
+        rb_incx = incy
+
+        if(trans .eq. 'n') then
+          rb_lda = rb_m
+          rb_sizea = rb_n * rb_lda
+          rb_sizex = rb_n
+          rb_trans = rocblas_operation_none
+        else
+          rb_lda = rb_n
+          rb_sizea = rb_m * rb_lda
+          rb_sizex = rb_m
+          rb_trans = rocblas_operation_transpose
+        endif
+
+        rb_sizey = rb_lda
+
+        rb_alpha = alpha
+        rb_beta = beta
+
+        ! Allocate host-side memory
+        if(.not. allocated(hA)) allocate(hA(rb_sizea))
+        if(.not. allocated(hx)) allocate(hx(rb_sizex))
+        if(.not. allocated(hy)) allocate(hy(rb_sizey))
+
+        ! Allocate device-side memory
+        call HIP_CHECK(hipMalloc(c_loc(dA), int(rb_sizea, c_size_t) * 8))
+        call HIP_CHECK(hipMalloc(c_loc(dx), int(rb_sizex, c_size_t) * 8))
+        call HIP_CHECK(hipMalloc(c_loc(dy), int(rb_sizey, c_size_t) * 8))
+
+        ! Initialize host memory
+        hA = reshape(A(1:lda,1:rb_lda), (/rb_sizea/))
+        hx = x(1:rb_sizex)
+        hy = y(1:rb_sizey)
+
+        ! Copy memory from host to device
+        call HIP_CHECK(hipMemcpy(dA, c_loc(hA), int(rb_sizea, c_size_t) * 8, 1))
+        call HIP_CHECK(hipMemcpy(dx, c_loc(hx), int(rb_sizex, c_size_t) * 8, 1))
+        call HIP_CHECK(hipMemcpy(dy, c_loc(hy), int(rb_sizey, c_size_t) * 8, 1))
+
+        ! Create rocBLAS handle
+        call ROCBLAS_CHECK(rocblas_create_handle(c_loc(handle)))
+
+        ! Set handle and call rocblas_dgemm
+        call ROCBLAS_CHECK(rocblas_set_pointer_mode(handle, 0))        
+
+        call ROCBLAS_CHECK(rocblas_dgemv(handle, rb_trans, rb_m, rb_n, c_loc(rb_alpha), &
+                                         dA, rb_lda, dx, rb_incx, c_loc(rb_beta), dy, rb_incy))
+
+        call HIP_CHECK(hipDeviceSynchronize())
+
+        ! Copy output from device to host
+        call HIP_CHECK(hipMemcpy(c_loc(hy), dy, int(rb_sizey, c_size_t) * 8, 2))
+
+        ! Transfer result
+        y = hy(1:rb_sizey)
+
+        ! Destroy rockblas handle
+        call ROCBLAS_CHECK(rocblas_destroy_handle(handle))
+
+        ! Cleanup
+        call HIP_CHECK(hipFree(dA))
+        call HIP_CHECK(hipFree(dx))
+        call HIP_CHECK(hipFree(dy))
+
+        if(allocated(hA)) deallocate(hA)
+        if(allocated(hx)) deallocate(hx)
+        if(allocated(hy)) deallocate(hy)      
+
+    end subroutine quick_rocblas_dgemv
 
 end module quick_rocblas_module
 

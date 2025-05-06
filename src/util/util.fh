@@ -51,8 +51,10 @@
 
 #if defined(HIP) || defined(HIP_MPIV)
 #  define GPU_DGEMM rocDGEMM
+#  define GPU_DGEMV rocDGEMV
 #elif defined(CUDA) || defined(CUDA_MPIV)
 #  define GPU_DGEMM CUBLAS_DGEMM
+#  define GPU_DGEMV CUBLAS_DGEMV
 #endif
 
 #ifdef REPORT_CPU_TIME

@@ -158,7 +158,7 @@ module quick_oeproperties_module
     use quick_mpi_module, only: mpirank, mpierror 
 #endif
 
-#if defined CUDA || defined CUDA_MPIV
+#if defined(GPU) || defined(MPIV_GPU)
     use quick_method_module, only: quick_method
 #endif
 
@@ -195,7 +195,7 @@ module quick_oeproperties_module
    call esp_nuc(npoints, xyz_points, esp_nuclear)
 
    ! Computes ESP_ELEC
-#if defined CUDA || defined CUDA_MPIV
+#if defined(GPU) || defined(MPIV_GPU)
    call gpu_upload_oeprop(npoints, xyz_points, esp_electronic, ierr)
    call gpu_upload_density_matrix(quick_qm_struct%dense)
    if (quick_method%UNRST) call gpu_upload_beta_density_matrix(quick_qm_struct%denseb)
@@ -312,12 +312,16 @@ module quick_oeproperties_module
      end do
 
      ! Using the inverse distance matrix to form the matrix A and vector B.
-#if defined CUDA
-     call CUBLAS_DGEMV('N',natom,npoints,One,invdist_arr,natom,esp,1,Zero,B,1)
-     call CUBLAS_DGEMM('N', 'T', natom, natom, npoints, One, invdist_arr, natom, invdist_arr, natom, Zero, A(1:natom,1:natom), natom)
+#if defined(GPU) || defined(MPIV_GPU)
+     call GPU_DGEMV('N', natom, npoints, One, invdist_arr, natom, esp, 1, &
+             Zero, B, 1)
+     call GPU_DGEMM('N', 'T', natom, natom, npoints, One, invdist_arr, natom, &
+             invdist_arr, natom, Zero, A(1:natom,1:natom), natom)
 #else
-     call DGEMV('N',natom,npoints,One,invdist_arr,natom,esp,1,Zero,B,1)
-     call DGEMM('N', 'T', natom, natom, npoints, One, invdist_arr, natom, invdist_arr, natom, Zero, A(1:natom,1:natom), natom)
+     call DGEMV('N', natom, npoints, One, invdist_arr, natom, esp, 1, Zero, &
+             B, 1)
+     call DGEMM('N', 'T', natom, natom, npoints, One, invdist_arr, natom, &
+             invdist_arr, natom, Zero, A(1:natom,1:natom), natom)
 #endif
 
      deallocate(invdist_arr)
@@ -349,10 +353,10 @@ module quick_oeproperties_module
 
 !  q = A-1*B
 
-#if defined CUDA
-   call CUBLAS_DGEMV('N',natom+1,natom+1,One,A,LDA,B,1,Zero,q,1)
+#if defined(GPU) || defined(MPIV_GPU)
+   call GPU_DGEMV('N', natom + 1, natom + 1, One, A, LDA, B, 1, Zero, q, 1)
 #else
-   call DGEMV('N',natom+1,natom+1,One,A,LDA,B,1,Zero,q,1)
+   call DGEMV('N', natom + 1, natom + 1, One, A, LDA, B, 1, Zero, q, 1)
 #endif
 
 !  B is copied to charge array.
