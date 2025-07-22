@@ -69,7 +69,7 @@ __device__ static inline void iclass_oei(unsigned int I, unsigned int J, unsigne
     for (int i = Sumindex[J]; i < Sumindex[J + 2]; ++i) {
         for (int j = Sumindex[I]; j < Sumindex[I + 2]; ++j) {
             if (i < STOREDIM && j < STOREDIM) {
-                LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
+                LOCSTORE(&devSim.store2[blockIdx.x * blockDim.x + threadIdx.x],
                         j, i, STOREDIM, STOREDIM) = 0.0;
             }
         }
