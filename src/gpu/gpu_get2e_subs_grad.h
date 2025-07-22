@@ -18,6 +18,8 @@
   #define gpu_get2e_subs_grad_h
   #undef STOREDIM
   #define STOREDIM STOREDIM_GRAD_T
+
+
 __device__ static inline void hrrwholegrad_sp(QUICKDouble* Yaax, QUICKDouble* Yaay, QUICKDouble* Yaaz,
         QUICKDouble* Ybbx, QUICKDouble* Ybby, QUICKDouble* Ybbz,
         QUICKDouble* Yccx, QUICKDouble* Yccy, QUICKDouble* Yccz,

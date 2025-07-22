@@ -23,10 +23,12 @@
 #define FMT_NAME FmT
 #include "gpu_fmt.h"
 
+#undef VY
+#define VY(a,b,c) LOCVY(&devSim.YVerticalTemp[blockIdx.x * blockDim.x + threadIdx.x], (a), (b), (c), VDIM1, VDIM2, VDIM3)
+
 
 __device__ static inline void iclass_oei(unsigned int I, unsigned int J, unsigned int II, unsigned int JJ,
-        unsigned int iatom, unsigned int totalatom, QUICKDouble * const YVerticalTemp,
-        QUICKDouble * const store, QUICKDouble * const store2) {
+        unsigned int iatom) {
     /*
        kAtom A, B  is the coresponding atom for shell II, JJ
        and be careful with the index difference between Fortran and C++,
@@ -34,12 +36,12 @@ __device__ static inline void iclass_oei(unsigned int I, unsigned int J, unsigne
        Ai, Bi, Ci are the coordinates for atom katomA, katomB, katomC,
        which means they are corrosponding coorinates for shell II, JJ and nuclei.
     */
-    const QUICKDouble Ax = LOC2(devSim.allxyz, 0, devSim.katom[II] - 1, 3, totalatom);
-    const QUICKDouble Ay = LOC2(devSim.allxyz, 1, devSim.katom[II] - 1, 3, totalatom);
-    const QUICKDouble Az = LOC2(devSim.allxyz, 2, devSim.katom[II] - 1, 3, totalatom);
-    const QUICKDouble Bx = LOC2(devSim.allxyz, 0, devSim.katom[JJ] - 1, 3, totalatom);
-    const QUICKDouble By = LOC2(devSim.allxyz, 1, devSim.katom[JJ] - 1, 3, totalatom);
-    const QUICKDouble Bz = LOC2(devSim.allxyz, 2, devSim.katom[JJ] - 1, 3, totalatom);
+    const QUICKDouble Ax = LOC2(devSim.allxyz, 0, devSim.katom[II] - 1, 3, devSim.natom + devSim.nextatom);
+    const QUICKDouble Ay = LOC2(devSim.allxyz, 1, devSim.katom[II] - 1, 3, devSim.natom + devSim.nextatom);
+    const QUICKDouble Az = LOC2(devSim.allxyz, 2, devSim.katom[II] - 1, 3, devSim.natom + devSim.nextatom);
+    const QUICKDouble Bx = LOC2(devSim.allxyz, 0, devSim.katom[JJ] - 1, 3, devSim.natom + devSim.nextatom);
+    const QUICKDouble By = LOC2(devSim.allxyz, 1, devSim.katom[JJ] - 1, 3, devSim.natom + devSim.nextatom);
+    const QUICKDouble Bz = LOC2(devSim.allxyz, 2, devSim.katom[JJ] - 1, 3, devSim.natom + devSim.nextatom);
 
     /*
        kPrimI and kPrimJ indicates the number of primitives in shell II and JJ.
@@ -58,7 +60,8 @@ __device__ static inline void iclass_oei(unsigned int I, unsigned int J, unsigne
     for (int i = Sumindex[J]; i < Sumindex[J + 2]; ++i) {
         for (int j = Sumindex[I]; j < Sumindex[I + 2]; ++j) {
             if (i < STOREDIM && j < STOREDIM) {
-                LOCSTORE(store, j, i, STOREDIM, STOREDIM) = 0.0;
+                LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
+                        j, i, STOREDIM, STOREDIM) = 0.0;
             }
         }
     }
@@ -66,7 +69,8 @@ __device__ static inline void iclass_oei(unsigned int I, unsigned int J, unsigne
     for (int i = Sumindex[J]; i < Sumindex[J + 2]; ++i) {
         for (int j = Sumindex[I]; j < Sumindex[I + 2]; ++j) {
             if (i < STOREDIM && j < STOREDIM) {
-                LOCSTORE(store2, j, i, STOREDIM, STOREDIM) = 0.0;
+                LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
+                        j, i, STOREDIM, STOREDIM) = 0.0;
             }
         }
     }
@@ -99,13 +103,14 @@ __device__ static inline void iclass_oei(unsigned int I, unsigned int J, unsigne
                 I - devSim.Qstart[II], J - devSim.Qstart[JJ], devSim.jbasis, devSim.jbasis, 2, 2);
 
         if (abs(Xcoeff_oei) > devSim.coreIntegralCutoff) {
-            const QUICKDouble Cx = LOC2(devSim.allxyz, 0, iatom, 3, totalatom);
-            const QUICKDouble Cy = LOC2(devSim.allxyz, 1, iatom, 3, totalatom);
-            const QUICKDouble Cz = LOC2(devSim.allxyz, 2, iatom, 3, totalatom);
+            const QUICKDouble Cx = LOC2(devSim.allxyz, 0, iatom, 3, devSim.natom + devSim.nextatom);
+            const QUICKDouble Cy = LOC2(devSim.allxyz, 1, iatom, 3, devSim.natom + devSim.nextatom);
+            const QUICKDouble Cz = LOC2(devSim.allxyz, 2, iatom, 3, devSim.natom + devSim.nextatom);
             const QUICKDouble chg = -1.0 * devSim.allchg[iatom];
 
             // compute boys function values, the third term of OS A20
-            FmT(I + J, Zeta * (SQR(Px - Cx) + SQR(Py - Cy) + SQR(Pz - Cz)), YVerticalTemp);
+            FmT(I + J, Zeta * (SQR(Px - Cx) + SQR(Py - Cy) + SQR(Pz - Cz)),
+                    &devSim.YVerticalTemp[blockIdx.x * blockDim.x + threadIdx.x]);
 
             // compute all auxilary integrals and store
             for (int n = 0; n <= I + J; n++) {
@@ -121,13 +126,15 @@ __device__ static inline void iclass_oei(unsigned int I, unsigned int J, unsigne
                     Px - Ax, Py - Ay, Pz - Az,
                     Px - Bx, Py - By, Pz - Bz,
                     Px - Cx, Py - Cy, Pz - Cz,
-                    1.0 / (2.0 * Zeta), store, YVerticalTemp);
+                    1.0 / (2.0 * Zeta), &devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
+                    &devSim.YVerticalTemp[blockIdx.x * blockDim.x + threadIdx.x]);
 
             // sum up primitive integral contributions
             for (int i = Sumindex[J]; i < Sumindex[J + 2]; ++i) {
                 for (int j = Sumindex[I]; j < Sumindex[I + 2]; ++j) {
                     if (i < STOREDIM && j < STOREDIM) {
-                        LOCSTORE(store2, j, i, STOREDIM, STOREDIM) += LOCSTORE(store, j, i, STOREDIM, STOREDIM);
+                        LOCSTORE(&devSim.store2[blockIdx.x * blockDim.x + threadIdx.x], j, i, STOREDIM, STOREDIM)
+                            += LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x], j, i, STOREDIM, STOREDIM);
                     }
                 }
             }
@@ -161,13 +168,13 @@ __device__ static inline void iclass_oei(unsigned int I, unsigned int J, unsigne
 
             // multiply the integral value by normalization constants.
             const QUICKDouble Y = devSim.cons[III - 1] * devSim.cons[JJJ - 1]
-                * LOCSTORE(store2, i - 1, j - 1, STOREDIM, STOREDIM);
+                * LOCSTORE(&devSim.store2[blockIdx.x * blockDim.x + threadIdx.x], i - 1, j - 1, STOREDIM, STOREDIM);
 
 //            if (III == 10 && JJJ == 50) {
 //                printf("OEI debug: III JJJ I J iatm i j c1 c2 store2 Y %d %d %d %d %d %d %d %f %f %f %f\n",
 //                        III, JJJ, I, J, iatom, i - 1,
 //                        j - 1, devSim.cons[III - 1], devSim.cons[JJJ - 1],
-//                        LOCSTORE(store2, i - 1, j - 1, STOREDIM, STOREDIM), Y);
+//                        LOCSTORE(&devSim.store2[blockIdx.x * blockDim.x + threadIdx.x], i - 1, j - 1, STOREDIM, STOREDIM), Y);
 //                printf("OEI debug: dt1 dt2 dt3 dt4 dt5 dt6:  %d %d %d %d %d %d \n",
 //                        LOC2(devSim.KLMN, 0, III - 1, 3,devSim.nbasis),
 //                        LOC2(devSim.KLMN, 1, III - 1, 3,devSim.nbasis),\
@@ -184,19 +191,18 @@ __device__ static inline void iclass_oei(unsigned int I, unsigned int J, unsigne
             atomicAdd(&LOC2(devSim.o, JJJ - 1, III - 1, devSim.nbasis, devSim.nbasis), Y);
 #endif
 
-            //printf("addint_oei: %d %d %f %f %f \n", III, JJJ, devSim.cons[III-1], devSim.cons[JJJ-1], LOCSTORE(store2, i-1, j-1, STOREDIM, STOREDIM));
+//            printf("addint_oei: %d %d %f %f %f \n", III, JJJ, devSim.cons[III - 1], devSim.cons[JJJ - 1],
+//                    LOCSTORE(&devSim.store2[blockIdx.x * blockDim.x + threadIdx.x], i - 1, j - 1, STOREDIM, STOREDIM));
         }
     }
 }
 
 
-__global__ void getOEI_kernel() {
-    const unsigned int offset = blockIdx.x * blockDim.x + threadIdx.x;
-    const unsigned int totalThreads = blockDim.x * gridDim.x;
+__global__ void k_oei() {
     const unsigned int jshell = devSim.Qshell;
-    const unsigned int totalatom = devSim.natom + devSim.nextatom;
 
-    for (QUICKULL i = offset; i < jshell * jshell * totalatom; i += totalThreads) {
+    for (QUICKULL i = blockIdx.x * blockDim.x + threadIdx.x;
+            i < jshell * jshell * (devSim.natom + devSim.nextatom); i += blockDim.x * gridDim.x) {
         // use the global index to obtain shell pair. Note that here we obtain a couple of indices that helps us to obtain
         // shell number (ii and jj) and quantum numbers (iii, jjj).
         const unsigned int iatom = (int) i / (jshell * jshell);
@@ -205,22 +211,21 @@ __global__ void getOEI_kernel() {
 #if defined(MPIV_GPU)
         if (devSim.mpi_boeicompute[idx] > 0) {
 #endif
-            const int II = devSim.sorted_OEICutoffIJ[idx].x;
-            const int JJ = devSim.sorted_OEICutoffIJ[idx].y;
+        const int II = devSim.sorted_OEICutoffIJ[idx].x;
+        const int JJ = devSim.sorted_OEICutoffIJ[idx].y;
 
-            // get the shell numbers of selected shell pair
-            const int ii = devSim.sorted_Q[II];
-            const int jj = devSim.sorted_Q[JJ];
+        // get the shell numbers of selected shell pair
+        const int ii = devSim.sorted_Q[II];
+        const int jj = devSim.sorted_Q[JJ];
 
-            // get the quantum number (or angular momentum of shells, s=0, p=1 and so on.)
-            const int iii = devSim.sorted_Qnumber[II];
-            const int jjj = devSim.sorted_Qnumber[JJ];
+        // get the quantum number (or angular momentum of shells, s=0, p=1 and so on.)
+        const int iii = devSim.sorted_Qnumber[II];
+        const int jjj = devSim.sorted_Qnumber[JJ];
 
-            //printf(" tid: %d II JJ ii jj iii jjj %d  %d  %d  %d  %d  %d \n", (int) i, II, JJ, ii, jj, iii, jjj);
+        //printf(" tid: %d II JJ ii jj iii jjj %d  %d  %d  %d  %d  %d \n", (int) i, II, JJ, ii, jj, iii, jjj);
 
-            // compute coulomb attraction for the selected shell pair.
-            iclass_oei(iii, jjj, ii, jj, iatom, totalatom, devSim.YVerticalTemp + offset,
-                    devSim.store + offset, devSim.store2 + offset);
+        // compute coulomb attraction for the selected shell pair.
+        iclass_oei(iii, jjj, ii, jj, iatom);
 #if defined(MPIV_GPU)
         }
 #endif

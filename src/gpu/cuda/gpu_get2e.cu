@@ -600,32 +600,32 @@ void get2e(_gpu_type gpu)
     bind_eri_texture(gpu);
 #endif
 
-    QUICK_SAFE_CALL((get2e_kernel_sp <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
+    QUICK_SAFE_CALL((k_eri_cshell_sp <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
 
-    QUICK_SAFE_CALL((get2e_kernel_spd <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
+    QUICK_SAFE_CALL((k_eri_cshell_spd <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
  
 #ifdef GPU_SPDF
     if (gpu->maxL >= 3) {
         // Part f-1
-        QUICK_SAFE_CALL((get2e_kernel_spdf <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
+        QUICK_SAFE_CALL((k_eri_cshell_spdf <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
         // Part f-2
-        QUICK_SAFE_CALL((get2e_kernel_spdf2 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
+        QUICK_SAFE_CALL((k_eri_cshell_spdf2 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
         // Part f-3
-        QUICK_SAFE_CALL((get2e_kernel_spdf3 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
+        QUICK_SAFE_CALL((k_eri_cshell_spdf3 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
         // Part f-4
-        QUICK_SAFE_CALL((get2e_kernel_spdf4 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
+        QUICK_SAFE_CALL((k_eri_cshell_spdf4 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
         // Part f-5
-        QUICK_SAFE_CALL((get2e_kernel_spdf5 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
+        QUICK_SAFE_CALL((k_eri_cshell_spdf5 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
         // Part f-6
-        QUICK_SAFE_CALL((get2e_kernel_spdf6 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
+        QUICK_SAFE_CALL((k_eri_cshell_spdf6 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
         // Part f-7
-        QUICK_SAFE_CALL((get2e_kernel_spdf7 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
+        QUICK_SAFE_CALL((k_eri_cshell_spdf7 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
         // Part f-8
-        QUICK_SAFE_CALL((get2e_kernel_spdf8 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
+        QUICK_SAFE_CALL((k_eri_cshell_spdf8 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
         // Part f-9
-        //QUICK_SAFE_CALL((get2e_kernel_spdf9 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
+        //QUICK_SAFE_CALL((k_eri_cshell_spdf9 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
         // Part f-10
-        //QUICK_SAFE_CALL((get2e_kernel_spdf10 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
+        //QUICK_SAFE_CALL((k_eri_cshell_spdf10 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
     }
 #endif 
 
@@ -647,32 +647,32 @@ void get_oshell_eri(_gpu_type gpu)
     bind_eri_texture(gpu);
 #endif
 
-    QUICK_SAFE_CALL((get_oshell_eri_kernel_sp <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
+    QUICK_SAFE_CALL((k_eri_oshell_sp <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
 
-    QUICK_SAFE_CALL((get_oshell_eri_kernel_spd <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
+    QUICK_SAFE_CALL((k_eri_oshell_spd <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
 
 #ifdef GPU_SPDF
     if (gpu->maxL >= 3) {
         // Part f-1
-        QUICK_SAFE_CALL((get_oshell_eri_kernel_spdf <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
+        QUICK_SAFE_CALL((k_eri_oshell_spdf <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
         // Part f-2
-        QUICK_SAFE_CALL((get_oshell_eri_kernel_spdf2 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
+        QUICK_SAFE_CALL((k_eri_oshell_spdf2 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
         // Part f-3
-        QUICK_SAFE_CALL((get_oshell_eri_kernel_spdf3 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
+        QUICK_SAFE_CALL((k_eri_oshell_spdf3 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
         // Part f-4
-        QUICK_SAFE_CALL((get_oshell_eri_kernel_spdf4 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
+        QUICK_SAFE_CALL((k_eri_oshell_spdf4 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
         // Part f-5
-        QUICK_SAFE_CALL((get_oshell_eri_kernel_spdf5 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
+        QUICK_SAFE_CALL((k_eri_oshell_spdf5 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
         // Part f-6
-        QUICK_SAFE_CALL((get_oshell_eri_kernel_spdf6 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
+        QUICK_SAFE_CALL((k_eri_oshell_spdf6 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
         // Part f-7
-        QUICK_SAFE_CALL((get_oshell_eri_kernel_spdf7 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
+        QUICK_SAFE_CALL((k_eri_oshell_spdf7 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
         // Part f-8
-        QUICK_SAFE_CALL((get_oshell_eri_kernel_spdf8 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
+        QUICK_SAFE_CALL((k_eri_oshell_spdf8 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
         // Part f-9
-        //QUICK_SAFE_CALL((get_oshell_eri_kernel_spdf9 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
+        //QUICK_SAFE_CALL((k_eri_oshell_spdf9 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
         // Part f-10
-        //QUICK_SAFE_CALL((get_oshell_eri_kernel_spdf10 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
+        //QUICK_SAFE_CALL((k_eri_oshell_spdf10 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()));
     }
 #endif
 

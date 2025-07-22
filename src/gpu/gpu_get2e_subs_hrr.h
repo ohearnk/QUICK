@@ -12,38 +12,14 @@
 #undef STOREDIM
 #undef LOCSTORE
 #define STOREDIM STOREDIM_T
-#define LOCSTORE(A,i1,i2,d1,d2) (A[((i2) * (d1) + (i1)) * gridDim.x * blockDim.x])
+#define LOCSTORE(A,i1,i2,d1,d2) ((A)[((i2) * (d1) + (i1)) * gridDim.x * blockDim.x])
 
 
-__device__ static inline QUICKDouble quick_pow(QUICKDouble b, int e)
-{
-    QUICKDouble x;
-
-    // note: 0^0 = 1 for this subroutine but is invalid mathmatically
-    if (e == 0) {
-        x = 1.0;
-    }
-    else if (e == 1) {
-        x = b;
-    }
-    else if (e == 2) {
-        x = b * b;
-    }
-    else if (e == 3) {
-        x = b * b * b;
-    } else {
-        x = 0.0;
-    }
-
-    return x;
-}
-
-
-__device__ static inline int lefthrr(const QUICKDouble RAx, const QUICKDouble RAy, const QUICKDouble RAz,
-        const QUICKDouble RBx, const QUICKDouble RBy, const QUICKDouble RBz,
-        const int KLMNAx, const int KLMNAy, const int KLMNAz,
-        const int KLMNBx, const int KLMNBy, const int KLMNBz,
-        const int IJTYPE, QUICKDouble * const coefAngularL, unsigned char * const angularL)
+__device__ static inline int lefthrr(QUICKDouble RAx, QUICKDouble RAy, QUICKDouble RAz,
+        QUICKDouble RBx, QUICKDouble RBy, QUICKDouble RBz,
+        int KLMNAx, int KLMNAy, int KLMNAz,
+        int KLMNBx, int KLMNBy, int KLMNBz,
+        int IJTYPE, QUICKDouble * const coefAngularL, unsigned char * const angularL)
 {
     int numAngularL;
 
@@ -318,7 +294,7 @@ __device__ static inline int lefthrr(const QUICKDouble RAx, const QUICKDouble RA
             angularL[4] = (int) LOC3(devTrans, KLMNAx+1, KLMNAy+1, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
             angularL[5] = (int) LOC3(devTrans, KLMNAx+1, KLMNAy,   KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
             angularL[6] = (int) LOC3(devTrans, KLMNAx,   KLMNAy+1, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
-        } else if (KLMNBx == 1 && KLMNBz ==3) {
+        } else if (KLMNBx == 1 && KLMNBz == 3) {
             numAngularL = 8;
             QUICKDouble tmp = RAx - RBx;
             QUICKDouble tmp2 = RAz - RBz;
@@ -475,15 +451,15 @@ __device__ static inline int lefthrr(const QUICKDouble RAx, const QUICKDouble RA
             coefAngularL[10] = tmp2 * tmp3 * tmp3;
             coefAngularL[11] = tmp * tmp2 * tmp3 * tmp3;
 
-            angularL[1] = (int)  LOC3(devTrans, KLMNAx,   KLMNAy+1, KLMNAz+2, TRANSDIM, TRANSDIM, TRANSDIM);
-            angularL[2] = (int)  LOC3(devTrans, KLMNAx+1, KLMNAy,   KLMNAz+2, TRANSDIM, TRANSDIM, TRANSDIM);
-            angularL[3] = (int)  LOC3(devTrans, KLMNAx+1, KLMNAy+1, KLMNAz+1, TRANSDIM, TRANSDIM, TRANSDIM);
-            angularL[4] = (int)  LOC3(devTrans, KLMNAx,   KLMNAy,   KLMNAz+2, TRANSDIM, TRANSDIM, TRANSDIM);
-            angularL[5] = (int)  LOC3(devTrans, KLMNAx,   KLMNAy+1, KLMNAz+1, TRANSDIM, TRANSDIM, TRANSDIM);
-            angularL[6] = (int)  LOC3(devTrans, KLMNAx+1, KLMNAy,   KLMNAz+1, TRANSDIM, TRANSDIM, TRANSDIM);
-            angularL[7] = (int)  LOC3(devTrans, KLMNAx+1, KLMNAy+1, KLMNAz,   TRANSDIM, TRANSDIM, TRANSDIM);
-            angularL[8] = (int)  LOC3(devTrans, KLMNAx,   KLMNAy,   KLMNAz+1, TRANSDIM, TRANSDIM, TRANSDIM);
-            angularL[9] = (int)  LOC3(devTrans, KLMNAx,   KLMNAy+1, KLMNAz,   TRANSDIM, TRANSDIM, TRANSDIM);
+            angularL[1] = (int) LOC3(devTrans, KLMNAx,   KLMNAy+1, KLMNAz+2, TRANSDIM, TRANSDIM, TRANSDIM);
+            angularL[2] = (int) LOC3(devTrans, KLMNAx+1, KLMNAy,   KLMNAz+2, TRANSDIM, TRANSDIM, TRANSDIM);
+            angularL[3] = (int) LOC3(devTrans, KLMNAx+1, KLMNAy+1, KLMNAz+1, TRANSDIM, TRANSDIM, TRANSDIM);
+            angularL[4] = (int) LOC3(devTrans, KLMNAx,   KLMNAy,   KLMNAz+2, TRANSDIM, TRANSDIM, TRANSDIM);
+            angularL[5] = (int) LOC3(devTrans, KLMNAx,   KLMNAy+1, KLMNAz+1, TRANSDIM, TRANSDIM, TRANSDIM);
+            angularL[6] = (int) LOC3(devTrans, KLMNAx+1, KLMNAy,   KLMNAz+1, TRANSDIM, TRANSDIM, TRANSDIM);
+            angularL[7] = (int) LOC3(devTrans, KLMNAx+1, KLMNAy+1, KLMNAz,   TRANSDIM, TRANSDIM, TRANSDIM);
+            angularL[8] = (int) LOC3(devTrans, KLMNAx,   KLMNAy,   KLMNAz+1, TRANSDIM, TRANSDIM, TRANSDIM);
+            angularL[9] = (int) LOC3(devTrans, KLMNAx,   KLMNAy+1, KLMNAz,   TRANSDIM, TRANSDIM, TRANSDIM);
             angularL[10] = (int) LOC3(devTrans, KLMNAx+1, KLMNAy,   KLMNAz,   TRANSDIM, TRANSDIM, TRANSDIM);
         } else if (KLMNBx == 1 && KLMNBz == 1 && KLMNBy == 2) {
             numAngularL = 12;
@@ -503,15 +479,15 @@ __device__ static inline int lefthrr(const QUICKDouble RAx, const QUICKDouble RA
             coefAngularL[10] = tmp2 * tmp3 * tmp3;
             coefAngularL[11] = tmp * tmp2 * tmp3 * tmp3;
 
-            angularL[1] = (int)  LOC3(devTrans, KLMNAx,   KLMNAy+2, KLMNAz+1, TRANSDIM, TRANSDIM, TRANSDIM);
-            angularL[2] = (int)  LOC3(devTrans, KLMNAx+1, KLMNAy+2, KLMNAz,   TRANSDIM, TRANSDIM, TRANSDIM);
-            angularL[3] = (int)  LOC3(devTrans, KLMNAx+1, KLMNAy+1, KLMNAz+1, TRANSDIM, TRANSDIM, TRANSDIM);
-            angularL[4] = (int)  LOC3(devTrans, KLMNAx,   KLMNAy+2, KLMNAz,   TRANSDIM, TRANSDIM, TRANSDIM);
-            angularL[5] = (int)  LOC3(devTrans, KLMNAx,   KLMNAy+1, KLMNAz+1, TRANSDIM, TRANSDIM, TRANSDIM);
-            angularL[6] = (int)  LOC3(devTrans, KLMNAx+1, KLMNAy+1, KLMNAz,   TRANSDIM, TRANSDIM, TRANSDIM);
-            angularL[7] = (int)  LOC3(devTrans, KLMNAx+1, KLMNAy,   KLMNAz+1, TRANSDIM, TRANSDIM, TRANSDIM);
-            angularL[8] = (int)  LOC3(devTrans, KLMNAx,   KLMNAy+1, KLMNAz,   TRANSDIM, TRANSDIM, TRANSDIM);
-            angularL[9] = (int)  LOC3(devTrans, KLMNAx,   KLMNAy,   KLMNAz+1, TRANSDIM, TRANSDIM, TRANSDIM);
+            angularL[1] = (int) LOC3(devTrans, KLMNAx,   KLMNAy+2, KLMNAz+1, TRANSDIM, TRANSDIM, TRANSDIM);
+            angularL[2] = (int) LOC3(devTrans, KLMNAx+1, KLMNAy+2, KLMNAz,   TRANSDIM, TRANSDIM, TRANSDIM);
+            angularL[3] = (int) LOC3(devTrans, KLMNAx+1, KLMNAy+1, KLMNAz+1, TRANSDIM, TRANSDIM, TRANSDIM);
+            angularL[4] = (int) LOC3(devTrans, KLMNAx,   KLMNAy+2, KLMNAz,   TRANSDIM, TRANSDIM, TRANSDIM);
+            angularL[5] = (int) LOC3(devTrans, KLMNAx,   KLMNAy+1, KLMNAz+1, TRANSDIM, TRANSDIM, TRANSDIM);
+            angularL[6] = (int) LOC3(devTrans, KLMNAx+1, KLMNAy+1, KLMNAz,   TRANSDIM, TRANSDIM, TRANSDIM);
+            angularL[7] = (int) LOC3(devTrans, KLMNAx+1, KLMNAy,   KLMNAz+1, TRANSDIM, TRANSDIM, TRANSDIM);
+            angularL[8] = (int) LOC3(devTrans, KLMNAx,   KLMNAy+1, KLMNAz,   TRANSDIM, TRANSDIM, TRANSDIM);
+            angularL[9] = (int) LOC3(devTrans, KLMNAx,   KLMNAy,   KLMNAz+1, TRANSDIM, TRANSDIM, TRANSDIM);
             angularL[10] = (int) LOC3(devTrans, KLMNAx+1, KLMNAy,   KLMNAz,   TRANSDIM, TRANSDIM, TRANSDIM);
         } else if (KLMNBy == 1 && KLMNBz == 1 && KLMNBx == 2) {
             numAngularL = 12;
@@ -558,7 +534,7 @@ __device__ static inline int lefthrr23(QUICKDouble RAx, QUICKDouble RAy, QUICKDo
         QUICKDouble RBx, QUICKDouble RBy, QUICKDouble RBz,
         int KLMNAx, int KLMNAy, int KLMNAz,
         int KLMNBx, int KLMNBy, int KLMNBz,
-        int IJTYPE, QUICKDouble * const coefAngularL, unsigned char * const angularL)
+        QUICKDouble * const coefAngularL, unsigned char * const angularL)
 {
     int numAngularL;
 
@@ -665,11 +641,11 @@ __device__ static inline int lefthrr23(QUICKDouble RAx, QUICKDouble RAy, QUICKDo
 }
 
 
-__device__ static inline int lefthrr_sp(const QUICKDouble RAx, const QUICKDouble RAy, const QUICKDouble RAz,
-        const QUICKDouble RBx, const QUICKDouble RBy, const QUICKDouble RBz,
-        const int KLMNAx, const int KLMNAy, const int KLMNAz,
-        const int KLMNBx, const int KLMNBy, const int KLMNBz,
-        const int IJTYPE, QUICKDouble * const coefAngularL, unsigned char * const angularL)
+__device__ static inline int lefthrr_sp(QUICKDouble RAx, QUICKDouble RAy, QUICKDouble RAz,
+        QUICKDouble RBx, QUICKDouble RBy, QUICKDouble RBz,
+        int KLMNAx, int KLMNAy, int KLMNAz,
+        int KLMNBx, int KLMNBy, int KLMNBz,
+        int IJTYPE, QUICKDouble * const coefAngularL, unsigned char * const angularL)
 {
     int numAngularL;
 
@@ -678,17 +654,15 @@ __device__ static inline int lefthrr_sp(const QUICKDouble RAx, const QUICKDouble
 
     if (IJTYPE == 0) {
         numAngularL = 1;
-    }
-    else if (IJTYPE == 1)
-    {
+    } else if (IJTYPE == 1) {
         numAngularL = 2;
 
         if (KLMNBx != 0) {
-            coefAngularL[1] = RAx-RBx;
+            coefAngularL[1] = RAx - RBx;
         } else if (KLMNBy != 0) {
-            coefAngularL[1] = RAy-RBy;
+            coefAngularL[1] = RAy - RBy;
         } else if (KLMNBz != 0) {
-            coefAngularL[1] = RAz-RBz;
+            coefAngularL[1] = RAz - RBz;
         }
 
         angularL[numAngularL - 1] = LOC3(devTrans, KLMNAx, KLMNAy, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
@@ -700,12 +674,12 @@ __device__ static inline int lefthrr_sp(const QUICKDouble RAx, const QUICKDouble
 }
 
 
-__device__ static inline QUICKDouble hrrwhole_sp(const int I, const int J, const int K, const int L,
-        const int III, const int JJJ, const int KKK, const int LLL, QUICKDouble * const store,
-        const QUICKDouble RAx, const QUICKDouble RAy, const QUICKDouble RAz,
-        const QUICKDouble RBx, const QUICKDouble RBy, const QUICKDouble RBz,
-        const QUICKDouble RCx, const QUICKDouble RCy, const QUICKDouble RCz,
-        const QUICKDouble RDx, const QUICKDouble RDy, const QUICKDouble RDz)
+__device__ static inline QUICKDouble hrrwhole_sp(int I, int J, int K, int L,
+        int III, int JJJ, int KKK, int LLL,
+        QUICKDouble RAx, QUICKDouble RAy, QUICKDouble RAz,
+        QUICKDouble RBx, QUICKDouble RBy, QUICKDouble RBz,
+        QUICKDouble RCx, QUICKDouble RCy, QUICKDouble RCz,
+        QUICKDouble RDx, QUICKDouble RDy, QUICKDouble RDz)
 {
     QUICKDouble Y = 0.0;
     QUICKDouble coefAngularL[2], coefAngularR[2];
@@ -732,12 +706,14 @@ __device__ static inline QUICKDouble hrrwhole_sp(const int I, const int J, const
         for (int j = 0; j < numAngularR; j++) {
             if (angularL[i] <= STOREDIM && angularR[j] <= STOREDIM) {
                 Y += coefAngularL[i] * coefAngularR[j]
-                    * LOCSTORE(store, angularL[i] - 1, angularR[j] - 1, STOREDIM, STOREDIM);
+                    * LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
+                            angularL[i] - 1, angularR[j] - 1, STOREDIM, STOREDIM);
 
 //                printf("I %d J %d K %d L %d III %d JJJ %d KKK %d LLL %d i %d j %d store: %f \n",
 //                        I, J, K, L, III, JJJ, KKK, LLL,
 //                        angularL[i] - 1, angularR[j] - 1,
-//                        LOCSTORE(store, angularL[i] - 1, angularR[j] - 1, STOREDIM, STOREDIM));
+//                        LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
+//                            angularL[i] - 1, angularR[j] - 1, STOREDIM, STOREDIM));
             }
         }
     }
@@ -751,12 +727,12 @@ __device__ static inline QUICKDouble hrrwhole_sp(const int I, const int J, const
 #undef STOREDIM
 #define STOREDIM STOREDIM_S
 #undef LOCSTORE
-#define LOCSTORE(A,i1,i2,d1,d2) A[((i1) + (i2) * (d1)) * gridDim.x * blockDim.x]
-__device__ static inline int lefthrr_spd(const QUICKDouble RAx, const QUICKDouble RAy, const QUICKDouble RAz,
-        const QUICKDouble RBx, const QUICKDouble RBy, const QUICKDouble RBz,
-        const int KLMNAx, const int KLMNAy, const int KLMNAz,
-        const int KLMNBx, int KLMNBy, const int KLMNBz,
-        const int IJTYPE, QUICKDouble * const coefAngularL, unsigned char * const angularL)
+#define LOCSTORE(A,i1,i2,d1,d2) (A)[((i1) + (i2) * (d1)) * gridDim.x * blockDim.x]
+__device__ static inline int lefthrr_spd(QUICKDouble RAx, QUICKDouble RAy, QUICKDouble RAz,
+        QUICKDouble RBx, QUICKDouble RBy, QUICKDouble RBz,
+        int KLMNAx, int KLMNAy, int KLMNAz,
+        int KLMNBx, int KLMNBy, int KLMNBz,
+        int IJTYPE, QUICKDouble * const coefAngularL, unsigned char * const angularL)
 {
     int numAngularL;
 
@@ -963,12 +939,12 @@ __device__ static inline int lefthrr_spd(const QUICKDouble RAx, const QUICKDoubl
 }
 
 
-__device__ static inline QUICKDouble hrrwhole(const int I, const int J, const int K, const int L,
-        const int III, const int JJJ, const int KKK, const int LLL, QUICKDouble * const store,
-        const QUICKDouble RAx, const QUICKDouble RAy, const QUICKDouble RAz,
-        const QUICKDouble RBx, const QUICKDouble RBy, const QUICKDouble RBz,
-        const QUICKDouble RCx, const QUICKDouble RCy, const QUICKDouble RCz,
-        const QUICKDouble RDx, const QUICKDouble RDy, const QUICKDouble RDz)
+__device__ static inline QUICKDouble hrrwhole(int I, int J, int K, int L,
+        int III, int JJJ, int KKK, int LLL,
+        QUICKDouble RAx, QUICKDouble RAy, QUICKDouble RAz,
+        QUICKDouble RBx, QUICKDouble RBy, QUICKDouble RBz,
+        QUICKDouble RCx, QUICKDouble RCy, QUICKDouble RCz,
+        QUICKDouble RDx, QUICKDouble RDy, QUICKDouble RDz)
 {
     QUICKDouble Y = 0.0;
     QUICKDouble coefAngularL[8], coefAngularR[8];
@@ -995,7 +971,8 @@ __device__ static inline QUICKDouble hrrwhole(const int I, const int J, const in
         for (int j = 0; j < numAngularR; j++) {
             if (angularL[i] <= STOREDIM && angularR[j] <= STOREDIM) {
                 Y += coefAngularL[i] * coefAngularR[j]
-                    * LOCSTORE(store, angularL[i] - 1, angularR[j] - 1, STOREDIM, STOREDIM);
+                    * LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
+                            angularL[i] - 1, angularR[j] - 1, STOREDIM, STOREDIM);
             }
         }
     }
@@ -1009,7 +986,7 @@ __device__ static inline QUICKDouble hrrwhole(const int I, const int J, const in
 #undef STOREDIM
 #define STOREDIM STOREDIM_L
 __device__ static inline QUICKDouble hrrwhole2(int I, int J, int K, int L,
-        int III, int JJJ, int KKK, int LLL, QUICKDouble * const store,
+        int III, int JJJ, int KKK, int LLL,
         QUICKDouble RAx, QUICKDouble RAy, QUICKDouble RAz,
         QUICKDouble RBx, QUICKDouble RBy, QUICKDouble RBz,
         QUICKDouble RCx, QUICKDouble RCy, QUICKDouble RCz,
@@ -1040,7 +1017,8 @@ __device__ static inline QUICKDouble hrrwhole2(int I, int J, int K, int L,
         for (int j = 0; j < numAngularR; j++) {
             if (angularL[i] <= STOREDIM && angularR[j] <= STOREDIM) {
                 Y += coefAngularL[i] * coefAngularR[j]
-                    * LOCSTORE(store, angularL[i] - 1, angularR[j] - 1, STOREDIM, STOREDIM);
+                    * LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
+                            angularL[i] - 1, angularR[j] - 1, STOREDIM, STOREDIM);
             }
         }
     }
@@ -1052,7 +1030,7 @@ __device__ static inline QUICKDouble hrrwhole2(int I, int J, int K, int L,
 
 
 __device__ static inline QUICKDouble hrrwhole2_1(int I, int J, int K, int L,
-        int III, int JJJ, int KKK, int LLL, QUICKDouble * const store,
+        int III, int JJJ, int KKK, int LLL,
         QUICKDouble RAx, QUICKDouble RAy, QUICKDouble RAz,
         QUICKDouble RBx, QUICKDouble RBy, QUICKDouble RBz,
         QUICKDouble RCx, QUICKDouble RCy, QUICKDouble RCz,
@@ -1074,7 +1052,8 @@ __device__ static inline QUICKDouble hrrwhole2_1(int I, int J, int K, int L,
     if (L == 2) {
         for (int i = 0; i < numAngularL; i++) {
             if (angularL[i] <= STOREDIM ) {
-                Y += coefAngularL[i] * LOCSTORE(store, angularL[i] - 1,
+                Y += coefAngularL[i] * LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
+                        angularL[i] - 1,
                         (int) LOC3(devTrans,
                             LOC2(devSim.KLMN, 0, KKK - 1, 3, devSim.nbasis) + LOC2(devSim.KLMN, 0, LLL - 1, 3, devSim.nbasis),
                             LOC2(devSim.KLMN, 1, KKK - 1, 3, devSim.nbasis) + LOC2(devSim.KLMN, 1, LLL - 1, 3, devSim.nbasis),
@@ -1091,13 +1070,14 @@ __device__ static inline QUICKDouble hrrwhole2_1(int I, int J, int K, int L,
                 LOC2(devSim.KLMN, 0, LLL - 1, 3, devSim.nbasis),
                 LOC2(devSim.KLMN, 1, LLL - 1, 3, devSim.nbasis),
                 LOC2(devSim.KLMN, 2, LLL - 1, 3, devSim.nbasis),
-                L, coefAngularR, angularR);
+                coefAngularR, angularR);
 
         for (int i = 0; i < numAngularL; i++) {
             for (int j = 0; j < numAngularR; j++) {
                 if (angularL[i] <= STOREDIM && angularR[j] <= STOREDIM) {
                     Y += coefAngularL[i] * coefAngularR[j]
-                        * LOCSTORE(store, angularL[i] - 1, angularR[j] - 1, STOREDIM, STOREDIM);
+                        * LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
+                                angularL[i] - 1, angularR[j] - 1, STOREDIM, STOREDIM);
                 }
             }
         }
@@ -1110,7 +1090,7 @@ __device__ static inline QUICKDouble hrrwhole2_1(int I, int J, int K, int L,
 
 
 __device__ static inline QUICKDouble hrrwhole2_2(int I, int J, int K, int L,
-        int III, int JJJ, int KKK, int LLL, QUICKDouble * const store,
+        int III, int JJJ, int KKK, int LLL,
         QUICKDouble RAx, QUICKDouble RAy, QUICKDouble RAz,
         QUICKDouble RBx, QUICKDouble RBy, QUICKDouble RBz,
         QUICKDouble RCx, QUICKDouble RCy, QUICKDouble RCz,
@@ -1132,7 +1112,7 @@ __device__ static inline QUICKDouble hrrwhole2_2(int I, int J, int K, int L,
     if (J == 2) {
         for (int j = 0; j < numAngularR; j++) {
             if (angularR[j] <= STOREDIM) {
-                Y += coefAngularR[j] * LOCSTORE(store,
+                Y += coefAngularR[j] * LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
                         (int) LOC3(devTrans,
                             LOC2(devSim.KLMN, 0, III - 1, 3, devSim.nbasis) + LOC2(devSim.KLMN, 0, JJJ - 1, 3, devSim.nbasis),
                             LOC2(devSim.KLMN, 1, III - 1, 3, devSim.nbasis) + LOC2(devSim.KLMN, 1, JJJ - 1, 3, devSim.nbasis),
@@ -1149,13 +1129,14 @@ __device__ static inline QUICKDouble hrrwhole2_2(int I, int J, int K, int L,
                 LOC2(devSim.KLMN, 0, JJJ - 1, 3, devSim.nbasis),
                 LOC2(devSim.KLMN, 1, JJJ - 1, 3, devSim.nbasis),
                 LOC2(devSim.KLMN, 2, JJJ - 1, 3, devSim.nbasis),
-                J, coefAngularL, angularL);
+                coefAngularL, angularL);
 
         for (int i = 0; i < numAngularL; i++) {
             for (int j = 0; j < numAngularR; j++) {
                 if (angularL[i] <= STOREDIM && angularR[j] <= STOREDIM) {
                     Y += coefAngularL[i] * coefAngularR[j]
-                        * LOCSTORE(store, angularL[i] - 1, angularR[j] - 1, STOREDIM, STOREDIM);
+                        * LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
+                                angularL[i] - 1, angularR[j] - 1, STOREDIM, STOREDIM);
                 }
             }
         }
@@ -1172,7 +1153,7 @@ __device__ static inline QUICKDouble hrrwhole2_2(int I, int J, int K, int L,
    therefore, k = 3 and l = 3 is confirmed.
 */
 __device__ static inline QUICKDouble hrrwhole2_5(int I, int J, int K, int L,
-        int III, int JJJ, int KKK, int LLL, QUICKDouble * const store,
+        int III, int JJJ, int KKK, int LLL,
         QUICKDouble RAx, QUICKDouble RAy, QUICKDouble RAz,
         QUICKDouble RBx, QUICKDouble RBy, QUICKDouble RBz,
         QUICKDouble RCx, QUICKDouble RCy, QUICKDouble RCz,
@@ -1180,9 +1161,9 @@ __device__ static inline QUICKDouble hrrwhole2_5(int I, int J, int K, int L,
 {
     QUICKDouble Y;
 
-    if ((K + L) == 6 && (I + J) == 4)
+    if (K + L == 6 && I + J == 4)
     {
-        Y = LOCSTORE(store,
+        Y = LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
                 (int) LOC3(devTrans,
                     LOC2(devSim.KLMN, 0, III - 1, 3, devSim.nbasis) + LOC2(devSim.KLMN, 0, JJJ - 1, 3, devSim.nbasis),
                     LOC2(devSim.KLMN, 1, III - 1, 3, devSim.nbasis) + LOC2(devSim.KLMN, 1, JJJ - 1, 3, devSim.nbasis),
@@ -1211,7 +1192,8 @@ __device__ static inline QUICKDouble hrrwhole2_5(int I, int J, int K, int L,
 
         for (int i = 0; i < numAngularL; i++) {
             if (angularL[i] <= STOREDIM) {
-                Y += coefAngularL[i] * LOCSTORE(store, angularL[i] - 1,
+                Y += coefAngularL[i] * LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
+                        angularL[i] - 1,
                         (int) LOC3(devTrans,
                             LOC2(devSim.KLMN, 0, KKK - 1, 3, devSim.nbasis) + LOC2(devSim.KLMN, 0, LLL - 1, 3, devSim.nbasis),
                             LOC2(devSim.KLMN, 1, KKK - 1, 3, devSim.nbasis) + LOC2(devSim.KLMN, 1, LLL - 1, 3, devSim.nbasis),
@@ -1233,7 +1215,7 @@ __device__ static inline QUICKDouble hrrwhole2_5(int I, int J, int K, int L,
    therefore, i = 3 and j = 3 is confirmed.
 */
 __device__ static inline QUICKDouble hrrwhole2_6(int I, int J, int K, int L,
-        int III, int JJJ, int KKK, int LLL, QUICKDouble * const store,
+        int III, int JJJ, int KKK, int LLL,
         QUICKDouble RAx, QUICKDouble RAy, QUICKDouble RAz,
         QUICKDouble RBx, QUICKDouble RBy, QUICKDouble RBz,
         QUICKDouble RCx, QUICKDouble RCy, QUICKDouble RCz,
@@ -1241,19 +1223,19 @@ __device__ static inline QUICKDouble hrrwhole2_6(int I, int J, int K, int L,
 {
     QUICKDouble Y;
 
-    if ((K + L) == 4 && (I + J) == 6)
+    if (K + L == 4 && I + J == 6)
     {
-        Y = LOCSTORE(store,
+        Y = LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
                 (int) LOC3(devTrans,
                     LOC2(devSim.KLMN, 0, III - 1, 3, devSim.nbasis) + LOC2(devSim.KLMN, 0, JJJ - 1, 3, devSim.nbasis),
                     LOC2(devSim.KLMN, 1, III - 1, 3, devSim.nbasis) + LOC2(devSim.KLMN, 1, JJJ - 1, 3, devSim.nbasis),
                     LOC2(devSim.KLMN, 2, III - 1, 3, devSim.nbasis) + LOC2(devSim.KLMN, 2, JJJ - 1, 3, devSim.nbasis),
-                    TRANSDIM, TRANSDIM, TRANSDIM)-1,
+                    TRANSDIM, TRANSDIM, TRANSDIM) - 1,
                 (int) LOC3(devTrans,
                     LOC2(devSim.KLMN, 0, KKK - 1, 3, devSim.nbasis) + LOC2(devSim.KLMN, 0, LLL - 1, 3, devSim.nbasis),
                     LOC2(devSim.KLMN, 1, KKK - 1, 3, devSim.nbasis) + LOC2(devSim.KLMN, 1, LLL - 1, 3, devSim.nbasis),
                     LOC2(devSim.KLMN, 2, KKK - 1, 3, devSim.nbasis) + LOC2(devSim.KLMN, 2, LLL - 1, 3, devSim.nbasis),
-                    TRANSDIM, TRANSDIM, TRANSDIM)-1,
+                    TRANSDIM, TRANSDIM, TRANSDIM) - 1,
                 STOREDIM, STOREDIM) * devSim.cons[III - 1] * devSim.cons[JJJ - 1] * devSim.cons[KKK - 1] * devSim.cons[LLL - 1];
     } else {
         unsigned char angularR[12];
@@ -1272,7 +1254,7 @@ __device__ static inline QUICKDouble hrrwhole2_6(int I, int J, int K, int L,
 
         for (int j = 0; j < numAngularR; j++) {
             if (angularR[j] <= STOREDIM) {
-                Y += coefAngularR[j] * LOCSTORE(store,
+                Y += coefAngularR[j] * LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
                         (int) LOC3(devTrans,
                             LOC2(devSim.KLMN, 0, III - 1, 3, devSim.nbasis) + LOC2(devSim.KLMN, 0, JJJ - 1, 3, devSim.nbasis),
                             LOC2(devSim.KLMN, 1, III - 1, 3, devSim.nbasis) + LOC2(devSim.KLMN, 1, JJJ - 1, 3, devSim.nbasis),
@@ -1293,7 +1275,7 @@ __device__ static inline QUICKDouble hrrwhole2_6(int I, int J, int K, int L,
    when this subroutine is called, only (ij|kl) k+l = 5 and i+j = 5 is computed, but (k+l)>=5 and (i+J)>=5 is entering this subroutine
 */
 __device__ static inline QUICKDouble hrrwhole2_3(int I, int J, int K, int L,
-        int III, int JJJ, int KKK, int LLL, QUICKDouble * const store,
+        int III, int JJJ, int KKK, int LLL,
         QUICKDouble RAx, QUICKDouble RAy, QUICKDouble RAz,
         QUICKDouble RBx, QUICKDouble RBy, QUICKDouble RBz,
         QUICKDouble RCx, QUICKDouble RCy, QUICKDouble RCz,
@@ -1301,8 +1283,8 @@ __device__ static inline QUICKDouble hrrwhole2_3(int I, int J, int K, int L,
 {
     QUICKDouble Y;
 
-    if ((K + L) == 5 && (I + J) == 5) {
-        Y = LOCSTORE(store,
+    if (K + L == 5 && I + J == 5) {
+        Y = LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
                 (int) LOC3(devTrans,
                     LOC2(devSim.KLMN, 0, III - 1, 3, devSim.nbasis) + LOC2(devSim.KLMN, 0, JJJ - 1, 3, devSim.nbasis),
                     LOC2(devSim.KLMN, 1, III - 1, 3, devSim.nbasis) + LOC2(devSim.KLMN, 1, JJJ - 1, 3, devSim.nbasis),
@@ -1314,7 +1296,7 @@ __device__ static inline QUICKDouble hrrwhole2_3(int I, int J, int K, int L,
                     LOC2(devSim.KLMN, 2, KKK - 1, 3, devSim.nbasis) + LOC2(devSim.KLMN, 2, LLL - 1, 3, devSim.nbasis),
                     TRANSDIM, TRANSDIM, TRANSDIM) - 1,
                 STOREDIM, STOREDIM) * devSim.cons[III - 1] * devSim.cons[JJJ - 1] * devSim.cons[KKK - 1] * devSim.cons[LLL - 1];
-    } else if ((K + L) == 5 && (I + J) == 6) {
+    } else if (K + L == 5 && I + J == 6) {
         unsigned char angularL[12];
         QUICKDouble coefAngularL[12];
         Y = 0.0;
@@ -1330,7 +1312,8 @@ __device__ static inline QUICKDouble hrrwhole2_3(int I, int J, int K, int L,
 
         for (int i = 0; i < numAngularL; i++) {
             if (angularL[i] <= STOREDIM) {
-                Y += coefAngularL[i] * LOCSTORE(store, angularL[i] - 1,
+                Y += coefAngularL[i] * LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
+                        angularL[i] - 1,
                         (int) LOC3(devTrans,
                             LOC2(devSim.KLMN, 0, KKK - 1, 3, devSim.nbasis) + LOC2(devSim.KLMN, 0, LLL - 1, 3, devSim.nbasis),
                             LOC2(devSim.KLMN, 1, KKK - 1, 3, devSim.nbasis) + LOC2(devSim.KLMN, 1, LLL - 1, 3, devSim.nbasis),
@@ -1341,7 +1324,7 @@ __device__ static inline QUICKDouble hrrwhole2_3(int I, int J, int K, int L,
         }
 
         Y *= devSim.cons[III - 1] * devSim.cons[JJJ - 1] * devSim.cons[KKK - 1] * devSim.cons[LLL - 1];
-    } else if ((I + J) == 5 && (K + L) == 6) {
+    } else if (I + J == 5 && K + L == 6) {
         unsigned char angularR[12];
         QUICKDouble coefAngularR[12];
         Y = 0.0;
@@ -1357,7 +1340,7 @@ __device__ static inline QUICKDouble hrrwhole2_3(int I, int J, int K, int L,
 
         for (int j = 0; j < numAngularR; j++) {
             if (angularR[j] <= STOREDIM) {
-                Y += coefAngularR[j] * LOCSTORE(store,
+                Y += coefAngularR[j] * LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
                         (int) LOC3(devTrans,
                             LOC2(devSim.KLMN, 0, III - 1, 3, devSim.nbasis) + LOC2(devSim.KLMN, 0, JJJ - 1, 3, devSim.nbasis),
                             LOC2(devSim.KLMN, 1, III - 1, 3, devSim.nbasis) + LOC2(devSim.KLMN, 1, JJJ - 1, 3, devSim.nbasis),
@@ -1368,7 +1351,7 @@ __device__ static inline QUICKDouble hrrwhole2_3(int I, int J, int K, int L,
         }
 
         Y *= devSim.cons[III - 1] * devSim.cons[JJJ - 1] * devSim.cons[KKK - 1] * devSim.cons[LLL - 1];
-    } else if ((I + J) == 6 && (K + L) == 6) {
+    } else if (I + J == 6 && K + L == 6) {
         unsigned char angularL[12], angularR[12];
         QUICKDouble coefAngularL[12], coefAngularR[12];
         Y = 0.0;
@@ -1394,7 +1377,8 @@ __device__ static inline QUICKDouble hrrwhole2_3(int I, int J, int K, int L,
             for (int j = 0; j < numAngularR; j++) {
                 if (angularL[i] <= STOREDIM && angularR[j] <= STOREDIM) {
                     Y += coefAngularL[i] * coefAngularR[j]
-                        * LOCSTORE(store, angularL[i] - 1, angularR[j] - 1, STOREDIM, STOREDIM);
+                        * LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
+                                angularL[i] - 1, angularR[j] - 1, STOREDIM, STOREDIM);
                 }
             }
         }
@@ -1415,7 +1399,7 @@ __device__ static inline QUICKDouble hrrwhole2_3(int I, int J, int K, int L,
    if (k+l) = 6, then, k=3 and l=3
 */
 __device__ static inline QUICKDouble hrrwhole2_4(int I, int J, int K, int L,
-        int III, int JJJ, int KKK, int LLL, QUICKDouble * const store,
+        int III, int JJJ, int KKK, int LLL,
         QUICKDouble RAx, QUICKDouble RAy, QUICKDouble RAz,
         QUICKDouble RBx, QUICKDouble RBy, QUICKDouble RBz,
         QUICKDouble RCx, QUICKDouble RCy, QUICKDouble RCz,
@@ -1423,8 +1407,8 @@ __device__ static inline QUICKDouble hrrwhole2_4(int I, int J, int K, int L,
 {
     QUICKDouble Y;
 
-    if ((K + L) == 5) {
-        Y = LOCSTORE(store,
+    if (K + L == 5) {
+        Y = LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
                 (int) LOC3(devTrans,
                     LOC2(devSim.KLMN, 0, III - 1, 3, devSim.nbasis) + LOC2(devSim.KLMN, 0, JJJ - 1, 3, devSim.nbasis),
                     LOC2(devSim.KLMN, 1, III - 1, 3, devSim.nbasis) + LOC2(devSim.KLMN, 1, JJJ - 1, 3, devSim.nbasis),
@@ -1454,7 +1438,7 @@ __device__ static inline QUICKDouble hrrwhole2_4(int I, int J, int K, int L,
 
         for (int j = 0; j < numAngularR; j++) {
             if (angularR[j] <= STOREDIM) {
-                Y += coefAngularR[j] * LOCSTORE(store,
+                Y += coefAngularR[j] * LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
                         (int) LOC3(devTrans,
                             LOC2(devSim.KLMN, 0, III - 1, 3, devSim.nbasis) + LOC2(devSim.KLMN, 0, JJJ - 1, 3, devSim.nbasis),
                             LOC2(devSim.KLMN, 1, III - 1, 3, devSim.nbasis) + LOC2(devSim.KLMN, 1, JJJ - 1, 3, devSim.nbasis), 
@@ -1473,7 +1457,7 @@ __device__ static inline QUICKDouble hrrwhole2_4(int I, int J, int K, int L,
 
 // For this subroutine, the basic idea is the same with hrrwhole2_4, just swap i to k and j to l.
 __device__ static inline QUICKDouble hrrwhole2_7(int I, int J, int K, int L,
-        int III, int JJJ, int KKK, int LLL, QUICKDouble * const store,
+        int III, int JJJ, int KKK, int LLL,
         QUICKDouble RAx, QUICKDouble RAy, QUICKDouble RAz,
         QUICKDouble RBx, QUICKDouble RBy, QUICKDouble RBz,
         QUICKDouble RCx, QUICKDouble RCy, QUICKDouble RCz,
@@ -1481,8 +1465,8 @@ __device__ static inline QUICKDouble hrrwhole2_7(int I, int J, int K, int L,
 {
     QUICKDouble Y;
 
-    if ((I + J) == 5) {
-        Y = LOCSTORE(store,
+    if (I + J == 5) {
+        Y = LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
                 (int) LOC3(devTrans,
                     LOC2(devSim.KLMN, 0, III - 1, 3, devSim.nbasis) + LOC2(devSim.KLMN, 0, JJJ - 1, 3, devSim.nbasis),
                     LOC2(devSim.KLMN, 1, III - 1, 3, devSim.nbasis) + LOC2(devSim.KLMN, 1, JJJ - 1, 3, devSim.nbasis),
@@ -1510,7 +1494,8 @@ __device__ static inline QUICKDouble hrrwhole2_7(int I, int J, int K, int L,
 
         for (int i = 0; i < numAngularL; i++) {
             if (angularL[i] <= STOREDIM) {
-                Y += coefAngularL[i] * LOCSTORE(store, angularL[i] - 1,
+                Y += coefAngularL[i] * LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
+                        angularL[i] - 1,
                         (int) LOC3(devTrans,
                             LOC2(devSim.KLMN, 0, KKK - 1, 3, devSim.nbasis) + LOC2(devSim.KLMN, 0, LLL - 1, 3, devSim.nbasis),
                             LOC2(devSim.KLMN, 1, KKK - 1, 3, devSim.nbasis) + LOC2(devSim.KLMN, 1, LLL - 1, 3, devSim.nbasis),
@@ -1529,13 +1514,13 @@ __device__ static inline QUICKDouble hrrwhole2_7(int I, int J, int K, int L,
 
 // For hrrwhole2_8,9,10, the situation is much simple, i=3, j=3, k=3, l=3
 __device__ static inline QUICKDouble hrrwhole2_8(int I, int J, int K, int L,
-        int III, int JJJ, int KKK, int LLL, QUICKDouble * const store,
+        int III, int JJJ, int KKK, int LLL,
         QUICKDouble RAx, QUICKDouble RAy, QUICKDouble RAz,
         QUICKDouble RBx, QUICKDouble RBy, QUICKDouble RBz,
         QUICKDouble RCx, QUICKDouble RCy, QUICKDouble RCz,
         QUICKDouble RDx, QUICKDouble RDy, QUICKDouble RDz)
 {
-    return LOCSTORE(store,
+    return LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
             (int) LOC3(devTrans,
                 LOC2(devSim.KLMN, 0, III - 1, 3, devSim.nbasis) + LOC2(devSim.KLMN, 0, JJJ - 1, 3, devSim.nbasis),
                 LOC2(devSim.KLMN, 1, III - 1, 3, devSim.nbasis) + LOC2(devSim.KLMN, 1, JJJ - 1, 3, devSim.nbasis),
@@ -1546,23 +1531,23 @@ __device__ static inline QUICKDouble hrrwhole2_8(int I, int J, int K, int L,
                 LOC2(devSim.KLMN, 1, KKK - 1, 3, devSim.nbasis) + LOC2(devSim.KLMN, 1, LLL - 1, 3, devSim.nbasis),
                 LOC2(devSim.KLMN, 2, KKK - 1, 3, devSim.nbasis) + LOC2(devSim.KLMN, 2, LLL - 1, 3, devSim.nbasis),
                 TRANSDIM, TRANSDIM, TRANSDIM) - 1,
-            STOREDIM, STOREDIM) * devSim.cons[III-1] * devSim.cons[JJJ-1] * devSim.cons[KKK-1] * devSim.cons[LLL-1];
+            STOREDIM, STOREDIM) * devSim.cons[III - 1] * devSim.cons[JJJ - 1] * devSim.cons[KKK - 1] * devSim.cons[LLL - 1];
 }
 
 
 __device__ static inline QUICKDouble hrrwhole2_9(int I, int J, int K, int L,
-        int III, int JJJ, int KKK, int LLL, QUICKDouble * const store,
+        int III, int JJJ, int KKK, int LLL,
         QUICKDouble RAx, QUICKDouble RAy, QUICKDouble RAz,
         QUICKDouble RBx, QUICKDouble RBy, QUICKDouble RBz,
         QUICKDouble RCx, QUICKDouble RCy, QUICKDouble RCz,
         QUICKDouble RDx, QUICKDouble RDy, QUICKDouble RDz)
 {
-    return LOCSTORE(store,
+    return LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
             (int) LOC3(devTrans,
                 LOC2(devSim.KLMN, 0, III - 1, 3, devSim.nbasis) + LOC2(devSim.KLMN, 0, JJJ - 1, 3, devSim.nbasis),
                 LOC2(devSim.KLMN, 1, III - 1, 3, devSim.nbasis) + LOC2(devSim.KLMN, 1, JJJ - 1, 3, devSim.nbasis),
                 LOC2(devSim.KLMN, 2, III - 1, 3, devSim.nbasis) + LOC2(devSim.KLMN, 2, JJJ - 1, 3, devSim.nbasis),
-                TRANSDIM, TRANSDIM, TRANSDIM)-1,
+                TRANSDIM, TRANSDIM, TRANSDIM) - 1,
             (int) LOC3(devTrans,
                 LOC2(devSim.KLMN, 0, KKK - 1, 3, devSim.nbasis) + LOC2(devSim.KLMN, 0, LLL - 1, 3, devSim.nbasis),
                 LOC2(devSim.KLMN, 1, KKK - 1, 3, devSim.nbasis) + LOC2(devSim.KLMN, 1, LLL - 1, 3, devSim.nbasis),
@@ -1573,18 +1558,18 @@ __device__ static inline QUICKDouble hrrwhole2_9(int I, int J, int K, int L,
 
 
 __device__ static inline QUICKDouble hrrwhole2_10(int I, int J, int K, int L,
-        int III, int JJJ, int KKK, int LLL, QUICKDouble * const store,
+        int III, int JJJ, int KKK, int LLL,
         QUICKDouble RAx, QUICKDouble RAy, QUICKDouble RAz,
         QUICKDouble RBx, QUICKDouble RBy, QUICKDouble RBz,
         QUICKDouble RCx, QUICKDouble RCy, QUICKDouble RCz,
         QUICKDouble RDx, QUICKDouble RDy, QUICKDouble RDz)
 {
-    return LOCSTORE(store,
+    return LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
             (int) LOC3(devTrans,
                 LOC2(devSim.KLMN, 0, III - 1, 3, devSim.nbasis) + LOC2(devSim.KLMN, 0, JJJ - 1, 3, devSim.nbasis),
                 LOC2(devSim.KLMN, 1, III - 1, 3, devSim.nbasis) + LOC2(devSim.KLMN, 1, JJJ - 1, 3, devSim.nbasis),
                 LOC2(devSim.KLMN, 2, III - 1, 3, devSim.nbasis) + LOC2(devSim.KLMN, 2, JJJ - 1, 3, devSim.nbasis),
-                TRANSDIM, TRANSDIM, TRANSDIM)-1,
+                TRANSDIM, TRANSDIM, TRANSDIM) - 1,
             (int) LOC3(devTrans,
                 LOC2(devSim.KLMN, 0, KKK - 1, 3, devSim.nbasis) + LOC2(devSim.KLMN, 0, LLL - 1, 3, devSim.nbasis),
                 LOC2(devSim.KLMN, 1, KKK - 1, 3, devSim.nbasis) + LOC2(devSim.KLMN, 1, LLL - 1, 3, devSim.nbasis),

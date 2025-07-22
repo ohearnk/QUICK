@@ -29,7 +29,7 @@ static __constant__ int devTrans[TRANSDIM * TRANSDIM * TRANSDIM];
 static __constant__ int Sumindex[10] = {0, 0, 1, 4, 10, 20, 35, 56, 84, 120};
 
 
-#define STOREDIM 20
+#define STOREDIM (20)
 #define REG_PF
 #define REG_FP
 #define REG_SF
@@ -192,11 +192,11 @@ static float totTime;
 
 // interface for kernel launching
 void getOEI(_gpu_type gpu) {
-    QUICK_SAFE_CALL((getOEI_kernel<<<gpu->blocks, gpu->twoEThreadsPerBlock>>>()));
+    QUICK_SAFE_CALL((k_oei<<<gpu->blocks, gpu->twoEThreadsPerBlock>>>()));
 }
 
 
 void get_oei_grad(_gpu_type gpu) {
-    QUICK_SAFE_CALL((get_oei_grad_kernel<<<gpu->blocks, gpu->twoEThreadsPerBlock>>>()));
+    QUICK_SAFE_CALL((k_oei_grad<<<gpu->blocks, gpu->twoEThreadsPerBlock>>>()));
 }
 

@@ -19,11 +19,12 @@
 #if !defined(__QUICK_GPU_OEI_GRAD_H_)
 #define __QUICK_GPU_OEI_GRAD_H_
 
+#undef VY
+#define VY(a,b,c) LOCVY(&devSim.YVerticalTemp[blockIdx.x * blockDim.x + threadIdx.x], (a), (b), (c), VDIM1, VDIM2, VDIM3)
+
 
 __device__ static inline void iclass_oei_grad(unsigned int I, unsigned int J, unsigned int II, unsigned int JJ,
-        unsigned int iatom, unsigned int totalatom, QUICKDouble * const YVerticalTemp,
-        QUICKDouble * const store, QUICKDouble * const store2,
-        QUICKDouble * const storeAA, QUICKDouble * const storeBB) {
+        unsigned int iatom) {
     /*
        kAtom A, B  is the coresponding atom for shell II, JJ
        and be careful with the index difference between Fortran and C++,
@@ -31,12 +32,12 @@ __device__ static inline void iclass_oei_grad(unsigned int I, unsigned int J, un
        Ai, Bi, Ci are the coordinates for atom katomA, katomB, katomC,
        which means they are corrosponding coorinates for shell II, JJ and nuclei.
     */
-    const QUICKDouble Ax = LOC2(devSim.allxyz, 0, devSim.katom[II] - 1, 3, totalatom);
-    const QUICKDouble Ay = LOC2(devSim.allxyz, 1, devSim.katom[II] - 1, 3, totalatom);
-    const QUICKDouble Az = LOC2(devSim.allxyz, 2, devSim.katom[II] - 1, 3, totalatom);
-    const QUICKDouble Bx = LOC2(devSim.allxyz, 0, devSim.katom[JJ] - 1, 3, totalatom);
-    const QUICKDouble By = LOC2(devSim.allxyz, 1, devSim.katom[JJ] - 1, 3, totalatom);
-    const QUICKDouble Bz = LOC2(devSim.allxyz, 2, devSim.katom[JJ] - 1, 3, totalatom);
+    const QUICKDouble Ax = LOC2(devSim.allxyz, 0, devSim.katom[II] - 1, 3, devSim.natom + devSim.nextatom);
+    const QUICKDouble Ay = LOC2(devSim.allxyz, 1, devSim.katom[II] - 1, 3, devSim.natom + devSim.nextatom);
+    const QUICKDouble Az = LOC2(devSim.allxyz, 2, devSim.katom[II] - 1, 3, devSim.natom + devSim.nextatom);
+    const QUICKDouble Bx = LOC2(devSim.allxyz, 0, devSim.katom[JJ] - 1, 3, devSim.natom + devSim.nextatom);
+    const QUICKDouble By = LOC2(devSim.allxyz, 1, devSim.katom[JJ] - 1, 3, devSim.natom + devSim.nextatom);
+    const QUICKDouble Bz = LOC2(devSim.allxyz, 2, devSim.katom[JJ] - 1, 3, devSim.natom + devSim.nextatom);
 
     /*
        kPrimI and kPrimJ indicates the number of primitives in shell II and JJ.
@@ -65,7 +66,7 @@ __device__ static inline void iclass_oei_grad(unsigned int I, unsigned int J, un
     for (int i = Sumindex[J]; i < Sumindex[J + 2]; ++i) {
         for (int j = Sumindex[I]; j < Sumindex[I + 2]; ++j) {
             if (i < STOREDIM && j < STOREDIM) {
-                LOCSTORE(store2, j, i, STOREDIM, STOREDIM) = 0.0;
+                LOCSTORE(&devSim.store2[blockIdx.x * blockDim.x + threadIdx.x], j, i, STOREDIM, STOREDIM) = 0.0;
             }
         }
     }
@@ -73,7 +74,7 @@ __device__ static inline void iclass_oei_grad(unsigned int I, unsigned int J, un
     for (int i = Sumindex[J]; i < Sumindex[J + 2]; ++i) {
         for (int j = Sumindex[I + 1]; j < Sumindex[I + 3]; ++j) {
             if (i < STOREDIM && j < STOREDIM) {
-                LOCSTORE(storeAA, j, i, STOREDIM, STOREDIM) = 0.0;
+                LOCSTORE(&devSim.storeAA[blockIdx.x * blockDim.x + threadIdx.x], j, i, STOREDIM, STOREDIM) = 0.0;
             }
         }
     }
@@ -81,7 +82,7 @@ __device__ static inline void iclass_oei_grad(unsigned int I, unsigned int J, un
     for (int i = Sumindex[J + 1]; i < Sumindex[J + 3]; ++i) {
         for (int j = Sumindex[I]; j < Sumindex[I + 2]; ++j) {
             if (i < STOREDIM && j < STOREDIM) {
-                LOCSTORE(storeBB, j, i, STOREDIM, STOREDIM) = 0.0;
+                LOCSTORE(&devSim.storeBB[blockIdx.x * blockDim.x + threadIdx.x], j, i, STOREDIM, STOREDIM) = 0.0;
             }
         }
     }
@@ -118,13 +119,14 @@ __device__ static inline void iclass_oei_grad(unsigned int I, unsigned int J, un
                 I - devSim.Qstart[II], J - devSim.Qstart[JJ], devSim.jbasis, devSim.jbasis, 2, 2);
 
         if (abs(Xcoeff_oei) > devSim.coreIntegralCutoff) {
-            const QUICKDouble Cx = LOC2(devSim.allxyz, 0, iatom, 3, totalatom);
-            const QUICKDouble Cy = LOC2(devSim.allxyz, 1, iatom, 3, totalatom);
-            const QUICKDouble Cz = LOC2(devSim.allxyz, 2, iatom, 3, totalatom);
+            const QUICKDouble Cx = LOC2(devSim.allxyz, 0, iatom, 3, devSim.natom + devSim.nextatom);
+            const QUICKDouble Cy = LOC2(devSim.allxyz, 1, iatom, 3, devSim.natom + devSim.nextatom);
+            const QUICKDouble Cz = LOC2(devSim.allxyz, 2, iatom, 3, devSim.natom + devSim.nextatom);
             const QUICKDouble chg = -1.0 * devSim.allchg[iatom];
 
             // compute boys function values, the third term of OS A20
-            FmT(I + J + 2, Zeta * (SQR(Px - Cx) + SQR(Py - Cy) + SQR(Pz - Cz)), YVerticalTemp);
+            FmT(I + J + 2, Zeta * (SQR(Px - Cx) + SQR(Py - Cy) + SQR(Pz - Cz)),
+                    &devSim.YVerticalTemp[blockIdx.x * blockDim.x + threadIdx.x]);
 
             // compute all auxilary integrals and store
             for (int n = 0; n <= I + J + 2; n++) {
@@ -140,13 +142,16 @@ __device__ static inline void iclass_oei_grad(unsigned int I, unsigned int J, un
                     Px - Ax, Py - Ay, Pz - Az,
                     Px - Bx, Py - By, Pz - Bz,
                     Px - Cx, Py - Cy, Pz - Cz,
-                    1.0 / (2.0 * Zeta), store, YVerticalTemp);
+                    1.0 / (2.0 * Zeta),
+                    &devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
+                    &devSim.YVerticalTemp[blockIdx.x * blockDim.x + threadIdx.x]);
 
             // sum up primitive integral values into store array
             for (int i = Sumindex[J]; i < Sumindex[J + 2]; ++i) {
                 for (int j = Sumindex[I]; j < Sumindex[I + 2]; ++j) {
                     if (i < STOREDIM && j < STOREDIM) {
-                        LOCSTORE(store2, j, i, STOREDIM, STOREDIM) += LOCSTORE(store, j, i, STOREDIM, STOREDIM);
+                        LOCSTORE(&devSim.store2[blockIdx.x * blockDim.x + threadIdx.x], j, i, STOREDIM, STOREDIM)
+                            += LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x], j, i, STOREDIM, STOREDIM);
                     }
                 }
             }
@@ -155,7 +160,8 @@ __device__ static inline void iclass_oei_grad(unsigned int I, unsigned int J, un
             for (int i = Sumindex[J]; i < Sumindex[J + 2]; ++i) {
                 for (int j = Sumindex[I + 1]; j < Sumindex[I + 3]; ++j) {
                     if (i < STOREDIM && j < STOREDIM) {
-                        LOCSTORE(storeAA, j, i, STOREDIM, STOREDIM) += LOCSTORE(store, j, i, STOREDIM, STOREDIM) * AA * 2.0;
+                        LOCSTORE(&devSim.storeAA[blockIdx.x * blockDim.x + threadIdx.x], j, i, STOREDIM, STOREDIM)
+                            += LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x], j, i, STOREDIM, STOREDIM) * AA * 2.0;
                     }
                 }
             }
@@ -164,7 +170,8 @@ __device__ static inline void iclass_oei_grad(unsigned int I, unsigned int J, un
             for (int i = Sumindex[J + 1]; i < Sumindex[J + 3]; ++i) {
                 for (int j = Sumindex[I]; j < Sumindex[I + 2]; ++j) {
                     if (i < STOREDIM && j < STOREDIM) {
-                        LOCSTORE(storeBB, j, i, STOREDIM, STOREDIM) += LOCSTORE(store, j, i, STOREDIM, STOREDIM) * BB * 2.0;
+                        LOCSTORE(&devSim.storeBB[blockIdx.x * blockDim.x + threadIdx.x], j, i, STOREDIM, STOREDIM)
+                            += LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x], j, i, STOREDIM, STOREDIM) * BB * 2.0;
                     }
                 }
             }
@@ -219,7 +226,7 @@ __device__ static inline void iclass_oei_grad(unsigned int I, unsigned int J, un
                     LOC2(devSim.KLMN, 2, III - 1, 3, nbasis),
                     TRANSDIM, TRANSDIM, TRANSDIM);
 
-            AGradx += constant * LOCSTORE(storeAA, itemp - 1, j - 1, STOREDIM, STOREDIM);
+            AGradx += constant * LOCSTORE(&devSim.storeAA[blockIdx.x * blockDim.x + threadIdx.x], itemp - 1, j - 1, STOREDIM, STOREDIM);
 
             if (LOC2(devSim.KLMN, 0, III - 1, 3, nbasis) >= 1) {
                 itemp = (int) LOC3(devTrans,
@@ -229,7 +236,7 @@ __device__ static inline void iclass_oei_grad(unsigned int I, unsigned int J, un
                         TRANSDIM, TRANSDIM, TRANSDIM);
 
                 AGradx -= constant * LOC2(devSim.KLMN, 0, III - 1, 3, nbasis)
-                    * LOCSTORE(store2, itemp - 1, j - 1, STOREDIM, STOREDIM);
+                    * LOCSTORE(&devSim.store2[blockIdx.x * blockDim.x + threadIdx.x], itemp - 1, j - 1, STOREDIM, STOREDIM);
             }
 
             // sum up gradient wrt y-coordinate of first center
@@ -239,7 +246,7 @@ __device__ static inline void iclass_oei_grad(unsigned int I, unsigned int J, un
                     LOC2(devSim.KLMN, 2, III - 1, 3, nbasis),
                     TRANSDIM, TRANSDIM, TRANSDIM);
 
-            AGrady += constant * LOCSTORE(storeAA, itemp - 1, j - 1, STOREDIM, STOREDIM);
+            AGrady += constant * LOCSTORE(&devSim.storeAA[blockIdx.x * blockDim.x + threadIdx.x], itemp - 1, j - 1, STOREDIM, STOREDIM);
 
             if (LOC2(devSim.KLMN, 1, III - 1, 3, nbasis) >= 1) {
                 itemp = (int) LOC3(devTrans,
@@ -249,7 +256,7 @@ __device__ static inline void iclass_oei_grad(unsigned int I, unsigned int J, un
                         TRANSDIM, TRANSDIM, TRANSDIM);
 
                 AGrady -= constant * LOC2(devSim.KLMN, 1, III - 1, 3, nbasis)
-                    * LOCSTORE(store2, itemp - 1, j - 1, STOREDIM, STOREDIM);
+                    * LOCSTORE(&devSim.store2[blockIdx.x * blockDim.x + threadIdx.x], itemp - 1, j - 1, STOREDIM, STOREDIM);
             }
 
             // sum up gradient wrt z-coordinate of first center
@@ -259,7 +266,7 @@ __device__ static inline void iclass_oei_grad(unsigned int I, unsigned int J, un
                     LOC2(devSim.KLMN, 2, III - 1, 3, nbasis) + 1,
                     TRANSDIM, TRANSDIM, TRANSDIM);
 
-            AGradz += constant * LOCSTORE(storeAA, itemp - 1, j - 1, STOREDIM, STOREDIM);
+            AGradz += constant * LOCSTORE(&devSim.storeAA[blockIdx.x * blockDim.x + threadIdx.x], itemp - 1, j - 1, STOREDIM, STOREDIM);
 
             if (LOC2(devSim.KLMN, 2, III - 1, 3, nbasis) >= 1) {
                 itemp = (int) LOC3(devTrans,
@@ -269,7 +276,7 @@ __device__ static inline void iclass_oei_grad(unsigned int I, unsigned int J, un
                         TRANSDIM, TRANSDIM, TRANSDIM);
 
                 AGradz -= constant * LOC2(devSim.KLMN, 2, III - 1, 3, nbasis)
-                    * LOCSTORE(store2, itemp - 1, j - 1, STOREDIM, STOREDIM);
+                    * LOCSTORE(&devSim.store2[blockIdx.x * blockDim.x + threadIdx.x], itemp - 1, j - 1, STOREDIM, STOREDIM);
             }
 
             // sum up gradient wrt x-coordinate of second center
@@ -279,7 +286,7 @@ __device__ static inline void iclass_oei_grad(unsigned int I, unsigned int J, un
                     LOC2(devSim.KLMN, 2, JJJ - 1, 3, nbasis),
                     TRANSDIM, TRANSDIM, TRANSDIM);
 
-            BGradx += constant * LOCSTORE(storeBB, i - 1, j - 1, STOREDIM, STOREDIM);
+            BGradx += constant * LOCSTORE(&devSim.storeBB[blockIdx.x * blockDim.x + threadIdx.x], i - 1, j - 1, STOREDIM, STOREDIM);
 
             if (LOC2(devSim.KLMN, 0, JJJ - 1, 3, nbasis) >= 1) {
                 j = (int) LOC3(devTrans,
@@ -289,7 +296,7 @@ __device__ static inline void iclass_oei_grad(unsigned int I, unsigned int J, un
                         TRANSDIM, TRANSDIM, TRANSDIM);
 
                 BGradx -= constant * LOC2(devSim.KLMN, 0, JJJ - 1, 3, nbasis)
-                    * LOCSTORE(store2, i - 1, j - 1, STOREDIM, STOREDIM);
+                    * LOCSTORE(&devSim.store2[blockIdx.x * blockDim.x + threadIdx.x], i - 1, j - 1, STOREDIM, STOREDIM);
             }
 
             // sum up gradient wrt y-coordinate of second center
@@ -299,7 +306,7 @@ __device__ static inline void iclass_oei_grad(unsigned int I, unsigned int J, un
                     LOC2(devSim.KLMN, 2, JJJ - 1, 3, nbasis),
                     TRANSDIM, TRANSDIM, TRANSDIM);
 
-            BGrady += constant * LOCSTORE(storeBB, i - 1, j - 1, STOREDIM, STOREDIM);
+            BGrady += constant * LOCSTORE(&devSim.storeBB[blockIdx.x * blockDim.x + threadIdx.x], i - 1, j - 1, STOREDIM, STOREDIM);
 
             if (LOC2(devSim.KLMN, 1, JJJ - 1, 3, nbasis) >= 1) {
                 j = (int) LOC3(devTrans,
@@ -309,7 +316,7 @@ __device__ static inline void iclass_oei_grad(unsigned int I, unsigned int J, un
                         TRANSDIM, TRANSDIM, TRANSDIM);
 
                 BGrady -= constant * LOC2(devSim.KLMN, 1, JJJ - 1, 3, nbasis)
-                    * LOCSTORE(store2, i - 1, j - 1, STOREDIM, STOREDIM);
+                    * LOCSTORE(&devSim.store2[blockIdx.x * blockDim.x + threadIdx.x], i - 1, j - 1, STOREDIM, STOREDIM);
             }
 
             // sum up gradient wrt z-coordinate of second center
@@ -319,7 +326,7 @@ __device__ static inline void iclass_oei_grad(unsigned int I, unsigned int J, un
                     LOC2(devSim.KLMN, 2, JJJ - 1, 3, nbasis) + 1,
                     TRANSDIM, TRANSDIM, TRANSDIM);
 
-            BGradz += constant * LOCSTORE(storeBB, i - 1, j - 1, STOREDIM, STOREDIM);
+            BGradz += constant * LOCSTORE(&devSim.storeBB[blockIdx.x * blockDim.x + threadIdx.x], i - 1, j - 1, STOREDIM, STOREDIM);
 
             if (LOC2(devSim.KLMN, 2, JJJ - 1, 3, nbasis) >= 1) {
                 j = (int) LOC3(devTrans,
@@ -329,7 +336,7 @@ __device__ static inline void iclass_oei_grad(unsigned int I, unsigned int J, un
                         TRANSDIM, TRANSDIM, TRANSDIM);
 
                 BGradz -= constant * LOC2(devSim.KLMN, 2, JJJ - 1, 3, nbasis)
-                    * LOCSTORE(store2, i - 1, j - 1, STOREDIM, STOREDIM);
+                    * LOCSTORE(&devSim.store2[blockIdx.x * blockDim.x + threadIdx.x], i - 1, j - 1, STOREDIM, STOREDIM);
             }
         }
     }
@@ -378,39 +385,34 @@ __device__ static inline void iclass_oei_grad(unsigned int I, unsigned int J, un
 }
 
 
-__global__ void get_oei_grad_kernel() {
-    unsigned int offset = blockIdx.x * blockDim.x + threadIdx.x;
-    unsigned int totalThreads = blockDim.x * gridDim.x;
-    unsigned int jshell = devSim.Qshell;
-    unsigned int totalatom = devSim.natom + devSim.nextatom;
+__global__ void k_oei_grad() {
+    const unsigned int jshell = devSim.Qshell;
 
-    for (QUICKULL i = offset; i < jshell * jshell * totalatom; i += totalThreads) {
+    for (QUICKULL i = blockIdx.x * blockDim.x + threadIdx.x;
+            i < jshell * jshell * (devSim.natom + devSim.nextatom); i += blockDim.x * gridDim.x) {
         // use the global index to obtain shell pair. Note that here we obtain a couple of indices that helps us to obtain
         // shell number (ii and jj) and quantum numbers (iii, jjj).
-        unsigned int iatom = (int) i / (jshell * jshell);
-        unsigned int idx   = i - iatom * jshell * jshell;
+        const unsigned int iatom = (int) i / (jshell * jshell);
+        const unsigned int idx = i - iatom * jshell * jshell;
 
 #ifdef MPIV_GPU
         if (devSim.mpi_boeicompute[idx] > 0) {
 #endif
-            int II = devSim.sorted_OEICutoffIJ[idx].x;
-            int JJ = devSim.sorted_OEICutoffIJ[idx].y;
+        const int II = devSim.sorted_OEICutoffIJ[idx].x;
+        const int JJ = devSim.sorted_OEICutoffIJ[idx].y;
 
-            // get the shell numbers of selected shell pair
-            int ii = devSim.sorted_Q[II];
-            int jj = devSim.sorted_Q[JJ];
+        // get the shell numbers of selected shell pair
+        const int ii = devSim.sorted_Q[II];
+        const int jj = devSim.sorted_Q[JJ];
 
-            // get the quantum number (or angular momentum of shells, s=0, p=1 and so on.)
-            int iii = devSim.sorted_Qnumber[II];
-            int jjj = devSim.sorted_Qnumber[JJ];
+        // get the quantum number (or angular momentum of shells, s=0, p=1 and so on.)
+        const int iii = devSim.sorted_Qnumber[II];
+        const int jjj = devSim.sorted_Qnumber[JJ];
 
-            //printf(" tid: %d II JJ ii jj iii jjj %d  %d  %d  %d  %d  %d \n", (int) i, II, JJ, ii, jj, iii, jjj);
+        //printf(" tid: %d II JJ ii jj iii jjj %d  %d  %d  %d  %d  %d \n", (int) i, II, JJ, ii, jj, iii, jjj);
 
-            // compute coulomb attraction for the selected shell pair.
-            iclass_oei_grad(iii, jjj, ii, jj, iatom, totalatom, devSim.YVerticalTemp + offset,
-                    devSim.store + offset, devSim.store2 + offset,
-                    devSim.storeAA + offset, devSim.storeBB + offset);
-
+        // compute coulomb attraction for the selected shell pair.
+        iclass_oei_grad(iii, jjj, ii, jj, iatom);
 #ifdef MPIV_GPU
         }
 #endif

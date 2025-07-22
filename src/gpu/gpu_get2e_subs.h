@@ -22,8 +22,8 @@
   #define STOREDIM STOREDIM_L
   #define VDIM3 VDIM3_L
 #endif
-#define LOCSTORE(A,i1,i2,d1,d2) (A[((i2) * (d1) + (i1)) * gridDim.x * blockDim.x])
-#define VY(a,b,c) LOCVY(YVerticalTemp, (a), (b), (c), VDIM1, VDIM2, VDIM3)
+#define LOCSTORE(A,i1,i2,d1,d2) ((A)[((i2) * (d1) + (i1)) * gridDim.x * blockDim.x])
+#define VY(a,b,c) LOCVY(&devSim.YVerticalTemp[blockIdx.x * blockDim.x + threadIdx.x], (a), (b), (c), VDIM1, VDIM2, VDIM3)
 
 #undef FMT_NAME
 #define FMT_NAME FmT
@@ -94,34 +94,33 @@ __device__ static inline void iclass_oshell_spdf10
   #endif
 #else
   #if defined(int_sp)
-__device__ static inline void iclass_sp
+__device__ static inline void iclass_cshell_sp
   #elif defined(int_spd)
-__device__ static inline void iclass_spd
+__device__ static inline void iclass_cshell_spd
   #elif defined(int_spdf)
-__device__ static inline void iclass_spdf
+__device__ static inline void iclass_cshell_spdf
   #elif defined(int_spdf2)
-__device__ static inline void iclass_spdf2
+__device__ static inline void iclass_cshell_spdf2
   #elif defined(int_spdf3)
-__device__ static inline void iclass_spdf3
+__device__ static inline void iclass_cshell_spdf3
   #elif defined(int_spdf4)
-__device__ static inline void iclass_spdf4
+__device__ static inline void iclass_cshell_spdf4
   #elif defined(int_spdf5)
-__device__ static inline void iclass_spdf5
+__device__ static inline void iclass_cshell_spdf5
   #elif defined(int_spdf6)
-__device__ static inline void iclass_spdf6
+__device__ static inline void iclass_cshell_spdf6
   #elif defined(int_spdf7)
-__device__ static inline void iclass_spdf7
+__device__ static inline void iclass_cshell_spdf7
   #elif defined(int_spdf8)
-__device__ static inline void iclass_spdf8
+__device__ static inline void iclass_cshell_spdf8
   #elif defined(int_spdf9)
-__device__ static inline void iclass_spdf9
+__device__ static inline void iclass_cshell_spdf9
   #elif defined(int_spdf10)
-__device__ static inline void iclass_spdf10
+__device__ static inline void iclass_cshell_spdf10
   #endif
 #endif
-      (const int I, const int J, const int K, const int L,
-       const unsigned int II, const unsigned int JJ, const unsigned int KK, const unsigned int LL,
-       const QUICKDouble DNMax, QUICKDouble * const YVerticalTemp, QUICKDouble * const store)
+      (int I, int J, int K, int L, unsigned int II, unsigned int JJ, unsigned int KK, unsigned int LL,
+       QUICKDouble DNMax)
 {
     QUICKDouble temp;
 #if defined(OSHELL)
@@ -137,27 +136,27 @@ __device__ static inline void iclass_spdf10
      which means they are corrosponding coorinates for shell II, JJ, KK, and LL.
      And we don't need the coordinates now, so we will not retrieve the data now.
      */
-    QUICKDouble RAx = LOC2(devSim.xyz, 0, devSim.katom[II] - 1, 3, devSim.natom);
-    QUICKDouble RAy = LOC2(devSim.xyz, 1, devSim.katom[II] - 1, 3, devSim.natom);
-    QUICKDouble RAz = LOC2(devSim.xyz, 2, devSim.katom[II] - 1, 3, devSim.natom);
-    QUICKDouble RCx = LOC2(devSim.xyz, 0, devSim.katom[KK] - 1, 3, devSim.natom);
-    QUICKDouble RCy = LOC2(devSim.xyz, 1, devSim.katom[KK] - 1, 3, devSim.natom);
-    QUICKDouble RCz = LOC2(devSim.xyz, 2, devSim.katom[KK] - 1, 3, devSim.natom);
+    const QUICKDouble RAx = LOC2(devSim.xyz, 0, devSim.katom[II] - 1, 3, devSim.natom);
+    const QUICKDouble RAy = LOC2(devSim.xyz, 1, devSim.katom[II] - 1, 3, devSim.natom);
+    const QUICKDouble RAz = LOC2(devSim.xyz, 2, devSim.katom[II] - 1, 3, devSim.natom);
+    const QUICKDouble RCx = LOC2(devSim.xyz, 0, devSim.katom[KK] - 1, 3, devSim.natom);
+    const QUICKDouble RCy = LOC2(devSim.xyz, 1, devSim.katom[KK] - 1, 3, devSim.natom);
+    const QUICKDouble RCz = LOC2(devSim.xyz, 2, devSim.katom[KK] - 1, 3, devSim.natom);
     
     /*
      kPrimI, J, K and L indicates the primtive gaussian function number
      kStartI, J, K, and L indicates the starting guassian function for shell I, J, K, and L.
      We retrieve from global memory and save them to register to avoid multiple retrieve.
      */
-    int kPrimI = devSim.kprim[II];
-    int kPrimJ = devSim.kprim[JJ];
-    int kPrimK = devSim.kprim[KK];
-    int kPrimL = devSim.kprim[LL];
+    const int kPrimI = devSim.kprim[II];
+    const int kPrimJ = devSim.kprim[JJ];
+    const int kPrimK = devSim.kprim[KK];
+    const int kPrimL = devSim.kprim[LL];
     
-    int kStartI = devSim.kstart[II] - 1;
-    int kStartJ = devSim.kstart[JJ] - 1;
-    int kStartK = devSim.kstart[KK] - 1;
-    int kStartL = devSim.kstart[LL] - 1;
+    const int kStartI = devSim.kstart[II] - 1;
+    const int kStartJ = devSim.kstart[JJ] - 1;
+    const int kStartK = devSim.kstart[KK] - 1;
+    const int kStartL = devSim.kstart[LL] - 1;
     
     /*
      store saves temp contracted integral as [as|bs] type. the dimension should be allocatable but because
@@ -167,15 +166,16 @@ __device__ static inline void iclass_spdf10
     */
     for (int i = Sumindex[K + 1] + 1; i <= Sumindex[K + L + 2]; i++) {
         for (int j = Sumindex[I + 1] + 1; j <= Sumindex[I + J + 2]; j++) {
-            if ( i <= STOREDIM && j <= STOREDIM) {
-                LOCSTORE(store, j - 1, i - 1, STOREDIM, STOREDIM) = 0.0;
+            if (i <= STOREDIM && j <= STOREDIM) {
+                LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
+                        j - 1, i - 1, STOREDIM, STOREDIM) = 0.0;
             }
         }
     }
     
     for (int i = 0; i < kPrimI * kPrimJ; i++) {
-        int JJJ = (int) (i / kPrimI);
-        int III = (int) (i - kPrimI * JJJ);
+        const int JJJ = (int) (i / kPrimI);
+        const int III = (int) (i - kPrimI * JJJ);
 
         /*
          In the following comments, we have I, J, K, L denote the primitive gaussian function we use, and
@@ -189,25 +189,25 @@ __device__ static inline void iclass_spdf10
          Those two are pre-calculated in CPU stage.
          
          */
-        int ii_start = devSim.prim_start[II];
-        int jj_start = devSim.prim_start[JJ];
+        const int ii_start = devSim.prim_start[II];
+        const int jj_start = devSim.prim_start[JJ];
         
-        QUICKDouble AB = LOC2(devSim.expoSum, ii_start + III, jj_start + JJJ, devSim.prim_total, devSim.prim_total);
-        QUICKDouble Px = LOC2(devSim.weightedCenterX, ii_start + III, jj_start + JJJ, devSim.prim_total, devSim.prim_total);
-        QUICKDouble Py = LOC2(devSim.weightedCenterY, ii_start + III, jj_start + JJJ, devSim.prim_total, devSim.prim_total);
-        QUICKDouble Pz = LOC2(devSim.weightedCenterZ, ii_start + III, jj_start + JJJ, devSim.prim_total, devSim.prim_total);
+        const QUICKDouble AB = LOC2(devSim.expoSum, ii_start + III, jj_start + JJJ, devSim.prim_total, devSim.prim_total);
+        const QUICKDouble Px = LOC2(devSim.weightedCenterX, ii_start + III, jj_start + JJJ, devSim.prim_total, devSim.prim_total);
+        const QUICKDouble Py = LOC2(devSim.weightedCenterY, ii_start + III, jj_start + JJJ, devSim.prim_total, devSim.prim_total);
+        const QUICKDouble Pz = LOC2(devSim.weightedCenterZ, ii_start + III, jj_start + JJJ, devSim.prim_total, devSim.prim_total);
         
         /*
          X1 is the contracted coeffecient, which is pre-calcuated in CPU stage as well.
          cutoffprim is used to cut too small prim gaussian function when bring density matrix into consideration.
          */
-        QUICKDouble cutoffPrim = DNMax * LOC2(devSim.cutPrim, kStartI + III, kStartJ + JJJ, devSim.jbasis, devSim.jbasis);
-        QUICKDouble X1 = LOC4(devSim.Xcoeff, kStartI + III, kStartJ + JJJ, I - devSim.Qstart[II], J - devSim.Qstart[JJ],
+        const QUICKDouble cutoffPrim = DNMax * LOC2(devSim.cutPrim, kStartI + III, kStartJ + JJJ, devSim.jbasis, devSim.jbasis);
+        const QUICKDouble X1 = LOC4(devSim.Xcoeff, kStartI + III, kStartJ + JJJ, I - devSim.Qstart[II], J - devSim.Qstart[JJ],
                 devSim.jbasis, devSim.jbasis, 2, 2);
         
         for (int j = 0; j < kPrimK * kPrimL; j++) {
-            int LLL = (int) (j / kPrimK);
-            int KKK = (int) (j - kPrimK * LLL);
+            const int LLL = (int) (j / kPrimK);
+            const int KKK = (int) (j - kPrimK * LLL);
             
             if (cutoffPrim * LOC2(devSim.cutPrim, kStartK + KKK, kStartL + LLL, devSim.jbasis, devSim.jbasis) > devSim.primLimit) {
                 /*
@@ -223,20 +223,20 @@ __device__ static inline void iclass_spdf10
                  
                  ABCDtemp = 1/2(expo(I)+expo(J)+expo(K)+expo(L))
                  */
-                int kk_start = devSim.prim_start[KK];
-                int ll_start = devSim.prim_start[LL];
-                QUICKDouble CD = LOC2(devSim.expoSum, kk_start + KKK, ll_start + LLL, devSim.prim_total, devSim.prim_total);
-                QUICKDouble ABCD = 1.0 / (AB + CD);
+                const int kk_start = devSim.prim_start[KK];
+                const int ll_start = devSim.prim_start[LL];
+                const QUICKDouble CD = LOC2(devSim.expoSum, kk_start + KKK, ll_start + LLL, devSim.prim_total, devSim.prim_total);
+                const QUICKDouble ABCD = 1.0 / (AB + CD);
                 
                 /*
                  X2 is the multiplication of four indices normalized coeffecient
                  */
 #if defined(USE_TEXTURE) && defined(USE_TEXTURE_XCOEFF)
-                int2 XcoeffInt2 = tex1Dfetch(tex_Xcoeff, L - devSim.Qstart[LL] +
+                const int2 XcoeffInt2 = tex1Dfetch(tex_Xcoeff, L - devSim.Qstart[LL] +
                         (K - devSim.Qstart[KK] + ((kStartL + LLL) + (kStartK + KKK) * devSim.jbasis) * 2) * 2);
-                QUICKDouble X2 = sqrt(ABCD) * X1 * __hiloint2double(XcoeffInt2.y, XcoeffInt2.x);
+                const QUICKDouble X2 = sqrt(ABCD) * X1 * __hiloint2double(XcoeffInt2.y, XcoeffInt2.x);
 #else
-                QUICKDouble X2 = sqrt(ABCD) * X1 * LOC4(devSim.Xcoeff, kStartK + KKK, kStartL + LLL,
+                const QUICKDouble X2 = sqrt(ABCD) * X1 * LOC4(devSim.Xcoeff, kStartK + KKK, kStartL + LLL,
                         K - devSim.Qstart[KK], L - devSim.Qstart[LL], devSim.jbasis, devSim.jbasis, 2, 2);
 #endif                
 
@@ -259,12 +259,12 @@ __device__ static inline void iclass_spdf10
                  ->  -> 2
                  T = ROU * | P - Q|
                  */
-                QUICKDouble Qx = LOC2(devSim.weightedCenterX, kk_start + KKK, ll_start + LLL, devSim.prim_total, devSim.prim_total);
-                QUICKDouble Qy = LOC2(devSim.weightedCenterY, kk_start + KKK, ll_start + LLL, devSim.prim_total, devSim.prim_total);
-                QUICKDouble Qz = LOC2(devSim.weightedCenterZ, kk_start + KKK, ll_start + LLL, devSim.prim_total, devSim.prim_total);
+                const QUICKDouble Qx = LOC2(devSim.weightedCenterX, kk_start + KKK, ll_start + LLL, devSim.prim_total, devSim.prim_total);
+                const QUICKDouble Qy = LOC2(devSim.weightedCenterY, kk_start + KKK, ll_start + LLL, devSim.prim_total, devSim.prim_total);
+                const QUICKDouble Qz = LOC2(devSim.weightedCenterZ, kk_start + KKK, ll_start + LLL, devSim.prim_total, devSim.prim_total);
                 
                 FmT(I + J + K + L, AB * CD * ABCD * (SQR(Px - Qx) + SQR(Py - Qy) + SQR(Pz - Qz)),
-                        YVerticalTemp);
+                        &devSim.YVerticalTemp[blockIdx.x * blockDim.x + threadIdx.x]);
 
                 for (int i = 0; i <= I + J + K + L; i++) {
                     VY(0, 0, i) *= X2;
@@ -300,26 +300,28 @@ __device__ static inline void iclass_spdf10
                      (Py * AB + Qy * CD) * ABCD - Py, (Pz * AB + Qz * CD) * ABCD - Pz,
                      Qx - RCx, Qy - RCy, Qz - RCz, (Px * AB + Qx * CD) * ABCD - Qx,
                      (Py * AB + Qy * CD) * ABCD - Qy, (Pz * AB + Qz * CD) * ABCD - Qz,
-                     0.5 * ABCD, 0.5 / AB, 0.5 / CD, AB * ABCD, CD * ABCD, store, YVerticalTemp);
+                     0.5 * ABCD, 0.5 / AB, 0.5 / CD, AB * ABCD, CD * ABCD,
+                     &devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
+                     &devSim.YVerticalTemp[blockIdx.x * blockDim.x + threadIdx.x]);
             }
         }
     }
     
-    QUICKDouble RBx = LOC2(devSim.xyz, 0, devSim.katom[JJ] - 1, 3, devSim.natom);
-    QUICKDouble RBy = LOC2(devSim.xyz, 1, devSim.katom[JJ] - 1, 3, devSim.natom);
-    QUICKDouble RBz = LOC2(devSim.xyz, 2, devSim.katom[JJ] - 1, 3, devSim.natom);
-    QUICKDouble RDx = LOC2(devSim.xyz, 0, devSim.katom[LL] - 1, 3, devSim.natom);
-    QUICKDouble RDy = LOC2(devSim.xyz, 1, devSim.katom[LL] - 1, 3, devSim.natom);
-    QUICKDouble RDz = LOC2(devSim.xyz, 2, devSim.katom[LL] - 1, 3, devSim.natom);
+    const QUICKDouble RBx = LOC2(devSim.xyz, 0, devSim.katom[JJ] - 1, 3, devSim.natom);
+    const QUICKDouble RBy = LOC2(devSim.xyz, 1, devSim.katom[JJ] - 1, 3, devSim.natom);
+    const QUICKDouble RBz = LOC2(devSim.xyz, 2, devSim.katom[JJ] - 1, 3, devSim.natom);
+    const QUICKDouble RDx = LOC2(devSim.xyz, 0, devSim.katom[LL] - 1, 3, devSim.natom);
+    const QUICKDouble RDy = LOC2(devSim.xyz, 1, devSim.katom[LL] - 1, 3, devSim.natom);
+    const QUICKDouble RDz = LOC2(devSim.xyz, 2, devSim.katom[LL] - 1, 3, devSim.natom);
     
-    int III1 = LOC2(devSim.Qsbasis, II, I, devSim.nshell, 4);
-    int III2 = LOC2(devSim.Qfbasis, II, I, devSim.nshell, 4);
-    int JJJ1 = LOC2(devSim.Qsbasis, JJ, J, devSim.nshell, 4);
-    int JJJ2 = LOC2(devSim.Qfbasis, JJ, J, devSim.nshell, 4);
-    int KKK1 = LOC2(devSim.Qsbasis, KK, K, devSim.nshell, 4);
-    int KKK2 = LOC2(devSim.Qfbasis, KK, K, devSim.nshell, 4);
-    int LLL1 = LOC2(devSim.Qsbasis, LL, L, devSim.nshell, 4);
-    int LLL2 = LOC2(devSim.Qfbasis, LL, L, devSim.nshell, 4);
+    const int III1 = LOC2(devSim.Qsbasis, II, I, devSim.nshell, 4);
+    const int III2 = LOC2(devSim.Qfbasis, II, I, devSim.nshell, 4);
+    const int JJJ1 = LOC2(devSim.Qsbasis, JJ, J, devSim.nshell, 4);
+    const int JJJ2 = LOC2(devSim.Qfbasis, JJ, J, devSim.nshell, 4);
+    const int KKK1 = LOC2(devSim.Qsbasis, KK, K, devSim.nshell, 4);
+    const int KKK2 = LOC2(devSim.Qfbasis, KK, K, devSim.nshell, 4);
+    const int LLL1 = LOC2(devSim.Qsbasis, LL, L, devSim.nshell, 4);
+    const int LLL2 = LOC2(devSim.Qfbasis, LL, L, devSim.nshell, 4);
     
 //    QUICKDouble hybrid_coeff = 0.0;
 //    if (devSim.method == HF) {
@@ -381,8 +383,7 @@ __device__ static inline void iclass_spdf10
 #else
                         QUICKDouble Y = (QUICKDouble) hrrwhole2
 #endif
-                           (I, J, K, L,
-                           III, JJJ, KKK, LLL, store,
+                           (I, J, K, L, III, JJJ, KKK, LLL,
                            RAx, RAy, RAz, RBx, RBy, RBz,
                            RCx, RCy, RCz, RDx, RDy, RDz);
 
@@ -635,67 +636,64 @@ To understand the following comments better, please refer to Figure 2(b) and 2(d
  */
 #if defined(OSHELL)
   #if defined(int_sp)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) get_oshell_eri_kernel_sp()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_sp()
   #elif defined(int_spd)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) get_oshell_eri_kernel_spd()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_spd()
   #elif defined(int_spdf)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) get_oshell_eri_kernel_spdf()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_spdf()
   #elif defined(int_spdf2)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) get_oshell_eri_kernel_spdf2()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_spdf2()
   #elif defined(int_spdf3)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) get_oshell_eri_kernel_spdf3()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_spdf3()
   #elif defined(int_spdf4)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) get_oshell_eri_kernel_spdf4()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_spdf4()
   #elif defined(int_spdf5)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) get_oshell_eri_kernel_spdf5()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_spdf5()
   #elif defined(int_spdf6)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) get_oshell_eri_kernel_spdf6()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_spdf6()
   #elif defined(int_spdf7)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) get_oshell_eri_kernel_spdf7()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_spdf7()
   #elif defined(int_spdf8)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) get_oshell_eri_kernel_spdf8()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_spdf8()
   #elif defined(int_spdf9)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) get_oshell_eri_kernel_spdf9()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_spdf9()
   #elif defined(int_spdf10)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) get_oshell_eri_kernel_spdf10()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_spdf10()
   #endif
 #else
   #if defined(int_sp)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) get2e_kernel_sp()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_sp()
   #elif defined(int_spd)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) get2e_kernel_spd()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_spd()
   #elif defined(int_spdf)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) get2e_kernel_spdf()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_spdf()
   #elif defined(int_spdf2)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) get2e_kernel_spdf2()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_spdf2()
   #elif defined(int_spdf3)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) get2e_kernel_spdf3()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_spdf3()
   #elif defined(int_spdf4)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) get2e_kernel_spdf4()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_spdf4()
   #elif defined(int_spdf5)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) get2e_kernel_spdf5()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_spdf5()
   #elif defined(int_spdf6)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) get2e_kernel_spdf6()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_spdf6()
   #elif defined(int_spdf7)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) get2e_kernel_spdf7()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_spdf7()
   #elif defined(int_spdf8)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) get2e_kernel_spdf8()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_spdf8()
   #elif defined(int_spdf9)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) get2e_kernel_spdf9()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_spdf9()
   #elif defined(int_spdf10)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) get2e_kernel_spdf10()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_spdf10()
   #endif
 #endif
 {
-    unsigned int offside = blockIdx.x * blockDim.x + threadIdx.x;
-    int totalThreads = blockDim.x * gridDim.x;
-    
     // jshell and jshell2 defines the regions in i+j and k+l axes respectively.    
     // sqrQshell= Qshell x Qshell; where Qshell is the number of sorted shells (see gpu_upload_basis_ in gpu.cu)
     // for details on sorting. 
 #if defined(int_sp)
-    QUICKULL jshell = (QUICKULL) devSim.sqrQshell;
-    QUICKULL jshell2 = (QUICKULL) devSim.sqrQshell;
+    const QUICKULL jshell = (QUICKULL) devSim.sqrQshell;
+    const QUICKULL jshell2 = (QUICKULL) devSim.sqrQshell;
 #elif defined(int_spd)
 /*
  Here we walk through full cutoff matrix.
@@ -710,8 +708,8 @@ __global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) get2e_kernel_sp
  |_____________|  |
 
 */
-    QUICKULL jshell = (QUICKULL) devSim.sqrQshell;
-    QUICKULL jshell2 = (QUICKULL) devSim.sqrQshell;
+    const QUICKULL jshell = (QUICKULL) devSim.sqrQshell;
+    const QUICKULL jshell2 = (QUICKULL) devSim.sqrQshell;
 #elif defined(int_spdf)
 /*  
  Here we walk through following region of the cutoff matrix.
@@ -726,62 +724,62 @@ __global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) get2e_kernel_sp
  |_____________|  |
 
 */
-    QUICKULL jshell = (QUICKULL) devSim.sqrQshell;
-    QUICKULL jshell2 = (QUICKULL) devSim.sqrQshell - devSim.fStart;
+    const QUICKULL jshell = (QUICKULL) devSim.sqrQshell;
+    const QUICKULL jshell2 = (QUICKULL) devSim.sqrQshell - devSim.fStart;
 #elif defined(int_spdf2)
-    QUICKULL jshell = (QUICKULL) devSim.sqrQshell;
-    QUICKULL jshell2 = (QUICKULL) devSim.sqrQshell - devSim.fStart;
+    const QUICKULL jshell = (QUICKULL) devSim.sqrQshell;
+    const QUICKULL jshell2 = (QUICKULL) devSim.sqrQshell - devSim.fStart;
 #elif defined(int_spdf3)
-    QUICKULL jshell0 = (QUICKULL) devSim.fStart;
-    QUICKULL jshell = (QUICKULL) devSim.sqrQshell - jshell0;
-    QUICKULL jshell2 = (QUICKULL) devSim.sqrQshell - jshell0;
+    const QUICKULL jshell0 = (QUICKULL) devSim.fStart;
+    const QUICKULL jshell = (QUICKULL) devSim.sqrQshell - jshell0;
+    const QUICKULL jshell2 = (QUICKULL) devSim.sqrQshell - jshell0;
 #elif defined(int_spdf4)
-    QUICKULL jshell0 = (QUICKULL) devSim.fStart;
-    QUICKULL jshell00 = (QUICKULL) devSim.ffStart;
-    QUICKULL jshell = (QUICKULL) devSim.sqrQshell - jshell00;
-    QUICKULL jshell2 = (QUICKULL) devSim.sqrQshell - jshell0;
+    const QUICKULL jshell0 = (QUICKULL) devSim.fStart;
+    const QUICKULL jshell00 = (QUICKULL) devSim.ffStart;
+    const QUICKULL jshell = (QUICKULL) devSim.sqrQshell - jshell00;
+    const QUICKULL jshell2 = (QUICKULL) devSim.sqrQshell - jshell0;
 #elif defined(int_spdf5)
-    QUICKULL jshell = (QUICKULL) devSim.sqrQshell;
-    QUICKULL jshell2 = (QUICKULL) devSim.sqrQshell - devSim.ffStart;
+    const QUICKULL jshell = (QUICKULL) devSim.sqrQshell;
+    const QUICKULL jshell2 = (QUICKULL) devSim.sqrQshell - devSim.ffStart;
 #elif defined(int_spdf6)
-    QUICKULL jshell = (QUICKULL) devSim.sqrQshell;
-    QUICKULL jshell2 = (QUICKULL) devSim.sqrQshell - devSim.ffStart;
+    const QUICKULL jshell = (QUICKULL) devSim.sqrQshell;
+    const QUICKULL jshell2 = (QUICKULL) devSim.sqrQshell - devSim.ffStart;
 #elif defined(int_spdf7)
-    QUICKULL jshell0 = (QUICKULL) devSim.fStart;
-    QUICKULL jshell00 = (QUICKULL) devSim.ffStart;
-    QUICKULL jshell = (QUICKULL) devSim.sqrQshell - jshell0;
-    QUICKULL jshell2 = (QUICKULL) devSim.sqrQshell - jshell00;
+    const QUICKULL jshell0 = (QUICKULL) devSim.fStart;
+    const QUICKULL jshell00 = (QUICKULL) devSim.ffStart;
+    const QUICKULL jshell = (QUICKULL) devSim.sqrQshell - jshell0;
+    const QUICKULL jshell2 = (QUICKULL) devSim.sqrQshell - jshell00;
 #elif defined(int_spdf8)
-    QUICKULL jshell0 = (QUICKULL) devSim.ffStart;
-    QUICKULL jshell00 = (QUICKULL) devSim.ffStart;
-    QUICKULL jshell = (QUICKULL) devSim.sqrQshell - jshell00;
-    QUICKULL jshell2 = (QUICKULL) devSim.sqrQshell - jshell0;
+    const QUICKULL jshell0 = (QUICKULL) devSim.ffStart;
+    const QUICKULL jshell00 = (QUICKULL) devSim.ffStart;
+    const QUICKULL jshell = (QUICKULL) devSim.sqrQshell - jshell00;
+    const QUICKULL jshell2 = (QUICKULL) devSim.sqrQshell - jshell0;
 #elif defined(int_spdf9)
-    QUICKULL jshell0 = (QUICKULL) devSim.ffStart;
-    QUICKULL jshell00 = (QUICKULL) devSim.ffStart;
-    QUICKULL jshell = (QUICKULL) devSim.sqrQshell - jshell00;
-    QUICKULL jshell2 = (QUICKULL) devSim.sqrQshell - jshell0;
+    const QUICKULL jshell0 = (QUICKULL) devSim.ffStart;
+    const QUICKULL jshell00 = (QUICKULL) devSim.ffStart;
+    const QUICKULL jshell = (QUICKULL) devSim.sqrQshell - jshell00;
+    const QUICKULL jshell2 = (QUICKULL) devSim.sqrQshell - jshell0;
 #elif defined(int_spdf10)
-    QUICKULL jshell0 = (QUICKULL) devSim.ffStart;
-    QUICKULL jshell00 = (QUICKULL) devSim.ffStart;
-    QUICKULL jshell = (QUICKULL) devSim.sqrQshell - jshell00;
-    QUICKULL jshell2 = (QUICKULL) devSim.sqrQshell - jshell0;
+    const QUICKULL jshell0 = (QUICKULL) devSim.ffStart;
+    const QUICKULL jshell00 = (QUICKULL) devSim.ffStart;
+    const QUICKULL jshell = (QUICKULL) devSim.sqrQshell - jshell00;
+    const QUICKULL jshell2 = (QUICKULL) devSim.sqrQshell - jshell0;
 #endif
 
-    for (QUICKULL i = offside; i < jshell * jshell2; i+= totalThreads) {
+    for (QUICKULL i = blockIdx.x * blockDim.x + threadIdx.x; i < jshell * jshell2; i += blockDim.x * gridDim.x) {
 #if defined(int_sp) || defined(int_spd)
         // Zone 0
-        QUICKULL a = i / jshell;
-        QUICKULL b = i - a * jshell;
+        const QUICKULL a = i / jshell;
+        const QUICKULL b = i - a * jshell;
 #elif defined(int_spdf)
         // Zone 1
         QUICKULL b = i / jshell;
-        QUICKULL a = i - b * jshell;
+        const QUICKULL a = i - b * jshell;
         b += (QUICKULL) devSim.fStart;
 #elif defined(int_spdf2)
         // Zone 2
         QUICKULL a = i / jshell;
-        QUICKULL b = i - a * jshell;
+        const QUICKULL b = i - a * jshell;
         a += (QUICKULL) devSim.fStart;
 #elif defined(int_spdf3)
         // Zone 3
@@ -808,12 +806,12 @@ __global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) get2e_kernel_sp
 #elif defined(int_spdf5)
         // Zone 5
         QUICKULL b = i / jshell;
-        QUICKULL a = i - b * jshell;
+        const QUICKULL a = i - b * jshell;
         b += (QUICKULL) devSim.ffStart;
 #elif defined(int_spdf6)
         // Zone 2
         QUICKULL a = i / jshell;
-        QUICKULL b = i - a * jshell;
+        const QUICKULL b = i - a * jshell;
         a += (QUICKULL) devSim.ffStart;
 #elif defined(int_spdf7)
         // Zone 3
@@ -842,19 +840,19 @@ __global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) get2e_kernel_sp
 #if defined(MPIV_GPU)
         if (devSim.mpi_bcompute[a] > 0) {
 #endif 
-        int II = devSim.sorted_YCutoffIJ[a].x;
-        int KK = devSim.sorted_YCutoffIJ[b].x;        
-        int ii = devSim.sorted_Q[II];
-        int kk = devSim.sorted_Q[KK];
+        const int II = devSim.sorted_YCutoffIJ[a].x;
+        const int KK = devSim.sorted_YCutoffIJ[b].x;        
+        const int ii = devSim.sorted_Q[II];
+        const int kk = devSim.sorted_Q[KK];
         
         if (ii <= kk) {
-            int JJ = devSim.sorted_YCutoffIJ[a].y;            
-            int LL = devSim.sorted_YCutoffIJ[b].y;
+            const int JJ = devSim.sorted_YCutoffIJ[a].y;            
+            const int LL = devSim.sorted_YCutoffIJ[b].y;
 
-            int iii = devSim.sorted_Qnumber[II];
-            int jjj = devSim.sorted_Qnumber[JJ];
-            int kkk = devSim.sorted_Qnumber[KK];
-            int lll = devSim.sorted_Qnumber[LL];
+            const int iii = devSim.sorted_Qnumber[II];
+            const int jjj = devSim.sorted_Qnumber[JJ];
+            const int kkk = devSim.sorted_Qnumber[KK];
+            const int lll = devSim.sorted_Qnumber[LL];
 
 #if defined(int_sp)
             if (iii < 2 && jjj < 2 && kkk < 2 && lll < 2) {
@@ -862,10 +860,9 @@ __global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) get2e_kernel_sp
 #if defined(int_spd)
             if (!(iii < 2 && jjj < 2 && kkk < 2 && lll < 2)) {
 #endif
-            
-            int jj = devSim.sorted_Q[JJ];
-            int ll = devSim.sorted_Q[LL];
-            int nshell = devSim.nshell;
+            const int jj = devSim.sorted_Q[JJ];
+            const int ll = devSim.sorted_Q[LL];
+            const int nshell = devSim.nshell;
 #if defined(USE_TEXTURE)
             int2 tmpInt2Val;
             QUICKDouble val_ii_jj;
@@ -893,7 +890,7 @@ __global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) get2e_kernel_sp
             QUICKDouble DNMax = MAX(MAX(4.0 * val_ii_jj, 4.0 * val_kk_ll),
                     MAX(MAX(val_ii_ll, val_ii_kk), MAX(val_jj_kk, val_jj_ll)));
 #else
-            QUICKDouble DNMax = MAX(
+            const QUICKDouble DNMax = MAX(
                     MAX(4.0 * LOC2(devSim.cutMatrix, ii, jj, nshell, nshell), 4.0 * LOC2(devSim.cutMatrix, kk, ll, nshell, nshell)),
                     MAX(MAX(LOC2(devSim.cutMatrix, ii, ll, nshell, nshell), LOC2(devSim.cutMatrix, ii, kk, nshell, nshell)),
                         MAX(LOC2(devSim.cutMatrix, jj, kk, nshell, nshell), LOC2(devSim.cutMatrix, jj, ll, nshell, nshell))));
@@ -917,120 +914,96 @@ __global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) get2e_kernel_sp
 #endif                
 #if defined(OSHELL)
   #if defined(int_sp)
-                iclass_oshell_sp(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax,
-                        devSim.YVerticalTemp + offside, devSim.store + offside);
+                iclass_oshell_sp(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
   #elif defined(int_spd)
-                iclass_oshell_spd(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax,
-                        devSim.YVerticalTemp + offside, devSim.store + offside);
+                iclass_oshell_spd(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
   #elif defined(int_spdf)
-                if ((kkk + lll) <= 6 && (kkk + lll) > 4) {
-                    iclass_oshell_spdf(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax,
-                            devSim.YVerticalTemp + offside, devSim.store + offside);
+                if (kkk + lll <= 6 && kkk + lll > 4) {
+                    iclass_oshell_spdf(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
                 }
   #elif defined(int_spdf2)
-                if ((iii + jjj) > 4 && (iii + jjj) <= 6 ) {
-                    iclass_oshell_spdf2(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax,
-                            devSim.YVerticalTemp + offside, devSim.store + offside);
+                if (iii + jjj > 4 && iii + jjj <= 6 ) {
+                    iclass_oshell_spdf2(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
                 }
   #elif defined(int_spdf3)
-                if ((iii + jjj) >= 5 && (iii + jjj) <= 6 && (kkk + lll) <= 6 && (kkk + lll) >= 5) {
-                    iclass_oshell_spdf3(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax,
-                            devSim.YVerticalTemp + offside, devSim.store + offside);
+                if (iii + jjj >= 5 && iii + jjj <= 6 && kkk + lll <= 6 && kkk + lll >= 5) {
+                    iclass_oshell_spdf3(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
                 }
   #elif defined(int_spdf4)
-                if ((iii + jjj) == 6 && (kkk + lll) <= 6 && (kkk + lll) >= 5) {
-                    iclass_oshell_spdf4(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax,
-                            devSim.YVerticalTemp + offside, devSim.store + offside);
+                if (iii + jjj == 6 && kkk + lll <= 6 && kkk + lll >= 5) {
+                    iclass_oshell_spdf4(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
                 }
   #elif defined(int_spdf5)
-                if ((kkk + lll) == 6 && (iii + jjj) >= 4 && (iii + jjj) <= 6) {
-                    iclass_oshell_spdf5(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax,
-                            devSim.YVerticalTemp + offside, devSim.store + offside);
+                if (kkk + lll == 6 && iii + jjj >= 4 && iii + jjj <= 6) {
+                    iclass_oshell_spdf5(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
                 }
   #elif defined(int_spdf6)
-                if ((iii + jjj) == 6 && (kkk + lll) <= 6 && (kkk + lll) >= 4) {
-                    iclass_oshell_spdf6(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax,
-                            devSim.YVerticalTemp + offside, devSim.store + offside);
+                if (iii + jjj == 6 && kkk + lll <= 6 && kkk + lll >= 4) {
+                    iclass_oshell_spdf6(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
                 }
   #elif defined(int_spdf7)
-                if ((iii + jjj) >= 5 && (iii + jjj) <= 6 && (kkk + lll) == 6) {
-                    iclass_oshell_spdf7(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax,
-                            devSim.YVerticalTemp + offside, devSim.store + offside);
+                if (iii + jjj >= 5 && iii + jjj <= 6 && kkk + lll == 6) {
+                    iclass_oshell_spdf7(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
                 }
   #elif defined(int_spdf8)
-                if ((iii + jjj) == 6 && (kkk + lll) == 6) {
-                    iclass_oshell_spdf8(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax,
-                            devSim.YVerticalTemp + offside, devSim.store + offside);
+                if (iii + jjj == 6 && kkk + lll == 6) {
+                    iclass_oshell_spdf8(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
                 }
   #elif defined(int_spdf9)
-                if ((iii + jjj) == 6 && (kkk + lll) == 6) {
-                    iclass_oshell_spdf9(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax,
-                            devSim.YVerticalTemp + offside, devSim.store + offside);
+                if (iii + jjj == 6 && kkk + lll == 6) {
+                    iclass_oshell_spdf9(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
                 }
   #elif defined(int_spdf10)
-                if ((iii + jjj) == 6 && (kkk + lll) == 6) {
-                    iclass_oshell_spdf10(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax,
-                            devSim.YVerticalTemp + offside, devSim.store + offside);
+                if (iii + jjj == 6 && kkk + lll == 6) {
+                    iclass_oshell_spdf10(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
                 }
   #endif
 #else          
   #if defined(int_sp)
-                if (call_iclass(iii, jjj, kkk, lll, ii, jj, kk, ll))
-                    iclass_sp(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax,
-                            devSim.YVerticalTemp + offside, devSim.store + offside);
+                if (call_iclass(iii, jjj, kkk, lll, ii, jj, kk, ll) == true)
+                    iclass_cshell_sp(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
   #elif defined(int_spd)
-                if (call_iclass(iii, jjj, kkk, lll, ii, jj, kk, ll))
-                    iclass_spd(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax,
-                            devSim.YVerticalTemp + offside, devSim.store + offside);
+                if (call_iclass(iii, jjj, kkk, lll, ii, jj, kk, ll) == true)
+                    iclass_cshell_spd(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
   #elif defined(int_spdf)
-                if ((kkk + lll) <= 6 && (kkk + lll) > 4) {
-                    iclass_spdf(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax,
-                            devSim.YVerticalTemp + offside, devSim.store + offside);
+                if (kkk + lll <= 6 && kkk + lll > 4) {
+                    iclass_cshell_spdf(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
                 }
   #elif defined(int_spdf2)
-                if ((iii + jjj) > 4 && (iii + jjj) <= 6 ) {
-                    iclass_spdf2(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax,
-                            devSim.YVerticalTemp + offside, devSim.store + offside);
+                if (iii + jjj > 4 && iii + jjj <= 6 ) {
+                    iclass_cshell_spdf2(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
                 }
   #elif defined(int_spdf3)
-                if ((iii + jjj) >= 5 && (iii + jjj) <= 6 && (kkk + lll) <= 6 && (kkk + lll) >= 5) {
-                    iclass_spdf3(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax,
-                            devSim.YVerticalTemp + offside, devSim.store + offside);
+                if (iii + jjj >= 5 && iii + jjj <= 6 && kkk + lll <= 6 && kkk + lll >= 5) {
+                    iclass_cshell_spdf3(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
                 }
   #elif defined(int_spdf4)
-                if ((iii + jjj) == 6 && (kkk + lll) <= 6 && (kkk + lll) >= 5) {
-                    iclass_spdf4(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax,
-                            devSim.YVerticalTemp + offside, devSim.store + offside);
+                if (iii + jjj == 6 && kkk + lll <= 6 && kkk + lll >= 5) {
+                    iclass_cshell_spdf4(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
                 }
   #elif defined(int_spdf5)
-                if ((kkk + lll) == 6 && (iii + jjj) >= 4 && (iii + jjj) <= 6) {
-                    iclass_spdf5(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax,
-                            devSim.YVerticalTemp + offside, devSim.store + offside);
+                if (kkk + lll == 6 && iii + jjj >= 4 && iii + jjj <= 6) {
+                    iclass_cshell_spdf5(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
                 }
   #elif defined(int_spdf6)
-                if ((iii + jjj) == 6 && (kkk + lll) <= 6 && (kkk + lll) >= 4) {
-                    iclass_spdf6(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax,
-                            devSim.YVerticalTemp + offside, devSim.store + offside);
+                if (iii + jjj == 6 && kkk + lll <= 6 && kkk + lll >= 4) {
+                    iclass_cshell_spdf6(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
                 }
   #elif defined(int_spdf7)
-                if ((iii + jjj) >= 5 && (iii + jjj) <= 6 && (kkk + lll) == 6) {
-                    iclass_spdf7(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax,
-                            devSim.YVerticalTemp + offside, devSim.store + offside);
+                if (iii + jjj >= 5 && iii + jjj <= 6 && kkk + lll == 6) {
+                    iclass_cshell_spdf7(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
                 }
   #elif defined(int_spdf8)
-                if ((iii + jjj) == 6 && (kkk + lll) == 6) {
-                    iclass_spdf8(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax,
-                            devSim.YVerticalTemp + offside, devSim.store + offside);
+                if (iii + jjj == 6 && kkk + lll == 6) {
+                    iclass_cshell_spdf8(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
                 }
   #elif defined(int_spdf9)
-                if ((iii + jjj) == 6 && (kkk + lll) == 6) {
-                    iclass_spdf9(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax,
-                            devSim.YVerticalTemp + offside, devSim.store + offside);
+                if (iii + jjj == 6 && kkk + lll == 6) {
+                    iclass_cshell_spdf9(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
                 }
   #elif defined(int_spdf10)
-                if ((iii + jjj) == 6 && (kkk + lll) == 6) {
-                    iclass_spdf10(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax,
-                            devSim.YVerticalTemp + offside, devSim.store + offside);
+                if (iii + jjj == 6 && kkk + lll == 6) {
+                    iclass_cshell_spdf10(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
                 }
   #endif
 #endif
@@ -1079,7 +1052,8 @@ __global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) getAOInt_kernel
     QUICKULL jshell = (QUICKULL) devSim.sqrQshell;
     QUICKULL myInt = (QUICKULL) ((intEnd - intStart + 1) / totalThreads);
     
-    if ((intEnd - intStart + 1 - myInt * totalThreads) > offside) myInt++;
+    if (intEnd - intStart + 1 - myInt * totalThreads > offside)
+        myInt++;
     
     for (QUICKULL i = 1; i <= myInt; i++) {
         QUICKULL currentInt = (QUICKULL) totalThreads * (i - 1) + (QUICKULL) offside + intStart;

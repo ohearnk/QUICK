@@ -22,6 +22,8 @@
 #include "../gpu_get2e_getxc_drivers.h"
 #undef OSHELL
 
+#define BUFFERSIZE (150000)
+
 
 #if defined(COMPILE_GPU_AOINT)
 static char *trim(char *s)
