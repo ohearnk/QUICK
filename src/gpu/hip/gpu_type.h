@@ -436,8 +436,6 @@ struct gpu_basis_type {
     // For multi GPU version
     gpu_buffer_type<unsigned char> *mpi_bcompute;
     gpu_buffer_type<unsigned char> *mpi_boeicompute;
-
-    void upload_all();
 };
 
 

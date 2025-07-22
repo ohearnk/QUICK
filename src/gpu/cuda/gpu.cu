@@ -2025,7 +2025,6 @@ move p orbital to the end of the sequence. so the Qshell stands for the length o
         }
     }
 
-    //    gpu->gpu_basis->upload_all();
     gpu->gpu_basis->ncontract->Upload();
     gpu->gpu_basis->itype->Upload();
     gpu->gpu_basis->aexp->Upload();
