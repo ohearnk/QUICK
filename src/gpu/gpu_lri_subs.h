@@ -55,9 +55,9 @@ __device__ static inline void iclass_lri_spdf2
        which means they are corrosponding coorinates for shell II, JJ, KK, and LL.
        And we don't need the coordinates now, so we will not retrieve the data now.
    */
-    QUICKDouble RAx = LOC2(devSim.xyz, 0, devSim.katom[II] - 1, 3, devSim.natom);
-    QUICKDouble RAy = LOC2(devSim.xyz, 1, devSim.katom[II] - 1, 3, devSim.natom);
-    QUICKDouble RAz = LOC2(devSim.xyz, 2, devSim.katom[II] - 1, 3, devSim.natom);
+    QUICKDouble RAx = LOC2(devSim.xyz, 0, devSim.katom[II], 3, devSim.natom);
+    QUICKDouble RAy = LOC2(devSim.xyz, 1, devSim.katom[II], 3, devSim.natom);
+    QUICKDouble RAz = LOC2(devSim.xyz, 2, devSim.katom[II], 3, devSim.natom);
 
     QUICKDouble RCx = LOC2(devSim.allxyz, 0, iatom, 3, totalatom);
     QUICKDouble RCy = LOC2(devSim.allxyz, 1, iatom, 3, totalatom);
@@ -71,8 +71,8 @@ __device__ static inline void iclass_lri_spdf2
     int kPrimI = devSim.kprim[II];
     int kPrimJ = devSim.kprim[JJ];
 
-    int kStartI = devSim.kstart[II] - 1;
-    int kStartJ = devSim.kstart[JJ] - 1;
+    int kStartI = devSim.kstart[II];
+    int kStartJ = devSim.kstart[JJ];
 
     /*
        store saves temp contracted integral as [as|bs] type. the dimension should be allocatable but because
@@ -186,9 +186,9 @@ __device__ static inline void iclass_lri_spdf2
 
     QUICKDouble RBx, RBy, RBz;
 
-    RBx = LOC2(devSim.xyz, 0, devSim.katom[JJ] - 1, 3, devSim.natom);
-    RBy = LOC2(devSim.xyz, 1, devSim.katom[JJ] - 1, 3, devSim.natom);
-    RBz = LOC2(devSim.xyz, 2, devSim.katom[JJ] - 1, 3, devSim.natom);
+    RBx = LOC2(devSim.xyz, 0, devSim.katom[JJ], 3, devSim.natom);
+    RBy = LOC2(devSim.xyz, 1, devSim.katom[JJ], 3, devSim.natom);
+    RBz = LOC2(devSim.xyz, 2, devSim.katom[JJ], 3, devSim.natom);
 
     int III1 = LOC2(devSim.Qsbasis, II, I, devSim.nshell, 4);
     int III2 = LOC2(devSim.Qfbasis, II, I, devSim.nshell, 4);
@@ -228,9 +228,9 @@ __device__ static inline void iclass_lri_spdf2
 #endif
             {
 #if defined(USE_LEGACY_ATOMICS)
-                GPUATOMICADD(&LOC2(devSim.oULL, JJJ - 1, III - 1, devSim.nbasis, devSim.nbasis), Y, OSCALE);    
+                GPUATOMICADD(&LOC2(devSim.oULL, JJJ, III, devSim.nbasis, devSim.nbasis), Y, OSCALE);    
 #else
-                atomicAdd(&LOC2(devSim.o, JJJ - 1, III - 1, devSim.nbasis, devSim.nbasis), Y);
+                atomicAdd(&LOC2(devSim.o, JJJ, III, devSim.nbasis, devSim.nbasis), Y);
 #endif
             }
         }

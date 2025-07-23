@@ -136,12 +136,12 @@ __device__ static inline void iclass_cshell_spdf10
      which means they are corrosponding coorinates for shell II, JJ, KK, and LL.
      And we don't need the coordinates now, so we will not retrieve the data now.
      */
-    const QUICKDouble RAx = LOC2(devSim.xyz, 0, devSim.katom[II] - 1, 3, devSim.natom);
-    const QUICKDouble RAy = LOC2(devSim.xyz, 1, devSim.katom[II] - 1, 3, devSim.natom);
-    const QUICKDouble RAz = LOC2(devSim.xyz, 2, devSim.katom[II] - 1, 3, devSim.natom);
-    const QUICKDouble RCx = LOC2(devSim.xyz, 0, devSim.katom[KK] - 1, 3, devSim.natom);
-    const QUICKDouble RCy = LOC2(devSim.xyz, 1, devSim.katom[KK] - 1, 3, devSim.natom);
-    const QUICKDouble RCz = LOC2(devSim.xyz, 2, devSim.katom[KK] - 1, 3, devSim.natom);
+    const QUICKDouble RAx = LOC2(devSim.xyz, 0, devSim.katom[II], 3, devSim.natom);
+    const QUICKDouble RAy = LOC2(devSim.xyz, 1, devSim.katom[II], 3, devSim.natom);
+    const QUICKDouble RAz = LOC2(devSim.xyz, 2, devSim.katom[II], 3, devSim.natom);
+    const QUICKDouble RCx = LOC2(devSim.xyz, 0, devSim.katom[KK], 3, devSim.natom);
+    const QUICKDouble RCy = LOC2(devSim.xyz, 1, devSim.katom[KK], 3, devSim.natom);
+    const QUICKDouble RCz = LOC2(devSim.xyz, 2, devSim.katom[KK], 3, devSim.natom);
     
     /*
      kPrimI, J, K and L indicates the primtive gaussian function number
@@ -153,10 +153,10 @@ __device__ static inline void iclass_cshell_spdf10
     const int kPrimK = devSim.kprim[KK];
     const int kPrimL = devSim.kprim[LL];
     
-    const int kStartI = devSim.kstart[II] - 1;
-    const int kStartJ = devSim.kstart[JJ] - 1;
-    const int kStartK = devSim.kstart[KK] - 1;
-    const int kStartL = devSim.kstart[LL] - 1;
+    const int kStartI = devSim.kstart[II];
+    const int kStartJ = devSim.kstart[JJ];
+    const int kStartK = devSim.kstart[KK];
+    const int kStartL = devSim.kstart[LL];
     
     /*
      store saves temp contracted integral as [as|bs] type. the dimension should be allocatable but because
@@ -307,12 +307,12 @@ __device__ static inline void iclass_cshell_spdf10
         }
     }
     
-    const QUICKDouble RBx = LOC2(devSim.xyz, 0, devSim.katom[JJ] - 1, 3, devSim.natom);
-    const QUICKDouble RBy = LOC2(devSim.xyz, 1, devSim.katom[JJ] - 1, 3, devSim.natom);
-    const QUICKDouble RBz = LOC2(devSim.xyz, 2, devSim.katom[JJ] - 1, 3, devSim.natom);
-    const QUICKDouble RDx = LOC2(devSim.xyz, 0, devSim.katom[LL] - 1, 3, devSim.natom);
-    const QUICKDouble RDy = LOC2(devSim.xyz, 1, devSim.katom[LL] - 1, 3, devSim.natom);
-    const QUICKDouble RDz = LOC2(devSim.xyz, 2, devSim.katom[LL] - 1, 3, devSim.natom);
+    const QUICKDouble RBx = LOC2(devSim.xyz, 0, devSim.katom[JJ], 3, devSim.natom);
+    const QUICKDouble RBy = LOC2(devSim.xyz, 1, devSim.katom[JJ], 3, devSim.natom);
+    const QUICKDouble RBz = LOC2(devSim.xyz, 2, devSim.katom[JJ], 3, devSim.natom);
+    const QUICKDouble RDx = LOC2(devSim.xyz, 0, devSim.katom[LL], 3, devSim.natom);
+    const QUICKDouble RDy = LOC2(devSim.xyz, 1, devSim.katom[LL], 3, devSim.natom);
+    const QUICKDouble RDz = LOC2(devSim.xyz, 2, devSim.katom[LL], 3, devSim.natom);
     
     const int III1 = LOC2(devSim.Qsbasis, II, I, devSim.nshell, 4);
     const int III2 = LOC2(devSim.Qfbasis, II, I, devSim.nshell, 4);
@@ -390,27 +390,27 @@ __device__ static inline void iclass_cshell_spdf10
                         if (abs(Y) > devSim.integralCutoff)
                         {
 #if defined(OSHELL)
-                            QUICKDouble DENSELK = (QUICKDouble) (LOC2(devSim.dense, LLL - 1, KKK - 1, devSim.nbasis, devSim.nbasis)
-                                    + LOC2(devSim.denseb, LLL - 1, KKK - 1, devSim.nbasis, devSim.nbasis));
-                            QUICKDouble DENSEJI = (QUICKDouble) (LOC2(devSim.dense, JJJ - 1, III - 1, devSim.nbasis, devSim.nbasis)
-                                    + LOC2(devSim.denseb, JJJ - 1, III - 1, devSim.nbasis, devSim.nbasis));
+                            QUICKDouble DENSELK = (QUICKDouble) (LOC2(devSim.dense, LLL, KKK, devSim.nbasis, devSim.nbasis)
+                                    + LOC2(devSim.denseb, LLL, KKK, devSim.nbasis, devSim.nbasis));
+                            QUICKDouble DENSEJI = (QUICKDouble) (LOC2(devSim.dense, JJJ, III, devSim.nbasis, devSim.nbasis)
+                                    + LOC2(devSim.denseb, JJJ, III, devSim.nbasis, devSim.nbasis));
 
-                            QUICKDouble DENSEKIA = (QUICKDouble) LOC2(devSim.dense, KKK - 1, III - 1, devSim.nbasis, devSim.nbasis);
-                            QUICKDouble DENSEKJA = (QUICKDouble) LOC2(devSim.dense, KKK - 1, JJJ - 1, devSim.nbasis, devSim.nbasis);
-                            QUICKDouble DENSELJA = (QUICKDouble) LOC2(devSim.dense, LLL - 1, JJJ - 1, devSim.nbasis, devSim.nbasis);
-                            QUICKDouble DENSELIA = (QUICKDouble) LOC2(devSim.dense, LLL - 1, III - 1, devSim.nbasis, devSim.nbasis);
+                            QUICKDouble DENSEKIA = (QUICKDouble) LOC2(devSim.dense, KKK, III, devSim.nbasis, devSim.nbasis);
+                            QUICKDouble DENSEKJA = (QUICKDouble) LOC2(devSim.dense, KKK, JJJ, devSim.nbasis, devSim.nbasis);
+                            QUICKDouble DENSELJA = (QUICKDouble) LOC2(devSim.dense, LLL, JJJ, devSim.nbasis, devSim.nbasis);
+                            QUICKDouble DENSELIA = (QUICKDouble) LOC2(devSim.dense, LLL, III, devSim.nbasis, devSim.nbasis);
 
-                            QUICKDouble DENSEKIB = (QUICKDouble) LOC2(devSim.denseb, KKK - 1, III - 1, devSim.nbasis, devSim.nbasis);
-                            QUICKDouble DENSEKJB = (QUICKDouble) LOC2(devSim.denseb, KKK - 1, JJJ - 1, devSim.nbasis, devSim.nbasis);
-                            QUICKDouble DENSELJB = (QUICKDouble) LOC2(devSim.denseb, LLL - 1, JJJ - 1, devSim.nbasis, devSim.nbasis);
-                            QUICKDouble DENSELIB = (QUICKDouble) LOC2(devSim.denseb, LLL - 1, III - 1, devSim.nbasis, devSim.nbasis);
+                            QUICKDouble DENSEKIB = (QUICKDouble) LOC2(devSim.denseb, KKK, III, devSim.nbasis, devSim.nbasis);
+                            QUICKDouble DENSEKJB = (QUICKDouble) LOC2(devSim.denseb, KKK, JJJ, devSim.nbasis, devSim.nbasis);
+                            QUICKDouble DENSELJB = (QUICKDouble) LOC2(devSim.denseb, LLL, JJJ, devSim.nbasis, devSim.nbasis);
+                            QUICKDouble DENSELIB = (QUICKDouble) LOC2(devSim.denseb, LLL, III, devSim.nbasis, devSim.nbasis);
 #else
-                            QUICKDouble DENSEKI = (QUICKDouble) LOC2(devSim.dense, KKK - 1, III - 1, devSim.nbasis, devSim.nbasis);
-                            QUICKDouble DENSEKJ = (QUICKDouble) LOC2(devSim.dense, KKK - 1, JJJ - 1, devSim.nbasis, devSim.nbasis);
-                            QUICKDouble DENSELJ = (QUICKDouble) LOC2(devSim.dense, LLL - 1, JJJ - 1, devSim.nbasis, devSim.nbasis);
-                            QUICKDouble DENSELI = (QUICKDouble) LOC2(devSim.dense, LLL - 1, III - 1, devSim.nbasis, devSim.nbasis);
-                            QUICKDouble DENSELK = (QUICKDouble) LOC2(devSim.dense, LLL - 1, KKK - 1, devSim.nbasis, devSim.nbasis);
-                            QUICKDouble DENSEJI = (QUICKDouble) LOC2(devSim.dense, JJJ - 1, III - 1, devSim.nbasis, devSim.nbasis);
+                            QUICKDouble DENSEKI = (QUICKDouble) LOC2(devSim.dense, KKK, III, devSim.nbasis, devSim.nbasis);
+                            QUICKDouble DENSEKJ = (QUICKDouble) LOC2(devSim.dense, KKK, JJJ, devSim.nbasis, devSim.nbasis);
+                            QUICKDouble DENSELJ = (QUICKDouble) LOC2(devSim.dense, LLL, JJJ, devSim.nbasis, devSim.nbasis);
+                            QUICKDouble DENSELI = (QUICKDouble) LOC2(devSim.dense, LLL, III, devSim.nbasis, devSim.nbasis);
+                            QUICKDouble DENSELK = (QUICKDouble) LOC2(devSim.dense, LLL, KKK, devSim.nbasis, devSim.nbasis);
+                            QUICKDouble DENSEJI = (QUICKDouble) LOC2(devSim.dense, JJJ, III, devSim.nbasis, devSim.nbasis);
 #endif
 
                             // ATOMIC ADD VALUE 1
@@ -424,15 +424,15 @@ __device__ static inline void iclass_cshell_spdf10
                             if (LLL != JJJ || III != KKK) {
                                 temp = (III == JJJ) ? DENSEJI * Y : 2.0 * DENSEJI * Y;
 #  if defined(USE_LEGACY_ATOMICS)
-                                GPUATOMICADD(&LOC2(devSim.oULL, LLL - 1, KKK - 1, devSim.nbasis, devSim.nbasis), temp, OSCALE);
+                                GPUATOMICADD(&LOC2(devSim.oULL, LLL, KKK, devSim.nbasis, devSim.nbasis), temp, OSCALE);
 #  else
-                                atomicAdd(&LOC2(devSim.o, LLL - 1, KKK - 1, devSim.nbasis, devSim.nbasis), temp);
+                                atomicAdd(&LOC2(devSim.o, LLL, KKK, devSim.nbasis, devSim.nbasis), temp);
 #  endif
 #if defined(OSHELL)
 #  if defined(USE_LEGACY_ATOMICS)
-                                GPUATOMICADD(&LOC2(devSim.obULL, LLL - 1, KKK - 1, devSim.nbasis, devSim.nbasis), temp, OSCALE);
+                                GPUATOMICADD(&LOC2(devSim.obULL, LLL, KKK, devSim.nbasis, devSim.nbasis), temp, OSCALE);
 #  else
-                                atomicAdd(&LOC2(devSim.ob, LLL - 1, KKK - 1, devSim.nbasis, devSim.nbasis), temp);
+                                atomicAdd(&LOC2(devSim.ob, LLL, KKK, devSim.nbasis, devSim.nbasis), temp);
 #  endif
 #endif
                             }
@@ -457,18 +457,18 @@ __device__ static inline void iclass_cshell_spdf10
                                 temp = -(devSim.hyb_coeff * DENSEKJA * Y);
                                 temp2 = -(devSim.hyb_coeff * DENSEKJB * Y);
 #  if defined(USE_LEGACY_ATOMICS)
-                                GPUATOMICADD(&LOC2(devSim.oULL, LLL - 1, III - 1, devSim.nbasis, devSim.nbasis), temp, OSCALE);
-                                GPUATOMICADD(&LOC2(devSim.obULL, LLL - 1, III - 1, devSim.nbasis, devSim.nbasis), temp2, OSCALE);
+                                GPUATOMICADD(&LOC2(devSim.oULL, LLL, III, devSim.nbasis, devSim.nbasis), temp, OSCALE);
+                                GPUATOMICADD(&LOC2(devSim.obULL, LLL, III, devSim.nbasis, devSim.nbasis), temp2, OSCALE);
 #  else
-                                atomicAdd(&LOC2(devSim.o, LLL - 1, III - 1, devSim.nbasis, devSim.nbasis), temp);
-                                atomicAdd(&LOC2(devSim.ob, LLL - 1, III - 1, devSim.nbasis, devSim.nbasis), temp2);
+                                atomicAdd(&LOC2(devSim.o, LLL, III, devSim.nbasis, devSim.nbasis), temp);
+                                atomicAdd(&LOC2(devSim.ob, LLL, III, devSim.nbasis, devSim.nbasis), temp2);
 #  endif
 #else
                                 temp = -0.5 * devSim.hyb_coeff * DENSEKJ * Y;
 #  if defined(USE_LEGACY_ATOMICS)
-                                GPUATOMICADD(&LOC2(devSim.oULL, LLL - 1, III - 1, devSim.nbasis, devSim.nbasis), temp, OSCALE);
+                                GPUATOMICADD(&LOC2(devSim.oULL, LLL, III, devSim.nbasis, devSim.nbasis), temp, OSCALE);
 #  else
-                                atomicAdd(&LOC2(devSim.o, LLL - 1, III - 1, devSim.nbasis, devSim.nbasis), temp);
+                                atomicAdd(&LOC2(devSim.o, LLL, III, devSim.nbasis, devSim.nbasis), temp);
 #  endif
 #endif
                             }
@@ -506,30 +506,30 @@ __device__ static inline void iclass_cshell_spdf10
                                 temp = -0.5 * devSim.hyb_coeff * DENSEKI * Y;
 #endif
 #  if defined(USE_LEGACY_ATOMICS)
-                                GPUATOMICADD(&LOC2(devSim.oULL, MAX(JJJ, LLL) - 1, MIN(JJJ, LLL) - 1, devSim.nbasis, devSim.nbasis), temp, OSCALE);
+                                GPUATOMICADD(&LOC2(devSim.oULL, MAX(JJJ, LLL), MIN(JJJ, LLL), devSim.nbasis, devSim.nbasis), temp, OSCALE);
 #  else
-                                atomicAdd(&LOC2(devSim.o, MAX(JJJ, LLL) - 1, MIN(JJJ, LLL) - 1, devSim.nbasis, devSim.nbasis), temp);
+                                atomicAdd(&LOC2(devSim.o, MAX(JJJ, LLL), MIN(JJJ, LLL), devSim.nbasis, devSim.nbasis), temp);
 #  endif
 #if defined(OSHELL)
 #  if defined(USE_LEGACY_ATOMICS)
-                                GPUATOMICADD(&LOC2(devSim.obULL, MAX(JJJ, LLL) - 1, MIN(JJJ, LLL) - 1, devSim.nbasis, devSim.nbasis), temp2, OSCALE);
+                                GPUATOMICADD(&LOC2(devSim.obULL, MAX(JJJ, LLL), MIN(JJJ, LLL), devSim.nbasis, devSim.nbasis), temp2, OSCALE);
 #  else
-                                atomicAdd(&LOC2(devSim.ob, MAX(JJJ, LLL) - 1, MIN(JJJ, LLL) - 1, devSim.nbasis, devSim.nbasis), temp2);
+                                atomicAdd(&LOC2(devSim.ob, MAX(JJJ, LLL), MIN(JJJ, LLL), devSim.nbasis, devSim.nbasis), temp2);
 #  endif
 #endif
 
                                 // ATOMIC ADD VALUE 6 - 2
                                 if (JJJ == LLL && III != KKK) {
 #  if defined(USE_LEGACY_ATOMICS)
-                                    GPUATOMICADD(&LOC2(devSim.oULL, LLL - 1, JJJ - 1, devSim.nbasis, devSim.nbasis), temp, OSCALE);
+                                    GPUATOMICADD(&LOC2(devSim.oULL, LLL, JJJ, devSim.nbasis, devSim.nbasis), temp, OSCALE);
 #  else
-                                    atomicAdd(&LOC2(devSim.o, LLL - 1, JJJ - 1, devSim.nbasis, devSim.nbasis), temp);
+                                    atomicAdd(&LOC2(devSim.o, LLL, JJJ, devSim.nbasis, devSim.nbasis), temp);
 #  endif
 #if defined(OSHELL)
 #  if defined(USE_LEGACY_ATOMICS)
-                                    GPUATOMICADD(&LOC2(devSim.obULL, LLL - 1, JJJ - 1, devSim.nbasis, devSim.nbasis), temp2, OSCALE);
+                                    GPUATOMICADD(&LOC2(devSim.obULL, LLL, JJJ, devSim.nbasis, devSim.nbasis), temp2, OSCALE);
 #  else
-                                    atomicAdd(&LOC2(devSim.ob, LLL - 1, JJJ - 1, devSim.nbasis, devSim.nbasis), temp2);
+                                    atomicAdd(&LOC2(devSim.ob, LLL, JJJ, devSim.nbasis, devSim.nbasis), temp2);
 #  endif
 #endif
                                 }
@@ -539,37 +539,37 @@ __device__ static inline void iclass_cshell_spdf10
                 }
 
 #  if defined(USE_LEGACY_ATOMICS)
-                GPUATOMICADD(&LOC2(devSim.oULL, KKK - 1, III - 1, devSim.nbasis, devSim.nbasis), o_KI, OSCALE);
-                GPUATOMICADD(&LOC2(devSim.oULL, MAX(JJJ, KKK) - 1, MIN(JJJ, KKK) - 1, devSim.nbasis, devSim.nbasis), o_JK_MM, OSCALE);
-                GPUATOMICADD(&LOC2(devSim.oULL, JJJ - 1, KKK - 1, devSim.nbasis, devSim.nbasis), o_JK, OSCALE);
+                GPUATOMICADD(&LOC2(devSim.oULL, KKK, III, devSim.nbasis, devSim.nbasis), o_KI, OSCALE);
+                GPUATOMICADD(&LOC2(devSim.oULL, MAX(JJJ, KKK), MIN(JJJ, KKK), devSim.nbasis, devSim.nbasis), o_JK_MM, OSCALE);
+                GPUATOMICADD(&LOC2(devSim.oULL, JJJ, KKK, devSim.nbasis, devSim.nbasis), o_JK, OSCALE);
 #  else
-                atomicAdd(&LOC2(devSim.o, KKK - 1, III - 1, devSim.nbasis, devSim.nbasis), o_KI);
-                atomicAdd(&LOC2(devSim.o, MAX(JJJ, KKK) - 1, MIN(JJJ, KKK) - 1, devSim.nbasis, devSim.nbasis), o_JK_MM);
-                atomicAdd(&LOC2(devSim.o, JJJ - 1, KKK - 1, devSim.nbasis, devSim.nbasis), o_JK);
+                atomicAdd(&LOC2(devSim.o, KKK, III, devSim.nbasis, devSim.nbasis), o_KI);
+                atomicAdd(&LOC2(devSim.o, MAX(JJJ, KKK), MIN(JJJ, KKK), devSim.nbasis, devSim.nbasis), o_JK_MM);
+                atomicAdd(&LOC2(devSim.o, JJJ, KKK, devSim.nbasis, devSim.nbasis), o_JK);
 #  endif
 #if defined(OSHELL)
 #  if defined(USE_LEGACY_ATOMICS)
-                GPUATOMICADD(&LOC2(devSim.obULL, KKK - 1, III - 1, devSim.nbasis, devSim.nbasis), ob_KI, OSCALE);
-                GPUATOMICADD(&LOC2(devSim.obULL, MAX(JJJ, KKK) - 1, MIN(JJJ, KKK) - 1, devSim.nbasis, devSim.nbasis), ob_JK_MM, OSCALE);
-                GPUATOMICADD(&LOC2(devSim.obULL, JJJ - 1, KKK - 1, devSim.nbasis, devSim.nbasis), ob_JK, OSCALE);
+                GPUATOMICADD(&LOC2(devSim.obULL, KKK, III, devSim.nbasis, devSim.nbasis), ob_KI, OSCALE);
+                GPUATOMICADD(&LOC2(devSim.obULL, MAX(JJJ, KKK), MIN(JJJ, KKK), devSim.nbasis, devSim.nbasis), ob_JK_MM, OSCALE);
+                GPUATOMICADD(&LOC2(devSim.obULL, JJJ, KKK, devSim.nbasis, devSim.nbasis), ob_JK, OSCALE);
 #  else
-                atomicAdd(&LOC2(devSim.ob, KKK - 1, III - 1, devSim.nbasis, devSim.nbasis), ob_KI);
-                atomicAdd(&LOC2(devSim.ob, MAX(JJJ, KKK) - 1, MIN(JJJ, KKK) - 1, devSim.nbasis, devSim.nbasis), ob_JK_MM);
-                atomicAdd(&LOC2(devSim.ob, JJJ - 1, KKK - 1, devSim.nbasis, devSim.nbasis), ob_JK);
+                atomicAdd(&LOC2(devSim.ob, KKK, III, devSim.nbasis, devSim.nbasis), ob_KI);
+                atomicAdd(&LOC2(devSim.ob, MAX(JJJ, KKK), MIN(JJJ, KKK), devSim.nbasis, devSim.nbasis), ob_JK_MM);
+                atomicAdd(&LOC2(devSim.ob, JJJ, KKK, devSim.nbasis, devSim.nbasis), ob_JK);
 #  endif
 #endif
             }
 
 #  if defined(USE_LEGACY_ATOMICS)
-            GPUATOMICADD(&LOC2(devSim.oULL, JJJ - 1, III - 1, devSim.nbasis, devSim.nbasis), o_JI, OSCALE);
+            GPUATOMICADD(&LOC2(devSim.oULL, JJJ, III, devSim.nbasis, devSim.nbasis), o_JI, OSCALE);
 #  else
-            atomicAdd(&LOC2(devSim.o, JJJ - 1, III - 1, devSim.nbasis, devSim.nbasis), o_JI);
+            atomicAdd(&LOC2(devSim.o, JJJ, III, devSim.nbasis, devSim.nbasis), o_JI);
 #  endif
 #if defined(OSHELL)
 #  if defined(USE_LEGACY_ATOMICS)
-            GPUATOMICADD(&LOC2(devSim.obULL, JJJ - 1, III - 1, devSim.nbasis, devSim.nbasis), ob_JI, OSCALE);
+            GPUATOMICADD(&LOC2(devSim.obULL, JJJ, III, devSim.nbasis, devSim.nbasis), ob_JI, OSCALE);
 #  else
-            atomicAdd(&LOC2(devSim.ob, JJJ - 1, III - 1, devSim.nbasis, devSim.nbasis), ob_JI);
+            atomicAdd(&LOC2(devSim.ob, JJJ, III, devSim.nbasis, devSim.nbasis), ob_JI);
 #  endif
 #endif
         }
@@ -1178,13 +1178,13 @@ __device__ static inline void iclass_AOInt_spdf10
      which means they are corrosponding coorinates for shell II, JJ, KK, and LL.
      And we don't need the coordinates now, so we will not retrieve the data now.
      */
-    QUICKDouble RAx = LOC2(devSim.xyz, 0, devSim.katom[II] - 1, 3, devSim.natom);
-    QUICKDouble RAy = LOC2(devSim.xyz, 1, devSim.katom[II] - 1, 3, devSim.natom);
-    QUICKDouble RAz = LOC2(devSim.xyz, 2, devSim.katom[II] - 1, 3, devSim.natom);
+    QUICKDouble RAx = LOC2(devSim.xyz, 0, devSim.katom[II], 3, devSim.natom);
+    QUICKDouble RAy = LOC2(devSim.xyz, 1, devSim.katom[II], 3, devSim.natom);
+    QUICKDouble RAz = LOC2(devSim.xyz, 2, devSim.katom[II], 3, devSim.natom);
     
-    QUICKDouble RCx = LOC2(devSim.xyz, 0, devSim.katom[KK] - 1, 3, devSim.natom);
-    QUICKDouble RCy = LOC2(devSim.xyz, 1, devSim.katom[KK] - 1, 3, devSim.natom);
-    QUICKDouble RCz = LOC2(devSim.xyz, 2, devSim.katom[KK] - 1, 3, devSim.natom);
+    QUICKDouble RCx = LOC2(devSim.xyz, 0, devSim.katom[KK], 3, devSim.natom);
+    QUICKDouble RCy = LOC2(devSim.xyz, 1, devSim.katom[KK], 3, devSim.natom);
+    QUICKDouble RCz = LOC2(devSim.xyz, 2, devSim.katom[KK], 3, devSim.natom);
     
     /*
      kPrimI, J, K and L indicates the primtive gaussian function number
@@ -1196,10 +1196,10 @@ __device__ static inline void iclass_AOInt_spdf10
     int kPrimK = devSim.kprim[KK];
     int kPrimL = devSim.kprim[LL];
     
-    int kStartI = devSim.kstart[II] - 1;
-    int kStartJ = devSim.kstart[JJ] - 1;
-    int kStartK = devSim.kstart[KK] - 1;
-    int kStartL = devSim.kstart[LL] - 1;
+    int kStartI = devSim.kstart[II];
+    int kStartJ = devSim.kstart[JJ];
+    int kStartK = devSim.kstart[KK];
+    int kStartL = devSim.kstart[LL];
     
     /*
      store saves temp contracted integral as [as|bs] type. the dimension should be allocatable but because
@@ -1343,12 +1343,12 @@ __device__ static inline void iclass_AOInt_spdf10
         }
     }
     
-    QUICKDouble RBx = LOC2(devSim.xyz, 0, devSim.katom[JJ] - 1, 3, devSim.natom);
-    QUICKDouble RBy = LOC2(devSim.xyz, 1, devSim.katom[JJ] - 1, 3, devSim.natom);
-    QUICKDouble RBz = LOC2(devSim.xyz, 2, devSim.katom[JJ] - 1, 3, devSim.natom);
-    QUICKDouble RDx = LOC2(devSim.xyz, 0, devSim.katom[LL] - 1, 3, devSim.natom);
-    QUICKDouble RDy = LOC2(devSim.xyz, 1, devSim.katom[LL] - 1, 3, devSim.natom);
-    QUICKDouble RDz = LOC2(devSim.xyz, 2, devSim.katom[LL] - 1, 3, devSim.natom);
+    QUICKDouble RBx = LOC2(devSim.xyz, 0, devSim.katom[JJ], 3, devSim.natom);
+    QUICKDouble RBy = LOC2(devSim.xyz, 1, devSim.katom[JJ], 3, devSim.natom);
+    QUICKDouble RBz = LOC2(devSim.xyz, 2, devSim.katom[JJ], 3, devSim.natom);
+    QUICKDouble RDx = LOC2(devSim.xyz, 0, devSim.katom[LL], 3, devSim.natom);
+    QUICKDouble RDy = LOC2(devSim.xyz, 1, devSim.katom[LL], 3, devSim.natom);
+    QUICKDouble RDz = LOC2(devSim.xyz, 2, devSim.katom[LL], 3, devSim.natom);
     
     int III1 = LOC2(devSim.Qsbasis, II, I, devSim.nshell, 4);
     int III2 = LOC2(devSim.Qfbasis, II, I, devSim.nshell, 4);
@@ -1379,8 +1379,8 @@ __device__ static inline void iclass_AOInt_spdf10
                         if (abs(Y) > devSim.maxIntegralCutoff) {
                             ERI_entry a;
                             a.value = Y;
-                            a.IJ = (III - 1) * devSim.nbasis + JJJ - 1;
-                            a.KL = (KKK - 1) * devSim.nbasis + LLL - 1;
+                            a.IJ = III * devSim.nbasis + JJJ;
+                            a.KL = KKK * devSim.nbasis + LLL;
                             
                             aoint_buffer[atomicAdd(&devSim.intCount[streamID], 1)] = a;
                         }

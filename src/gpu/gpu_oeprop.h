@@ -36,15 +36,15 @@ __device__ static inline void addint_oeprop(unsigned int I, unsigned int J, unsi
         for (int JJJ = MAX(III,JJJ1); JJJ <= JJJ2; JJJ++) {
             // devTrans maps a basis function with certain angular momentum to store2 array. Get the correct indices now.
             int i = (int) LOC3(devTrans,
-                    LOC2(devSim.KLMN, 0, III - 1, 3, devSim.nbasis),
-                    LOC2(devSim.KLMN, 1, III - 1, 3, devSim.nbasis),
-                    LOC2(devSim.KLMN, 2, III - 1, 3, devSim.nbasis),
+                    LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
+                    LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
+                    LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
                     TRANSDIM, TRANSDIM, TRANSDIM);
 
             int j = (int) LOC3(devTrans, 
-                    LOC2(devSim.KLMN, 0, JJJ - 1, 3, devSim.nbasis),
-                    LOC2(devSim.KLMN, 1, JJJ - 1, 3, devSim.nbasis),
-                    LOC2(devSim.KLMN, 2, JJJ - 1, 3, devSim.nbasis),
+                    LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
+                    LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
+                    LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
                     TRANSDIM, TRANSDIM, TRANSDIM);
 
             // multiply the integral value by normalization constants.
@@ -54,11 +54,11 @@ __device__ static inline void addint_oeprop(unsigned int I, unsigned int J, unsi
             } else {
                 dense_sym_factor = 1.0;
             }
-            QUICKDouble DENSEJI = (QUICKDouble) LOC2(devSim.dense, JJJ - 1, III - 1, devSim.nbasis, devSim.nbasis);
+            QUICKDouble DENSEJI = (QUICKDouble) LOC2(devSim.dense, JJJ, III, devSim.nbasis, devSim.nbasis);
             if (devSim.is_oshell) {
-                DENSEJI = DENSEJI + (QUICKDouble) LOC2(devSim.denseb, JJJ - 1, III - 1, devSim.nbasis, devSim.nbasis);
+                DENSEJI = DENSEJI + (QUICKDouble) LOC2(devSim.denseb, JJJ, III, devSim.nbasis, devSim.nbasis);
             }
-            QUICKDouble Y = dense_sym_factor * DENSEJI * devSim.cons[III - 1] * devSim.cons[JJJ - 1]
+            QUICKDouble Y = dense_sym_factor * DENSEJI * devSim.cons[III] * devSim.cons[JJJ]
                 * LOCSTORE(store2, i - 1, j - 1, STOREDIM, STOREDIM);
 
 #if defined(USE_LEGACY_ATOMICS)
@@ -82,13 +82,13 @@ __device__ static inline void iclass_oeprop(unsigned int I, unsigned int J, unsi
        Ai, Bi, Ci are the coordinates for atom katomA, katomB, katomC,
        which means they are corrosponding coorinates for shell II, JJ and nuclei.
    */
-    QUICKDouble Ax = LOC2(devSim.allxyz, 0, devSim.katom[II] - 1, 3, totalatom);
-    QUICKDouble Ay = LOC2(devSim.allxyz, 1, devSim.katom[II] - 1, 3, totalatom);
-    QUICKDouble Az = LOC2(devSim.allxyz, 2, devSim.katom[II] - 1, 3, totalatom);
+    QUICKDouble Ax = LOC2(devSim.allxyz, 0, devSim.katom[II], 3, totalatom);
+    QUICKDouble Ay = LOC2(devSim.allxyz, 1, devSim.katom[II], 3, totalatom);
+    QUICKDouble Az = LOC2(devSim.allxyz, 2, devSim.katom[II], 3, totalatom);
 
-    QUICKDouble Bx = LOC2(devSim.allxyz, 0, devSim.katom[JJ] - 1, 3, totalatom);
-    QUICKDouble By = LOC2(devSim.allxyz, 1, devSim.katom[JJ] - 1, 3, totalatom);
-    QUICKDouble Bz = LOC2(devSim.allxyz, 2, devSim.katom[JJ] - 1, 3, totalatom);
+    QUICKDouble Bx = LOC2(devSim.allxyz, 0, devSim.katom[JJ], 3, totalatom);
+    QUICKDouble By = LOC2(devSim.allxyz, 1, devSim.katom[JJ], 3, totalatom);
+    QUICKDouble Bz = LOC2(devSim.allxyz, 2, devSim.katom[JJ], 3, totalatom);
 
     /*
        kPrimI and kPrimJ indicates the number of primitives in shell II and JJ.
@@ -98,8 +98,8 @@ __device__ static inline void iclass_oeprop(unsigned int I, unsigned int J, unsi
     int kPrimI = devSim.kprim[II];
     int kPrimJ = devSim.kprim[JJ];
 
-    int kStartI = devSim.kstart[II] - 1;
-    int kStartJ = devSim.kstart[JJ] - 1;
+    int kStartI = devSim.kstart[II];
+    int kStartJ = devSim.kstart[JJ];
 
     /*
        Store array holds contracted integral values computed using VRR algorithm.

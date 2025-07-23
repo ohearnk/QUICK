@@ -40,150 +40,204 @@ __device__ static inline void hrrwholegrad_lri(QUICKDouble * const Yaax, QUICKDo
     *Ybby = 0.0;
     *Ybbz = 0.0;
 
-    QUICKDouble constant = devSim.cons[III-1] * devSim.cons[JJJ-1];
+    QUICKDouble constant = devSim.cons[III] * devSim.cons[JJJ];
     int numAngularL;
 
     //  Part A - x
     numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-            LOC2(devSim.KLMN,0,III-1,3,devSim.nbasis) + 1, LOC2(devSim.KLMN,1,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,III-1,3,devSim.nbasis),
-            LOC2(devSim.KLMN,0,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,JJJ-1,3,devSim.nbasis),
+            LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis) + 1,
+            LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
             J, coefAngularL, angularL);
 
     for (int i = 0; i<numAngularL; i++) {
         if (angularL[i] <= STOREDIM) {
-            *Yaax = *Yaax + coefAngularL[i] * LOCSTORE(storeAA, angularL[i]-1, 0, STOREDIM, STOREDIM);
+            *Yaax = *Yaax + coefAngularL[i] * LOCSTORE(storeAA, angularL[i] - 1, 0, STOREDIM, STOREDIM);
         }
     }
 
     numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-            LOC2(devSim.KLMN,0,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,III-1,3,devSim.nbasis) + 1, LOC2(devSim.KLMN,2,III-1,3,devSim.nbasis),
-            LOC2(devSim.KLMN,0,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,JJJ-1,3,devSim.nbasis),
+            LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis) + 1,
+            LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
             J, coefAngularL, angularL);
 
     for (int i = 0; i<numAngularL; i++) {
         if (angularL[i] <= STOREDIM) {
-            *Yaay = *Yaay + coefAngularL[i] * LOCSTORE(storeAA, angularL[i]-1, 0, STOREDIM, STOREDIM);
+            *Yaay = *Yaay + coefAngularL[i] * LOCSTORE(storeAA, angularL[i] - 1, 0, STOREDIM, STOREDIM);
         }
     }
 
     numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-            LOC2(devSim.KLMN,0,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,III-1,3,devSim.nbasis) + 1,
-            LOC2(devSim.KLMN,0,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,JJJ-1,3,devSim.nbasis),
+            LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis) + 1,
+            LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
             J, coefAngularL, angularL);
 
     for (int i = 0; i<numAngularL; i++) {
         if (angularL[i] <= STOREDIM) {
-            *Yaaz = *Yaaz + coefAngularL[i] * LOCSTORE(storeAA, angularL[i]-1, 0, STOREDIM, STOREDIM);
+            *Yaaz = *Yaaz + coefAngularL[i] * LOCSTORE(storeAA, angularL[i] - 1, 0, STOREDIM, STOREDIM);
         }
     }
 
     numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-            LOC2(devSim.KLMN,0,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,III-1,3,devSim.nbasis),
-            LOC2(devSim.KLMN,0,JJJ-1,3,devSim.nbasis) + 1, LOC2(devSim.KLMN,1,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,JJJ-1,3,devSim.nbasis),
+            LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis) + 1,
+            LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
             J + 1, coefAngularL, angularL);
 
     for (int i = 0; i<numAngularL; i++) {
         if (angularL[i] <= STOREDIM) {
-            *Ybbx = *Ybbx + coefAngularL[i] * LOCSTORE(storeBB, angularL[i]-1, 0, STOREDIM, STOREDIM);
+            *Ybbx = *Ybbx + coefAngularL[i] * LOCSTORE(storeBB, angularL[i] - 1, 0, STOREDIM, STOREDIM);
         }
     }
 
     numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-            LOC2(devSim.KLMN,0,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,III-1,3,devSim.nbasis),
-            LOC2(devSim.KLMN,0,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,JJJ-1,3,devSim.nbasis) + 1, LOC2(devSim.KLMN,2,JJJ-1,3,devSim.nbasis),
+            LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis) + 1,
+            LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
             J + 1, coefAngularL, angularL);
 
     for (int i = 0; i<numAngularL; i++) {
         if (angularL[i] <= STOREDIM) {
-            *Ybby = *Ybby + coefAngularL[i] * LOCSTORE(storeBB, angularL[i]-1, 0, STOREDIM, STOREDIM);
+            *Ybby = *Ybby + coefAngularL[i] * LOCSTORE(storeBB, angularL[i] - 1, 0, STOREDIM, STOREDIM);
         }
     }
 
     numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-            LOC2(devSim.KLMN,0,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,III-1,3,devSim.nbasis),
-            LOC2(devSim.KLMN,0,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,JJJ-1,3,devSim.nbasis) + 1,
+            LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis) + 1,
             J + 1, coefAngularL, angularL);
 
     for (int i = 0; i<numAngularL; i++) {
         if (angularL[i] <= STOREDIM) {
-            *Ybbz = *Ybbz + coefAngularL[i] * LOCSTORE(storeBB, angularL[i]-1, 0, STOREDIM, STOREDIM);
+            *Ybbz = *Ybbz + coefAngularL[i] * LOCSTORE(storeBB, angularL[i] - 1, 0, STOREDIM, STOREDIM);
         }
     }
 
-    if (LOC2(devSim.KLMN,0,III-1,3,devSim.nbasis) >= 1) {
+    if (LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis) >= 1) {
         numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-                LOC2(devSim.KLMN,0,III-1,3,devSim.nbasis) - 1, LOC2(devSim.KLMN,1,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,III-1,3,devSim.nbasis),
-                LOC2(devSim.KLMN,0,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,JJJ-1,3,devSim.nbasis),
+                LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis) - 1,
+                LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
                 J, coefAngularL, angularL);
 
         for (int i = 0; i<numAngularL; i++) {
             if (angularL[i] <= STOREDIM) {
-                *Yaax = *Yaax - LOC2(devSim.KLMN,0,III-1,3,devSim.nbasis) * coefAngularL[i] * LOCSTORE(store, angularL[i]-1, 0, STOREDIM, STOREDIM);
+                *Yaax = *Yaax - LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis) * coefAngularL[i]
+                    * LOCSTORE(store, angularL[i] - 1, 0, STOREDIM, STOREDIM);
             }
         }
     }
 
-    if (LOC2(devSim.KLMN,1,III-1,3,devSim.nbasis) >= 1) {
+    if (LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis) >= 1) {
         numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-                LOC2(devSim.KLMN,0,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,III-1,3,devSim.nbasis) - 1, LOC2(devSim.KLMN,2,III-1,3,devSim.nbasis),
-                LOC2(devSim.KLMN,0,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,JJJ-1,3,devSim.nbasis),
+                LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis) - 1,
+                LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
                 J, coefAngularL, angularL);
 
         for (int i = 0; i<numAngularL; i++) {
             if (angularL[i] <= STOREDIM) {
-                *Yaay = *Yaay - LOC2(devSim.KLMN,1,III-1,3,devSim.nbasis) * coefAngularL[i] * LOCSTORE(store, angularL[i]-1, 0, STOREDIM, STOREDIM);
+                *Yaay = *Yaay - LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis) * coefAngularL[i]
+                    * LOCSTORE(store, angularL[i] - 1, 0, STOREDIM, STOREDIM);
             }
         }
     }
 
-    if (LOC2(devSim.KLMN,2,III-1,3,devSim.nbasis) >= 1) {
+    if (LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis) >= 1) {
         numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-                LOC2(devSim.KLMN,0,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,III-1,3,devSim.nbasis) - 1,
-                LOC2(devSim.KLMN,0,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,JJJ-1,3,devSim.nbasis),
+                LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis) - 1,
+                LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
                 J, coefAngularL, angularL);
 
         for (int i = 0; i<numAngularL; i++) {
             if (angularL[i] <= STOREDIM) {
-                *Yaaz = *Yaaz - LOC2(devSim.KLMN,2,III-1,3,devSim.nbasis) * coefAngularL[i] * LOCSTORE(store, angularL[i]-1, 0, STOREDIM, STOREDIM);
+                *Yaaz = *Yaaz - LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis) * coefAngularL[i]
+                    * LOCSTORE(store, angularL[i] - 1, 0, STOREDIM, STOREDIM);
             }
         }
     }
 
-    if (LOC2(devSim.KLMN,0,JJJ-1,3,devSim.nbasis) >= 1) {
+    if (LOC2(devSim.KLMN,0,JJJ,3,devSim.nbasis) >= 1) {
         numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-                LOC2(devSim.KLMN,0,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,III-1,3,devSim.nbasis),
-                LOC2(devSim.KLMN,0,JJJ-1,3,devSim.nbasis) - 1, LOC2(devSim.KLMN,1,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,JJJ-1,3,devSim.nbasis),
+                LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis) - 1,
+                LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
                 J - 1, coefAngularL, angularL);
 
         for (int i = 0; i<numAngularL; i++) {
             if (angularL[i] <= STOREDIM) {
-                *Ybbx = *Ybbx - LOC2(devSim.KLMN,0,JJJ-1,3,devSim.nbasis) * coefAngularL[i] * LOCSTORE(store, angularL[i]-1, 0, STOREDIM, STOREDIM);
+                *Ybbx = *Ybbx - LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis) * coefAngularL[i]
+                    * LOCSTORE(store, angularL[i] - 1, 0, STOREDIM, STOREDIM);
             }
         }
     }
 
-    if (LOC2(devSim.KLMN,1,JJJ-1,3,devSim.nbasis) >= 1) {
+    if (LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis) >= 1) {
         numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-                LOC2(devSim.KLMN,0,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,III-1,3,devSim.nbasis),
-                LOC2(devSim.KLMN,0,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,JJJ-1,3,devSim.nbasis) - 1, LOC2(devSim.KLMN,2,JJJ-1,3,devSim.nbasis),
+                LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis) - 1,
+                LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
                 J - 1, coefAngularL, angularL);
 
         for (int i = 0; i<numAngularL; i++) {
             if (angularL[i] <= STOREDIM) {
-                *Ybby = *Ybby - LOC2(devSim.KLMN,1,JJJ-1,3,devSim.nbasis) * coefAngularL[i] * LOCSTORE(store, angularL[i]-1, 0, STOREDIM, STOREDIM);
+                *Ybby = *Ybby - LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis) * coefAngularL[i]
+                    * LOCSTORE(store, angularL[i] - 1, 0, STOREDIM, STOREDIM);
             }
         }
     }
 
-    if (LOC2(devSim.KLMN,2,JJJ-1,3,devSim.nbasis) >= 1) {
+    if (LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis) >= 1) {
         numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-                LOC2(devSim.KLMN,0,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,III-1,3,devSim.nbasis),
-                LOC2(devSim.KLMN,0,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,JJJ-1,3,devSim.nbasis) - 1,
+                LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis) - 1,
                 J - 1, coefAngularL, angularL);
 
         for (int i = 0; i<numAngularL; i++) {
             if (angularL[i] <= STOREDIM) {
-                *Ybbz = *Ybbz - LOC2(devSim.KLMN,2,JJJ-1,3,devSim.nbasis) * coefAngularL[i] * LOCSTORE(store, angularL[i]-1, 0, STOREDIM, STOREDIM);
+                *Ybbz = *Ybbz - LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis) * coefAngularL[i]
+                    * LOCSTORE(store, angularL[i] - 1, 0, STOREDIM, STOREDIM);
             }
         }
     }
@@ -217,150 +271,204 @@ __device__ static inline void hrrwholegrad_lri2(QUICKDouble * const Yaax, QUICKD
     *Ybby = 0.0;
     *Ybbz = 0.0;
 
-    QUICKDouble constant = devSim.cons[III-1] * devSim.cons[JJJ-1];
+    QUICKDouble constant = devSim.cons[III] * devSim.cons[JJJ];
     int numAngularL;
 
     //  Part A - x
     numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-            LOC2(devSim.KLMN,0,III-1,3,devSim.nbasis) + 1, LOC2(devSim.KLMN,1,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,III-1,3,devSim.nbasis),
-            LOC2(devSim.KLMN,0,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,JJJ-1,3,devSim.nbasis),
+            LOC2(devSim.KLMN,0,III,3,devSim.nbasis) + 1,
+            LOC2(devSim.KLMN,1,III,3,devSim.nbasis),
+            LOC2(devSim.KLMN,2,III,3,devSim.nbasis),
+            LOC2(devSim.KLMN,0,JJJ,3,devSim.nbasis),
+            LOC2(devSim.KLMN,1,JJJ,3,devSim.nbasis),
+            LOC2(devSim.KLMN,2,JJJ,3,devSim.nbasis),
             J, coefAngularL, angularL);
 
-    for (int i = 0; i<numAngularL; i++) {
+    for (int i = 0; i < numAngularL; i++) {
         if (angularL[i] <= STOREDIM) {
-            *Yaax = *Yaax + coefAngularL[i] * LOCSTORE(store, angularL[i]-1, 0, STOREDIM, STOREDIM) * 2 * AA;
+            *Yaax = *Yaax + coefAngularL[i] * LOCSTORE(store, angularL[i] - 1, 0, STOREDIM, STOREDIM) * 2 * AA;
         }
     }
 
     numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-            LOC2(devSim.KLMN,0,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,III-1,3,devSim.nbasis) + 1, LOC2(devSim.KLMN,2,III-1,3,devSim.nbasis),
-            LOC2(devSim.KLMN,0,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,JJJ-1,3,devSim.nbasis),
+            LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis) + 1,
+            LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
             J, coefAngularL, angularL);
 
-    for (int i = 0; i<numAngularL; i++) {
+    for (int i = 0; i < numAngularL; i++) {
         if (angularL[i] <= STOREDIM) {
-            *Yaay = *Yaay + coefAngularL[i] * LOCSTORE(store, angularL[i]-1, 0, STOREDIM, STOREDIM) * 2 * AA;
+            *Yaay = *Yaay + coefAngularL[i] * LOCSTORE(store, angularL[i] - 1, 0, STOREDIM, STOREDIM) * 2 * AA;
         }
     }
 
     numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-            LOC2(devSim.KLMN,0,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,III-1,3,devSim.nbasis) + 1,
-            LOC2(devSim.KLMN,0,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,JJJ-1,3,devSim.nbasis),
+            LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis) + 1,
+            LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
             J, coefAngularL, angularL);
 
-    for (int i = 0; i<numAngularL; i++) {
+    for (int i = 0; i < numAngularL; i++) {
         if (angularL[i] <= STOREDIM) {
-            *Yaaz = *Yaaz + coefAngularL[i] * LOCSTORE(store, angularL[i]-1, 0, STOREDIM, STOREDIM) * 2 * AA;
+            *Yaaz = *Yaaz + coefAngularL[i] * LOCSTORE(store, angularL[i] - 1, 0, STOREDIM, STOREDIM) * 2 * AA;
         }
     }
 
     numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-            LOC2(devSim.KLMN,0,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,III-1,3,devSim.nbasis),
-            LOC2(devSim.KLMN,0,JJJ-1,3,devSim.nbasis) + 1, LOC2(devSim.KLMN,1,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,JJJ-1,3,devSim.nbasis),
+            LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis) + 1,
+            LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
             J + 1, coefAngularL, angularL);
 
-    for (int i = 0; i<numAngularL; i++) {
+    for (int i = 0; i < numAngularL; i++) {
         if (angularL[i] <= STOREDIM) {
-            *Ybbx = *Ybbx + coefAngularL[i] * LOCSTORE(store, angularL[i]-1, 0, STOREDIM, STOREDIM) * 2 * BB;
+            *Ybbx = *Ybbx + coefAngularL[i] * LOCSTORE(store, angularL[i] - 1, 0, STOREDIM, STOREDIM) * 2 * BB;
         }
     }
 
     numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-            LOC2(devSim.KLMN,0,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,III-1,3,devSim.nbasis),
-            LOC2(devSim.KLMN,0,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,JJJ-1,3,devSim.nbasis) + 1, LOC2(devSim.KLMN,2,JJJ-1,3,devSim.nbasis),
+            LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis) + 1,
+            LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
             J + 1, coefAngularL, angularL);
 
-    for (int i = 0; i<numAngularL; i++) {
+    for (int i = 0; i < numAngularL; i++) {
         if (angularL[i] <= STOREDIM) {
-            *Ybby = *Ybby + coefAngularL[i] * LOCSTORE(store, angularL[i]-1, 0, STOREDIM, STOREDIM) * 2 * BB;
+            *Ybby = *Ybby + coefAngularL[i] * LOCSTORE(store, angularL[i] - 1, 0, STOREDIM, STOREDIM) * 2 * BB;
         }
     }
 
     numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-            LOC2(devSim.KLMN,0,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,III-1,3,devSim.nbasis),
-            LOC2(devSim.KLMN,0,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,JJJ-1,3,devSim.nbasis) + 1,
+            LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis) + 1,
             J + 1, coefAngularL, angularL);
 
-    for (int i = 0; i<numAngularL; i++) {
+    for (int i = 0; i < numAngularL; i++) {
         if (angularL[i] <= STOREDIM) {
-            *Ybbz = *Ybbz + coefAngularL[i] * LOCSTORE(store, angularL[i]-1, 0, STOREDIM, STOREDIM) * 2 * BB;
+            *Ybbz = *Ybbz + coefAngularL[i] * LOCSTORE(store, angularL[i] - 1, 0, STOREDIM, STOREDIM) * 2 * BB;
         }
     }
 
-    if (LOC2(devSim.KLMN,0,III-1,3,devSim.nbasis) >= 1) {
+    if (LOC2(devSim.KLMN,0,III,3,devSim.nbasis) >= 1) {
         numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-                LOC2(devSim.KLMN,0,III-1,3,devSim.nbasis) - 1, LOC2(devSim.KLMN,1,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,III-1,3,devSim.nbasis),
-                LOC2(devSim.KLMN,0,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,JJJ-1,3,devSim.nbasis),
+                LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis) - 1,
+                LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
                 J, coefAngularL, angularL);
 
-        for (int i = 0; i<numAngularL; i++) {
+        for (int i = 0; i < numAngularL; i++) {
             if (angularL[i] <= STOREDIM) {
-                *Yaax = *Yaax - LOC2(devSim.KLMN,0,III-1,3,devSim.nbasis) * coefAngularL[i] * LOCSTORE(store, angularL[i]-1, 0, STOREDIM, STOREDIM);
+                *Yaax = *Yaax - LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis) * coefAngularL[i]
+                    * LOCSTORE(store, angularL[i] - 1, 0, STOREDIM, STOREDIM);
             }
         }
     }
 
-    if (LOC2(devSim.KLMN,1,III-1,3,devSim.nbasis) >= 1) {
+    if (LOC2(devSim.KLMN,1,III,3,devSim.nbasis) >= 1) {
         numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-                LOC2(devSim.KLMN,0,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,III-1,3,devSim.nbasis) - 1, LOC2(devSim.KLMN,2,III-1,3,devSim.nbasis),
-                LOC2(devSim.KLMN,0,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,JJJ-1,3,devSim.nbasis),
+                LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis) - 1,
+                LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
                 J, coefAngularL, angularL);
 
-        for (int i = 0; i<numAngularL; i++) {
+        for (int i = 0; i < numAngularL; i++) {
             if (angularL[i] <= STOREDIM) {
-                *Yaay = *Yaay - LOC2(devSim.KLMN,1,III-1,3,devSim.nbasis) * coefAngularL[i] * LOCSTORE(store, angularL[i]-1, 0, STOREDIM, STOREDIM);
+                *Yaay = *Yaay - LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis) * coefAngularL[i]
+                    * LOCSTORE(store, angularL[i] - 1, 0, STOREDIM, STOREDIM);
             }
         }
     }
 
-    if (LOC2(devSim.KLMN,2,III-1,3,devSim.nbasis) >= 1) {
+    if (LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis) >= 1) {
         numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-                LOC2(devSim.KLMN,0,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,III-1,3,devSim.nbasis) - 1,
-                LOC2(devSim.KLMN,0,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,JJJ-1,3,devSim.nbasis),
+                LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis) - 1,
+                LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
                 J, coefAngularL, angularL);
 
-        for (int i = 0; i<numAngularL; i++) {
+        for (int i = 0; i < numAngularL; i++) {
             if (angularL[i] <= STOREDIM) {
-                *Yaaz = *Yaaz - LOC2(devSim.KLMN,2,III-1,3,devSim.nbasis) * coefAngularL[i] * LOCSTORE(store, angularL[i]-1, 0, STOREDIM, STOREDIM);
+                *Yaaz = *Yaaz - LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis) * coefAngularL[i]
+                    * LOCSTORE(store, angularL[i] - 1, 0, STOREDIM, STOREDIM);
             }
         }
     }
 
-    if (LOC2(devSim.KLMN,0,JJJ-1,3,devSim.nbasis) >= 1) {
+    if (LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis) >= 1) {
         numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-                LOC2(devSim.KLMN,0,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,III-1,3,devSim.nbasis),
-                LOC2(devSim.KLMN,0,JJJ-1,3,devSim.nbasis) - 1, LOC2(devSim.KLMN,1,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,JJJ-1,3,devSim.nbasis),
+                LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis), 
+                LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis) - 1,
+                LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
                 J - 1, coefAngularL, angularL);
 
-        for (int i = 0; i<numAngularL; i++) {
+        for (int i = 0; i < numAngularL; i++) {
             if (angularL[i] <= STOREDIM) {
-                *Ybbx = *Ybbx - LOC2(devSim.KLMN,0,JJJ-1,3,devSim.nbasis) * coefAngularL[i] * LOCSTORE(store, angularL[i]-1, 0, STOREDIM, STOREDIM);
+                *Ybbx = *Ybbx - LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis) * coefAngularL[i]
+                    * LOCSTORE(store, angularL[i] - 1, 0, STOREDIM, STOREDIM);
             }
         }
     }
 
-    if (LOC2(devSim.KLMN,1,JJJ-1,3,devSim.nbasis) >= 1) {
+    if (LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis) >= 1) {
         numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-                LOC2(devSim.KLMN,0,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,III-1,3,devSim.nbasis),
-                LOC2(devSim.KLMN,0,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,JJJ-1,3,devSim.nbasis) - 1, LOC2(devSim.KLMN,2,JJJ-1,3,devSim.nbasis),
+                LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis) - 1,
+                LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
                 J - 1, coefAngularL, angularL);
 
-        for (int i = 0; i<numAngularL; i++) {
+        for (int i = 0; i < numAngularL; i++) {
             if (angularL[i] <= STOREDIM) {
-                *Ybby = *Ybby - LOC2(devSim.KLMN,1,JJJ-1,3,devSim.nbasis) * coefAngularL[i] * LOCSTORE(store, angularL[i]-1, 0, STOREDIM, STOREDIM);
+                *Ybby = *Ybby - LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis) * coefAngularL[i]
+                    * LOCSTORE(store, angularL[i] - 1, 0, STOREDIM, STOREDIM);
             }
         }
     }
 
-    if (LOC2(devSim.KLMN,2,JJJ-1,3,devSim.nbasis) >= 1) {
+    if (LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis) >= 1) {
         numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-                LOC2(devSim.KLMN,0,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,III-1,3,devSim.nbasis),
-                LOC2(devSim.KLMN,0,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,JJJ-1,3,devSim.nbasis) - 1,
+                LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis) - 1,
                 J - 1, coefAngularL, angularL);
 
-        for (int i = 0; i<numAngularL; i++) {
+        for (int i = 0; i < numAngularL; i++) {
             if (angularL[i] <= STOREDIM) {
-                *Ybbz = *Ybbz - LOC2(devSim.KLMN,2,JJJ-1,3,devSim.nbasis) * coefAngularL[i] * LOCSTORE(store, angularL[i]-1, 0, STOREDIM, STOREDIM);
+                *Ybbz = *Ybbz - LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis) * coefAngularL[i]
+                    * LOCSTORE(store, angularL[i] - 1, 0, STOREDIM, STOREDIM);
 
             }
         }
@@ -393,73 +501,97 @@ __device__ static inline void hrrwholegrad_lri2_2(QUICKDouble * const Yaax, QUIC
     *Ybby = 0.0;
     *Ybbz = 0.0;
 
-    QUICKDouble constant = devSim.cons[III-1] * devSim.cons[JJJ-1];
+    QUICKDouble constant = devSim.cons[III] * devSim.cons[JJJ];
     int numAngularL;
 
     //  Part A - x
     numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-            LOC2(devSim.KLMN,0,III-1,3,devSim.nbasis) + 1, LOC2(devSim.KLMN,1,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,III-1,3,devSim.nbasis),
-            LOC2(devSim.KLMN,0,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,JJJ-1,3,devSim.nbasis),
+            LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis) + 1,
+            LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
             J, coefAngularL, angularL);
 
     for (int i = 0; i<numAngularL; i++) {
         if (angularL[i] <= STOREDIM) {
-            *Yaax = *Yaax + coefAngularL[i] * LOCSTORE(store, angularL[i]-1, 0, STOREDIM, STOREDIM) * 2 * AA;
+            *Yaax = *Yaax + coefAngularL[i] * LOCSTORE(store, angularL[i] - 1, 0, STOREDIM, STOREDIM) * 2 * AA;
         }
     }
 
     numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-            LOC2(devSim.KLMN,0,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,III-1,3,devSim.nbasis) + 1, LOC2(devSim.KLMN,2,III-1,3,devSim.nbasis),
-            LOC2(devSim.KLMN,0,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,JJJ-1,3,devSim.nbasis),
+            LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis) + 1,
+            LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
             J, coefAngularL, angularL);
 
     for (int i = 0; i<numAngularL; i++) {
         if (angularL[i] <= STOREDIM) {
-            *Yaay = *Yaay + coefAngularL[i] * LOCSTORE(store, angularL[i]-1, 0, STOREDIM, STOREDIM) * 2 * AA;
+            *Yaay = *Yaay + coefAngularL[i] * LOCSTORE(store, angularL[i] - 1, 0, STOREDIM, STOREDIM) * 2 * AA;
         }
     }
 
     numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-            LOC2(devSim.KLMN,0,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,III-1,3,devSim.nbasis) + 1,
-            LOC2(devSim.KLMN,0,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,JJJ-1,3,devSim.nbasis),
+            LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis) + 1,
+            LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
             J, coefAngularL, angularL);
 
     for (int i = 0; i<numAngularL; i++) {
         if (angularL[i] <= STOREDIM) {
-            *Yaaz = *Yaaz + coefAngularL[i] * LOCSTORE(store, angularL[i]-1, 0, STOREDIM, STOREDIM) * 2 * AA;
+            *Yaaz = *Yaaz + coefAngularL[i] * LOCSTORE(store, angularL[i] - 1, 0, STOREDIM, STOREDIM) * 2 * AA;
         }
     }
 
     numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-            LOC2(devSim.KLMN,0,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,III-1,3,devSim.nbasis),
-            LOC2(devSim.KLMN,0,JJJ-1,3,devSim.nbasis) + 1, LOC2(devSim.KLMN,1,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,JJJ-1,3,devSim.nbasis),
+            LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis) + 1,
+            LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
             J + 1, coefAngularL, angularL);
 
     for (int i = 0; i<numAngularL; i++) {
         if (angularL[i] <= STOREDIM) {
-            *Ybbx = *Ybbx + coefAngularL[i] * LOCSTORE(store, angularL[i]-1, 0, STOREDIM, STOREDIM) * 2 * BB;
+            *Ybbx = *Ybbx + coefAngularL[i] * LOCSTORE(store, angularL[i] - 1, 0, STOREDIM, STOREDIM) * 2 * BB;
         }
     }
 
     numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-            LOC2(devSim.KLMN,0,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,III-1,3,devSim.nbasis),
-            LOC2(devSim.KLMN,0,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,JJJ-1,3,devSim.nbasis) + 1, LOC2(devSim.KLMN,2,JJJ-1,3,devSim.nbasis),
+            LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis) + 1,
+            LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
             J + 1, coefAngularL, angularL);
 
     for (int i = 0; i<numAngularL; i++) {
         if (angularL[i] <= STOREDIM) {
-            *Ybby = *Ybby + coefAngularL[i] * LOCSTORE(store, angularL[i]-1, 0, STOREDIM, STOREDIM) * 2 * BB;
+            *Ybby = *Ybby + coefAngularL[i] * LOCSTORE(store, angularL[i] - 1, 0, STOREDIM, STOREDIM) * 2 * BB;
         }
     }
 
     numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-            LOC2(devSim.KLMN,0,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,III-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,III-1,3,devSim.nbasis),
-            LOC2(devSim.KLMN,0,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,1,JJJ-1,3,devSim.nbasis), LOC2(devSim.KLMN,2,JJJ-1,3,devSim.nbasis) + 1,
+            LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
+            LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis) + 1,
             J + 1, coefAngularL, angularL);
 
     for (int i = 0; i<numAngularL; i++) {
         if (angularL[i] <= STOREDIM) {
-            *Ybbz = *Ybbz + coefAngularL[i] * LOCSTORE(store, angularL[i]-1, 0, STOREDIM, STOREDIM) * 2 * BB;
+            *Ybbz = *Ybbz + coefAngularL[i] * LOCSTORE(store, angularL[i] - 1, 0, STOREDIM, STOREDIM) * 2 * BB;
         }
     }
 
@@ -504,9 +636,9 @@ __device__ static inline void iclass_lri_grad
        which means they are corrosponding coorinates for shell II, JJ, KK, and LL.
        And we don't need the coordinates now, so we will not retrieve the data now.
    */
-    QUICKDouble RAx = LOC2(devSim.xyz, 0, devSim.katom[II] - 1, 3, devSim.natom);
-    QUICKDouble RAy = LOC2(devSim.xyz, 1, devSim.katom[II] - 1, 3, devSim.natom);
-    QUICKDouble RAz = LOC2(devSim.xyz, 2, devSim.katom[II] - 1, 3, devSim.natom);
+    QUICKDouble RAx = LOC2(devSim.xyz, 0, devSim.katom[II], 3, devSim.natom);
+    QUICKDouble RAy = LOC2(devSim.xyz, 1, devSim.katom[II], 3, devSim.natom);
+    QUICKDouble RAz = LOC2(devSim.xyz, 2, devSim.katom[II], 3, devSim.natom);
 
     QUICKDouble RCx = LOC2(devSim.allxyz, 0, iatom, 3, totalatom);
     QUICKDouble RCy = LOC2(devSim.allxyz, 1, iatom, 3, totalatom);
@@ -520,8 +652,8 @@ __device__ static inline void iclass_lri_grad
     int kPrimI = devSim.kprim[II];
     int kPrimJ = devSim.kprim[JJ];
 
-    int kStartI = devSim.kstart[II]-1;
-    int kStartJ = devSim.kstart[JJ]-1;
+    int kStartI = devSim.kstart[II];
+    int kStartJ = devSim.kstart[JJ];
 
     /*
        store saves temp contracted integral as [as|bs] type. the dimension should be allocatable but because
@@ -571,8 +703,8 @@ __device__ static inline void iclass_lri_grad
         int ii_start = devSim.prim_start[II];
         int jj_start = devSim.prim_start[JJ];
 
-        QUICKDouble AA = LOC2(devSim.gcexpo, III, devSim.Ksumtype[II] - 1, MAXPRIM, devSim.nbasis);
-        QUICKDouble BB = LOC2(devSim.gcexpo, JJJ, devSim.Ksumtype[JJ] - 1, MAXPRIM, devSim.nbasis);
+        QUICKDouble AA = LOC2(devSim.gcexpo, III, devSim.Ksumtype[II], MAXPRIM, devSim.nbasis);
+        QUICKDouble BB = LOC2(devSim.gcexpo, JJJ, devSim.Ksumtype[JJ], MAXPRIM, devSim.nbasis);
 
         QUICKDouble AB = LOC2(devSim.expoSum, ii_start + III, jj_start + JJJ, devSim.prim_total, devSim.prim_total);
         QUICKDouble Px = LOC2(devSim.weightedCenterX, ii_start + III, jj_start + JJJ, devSim.prim_total, devSim.prim_total);
@@ -675,22 +807,22 @@ __device__ static inline void iclass_lri_grad
     QUICKDouble BGrady = 0.0;
     QUICKDouble BGradz = 0.0;
 
-    int AStart = (devSim.katom[II] - 1) * 3;
-    int BStart = (devSim.katom[JJ] - 1) * 3;
+    int AStart = devSim.katom[II] * 3;
+    int BStart = devSim.katom[JJ] * 3;
     int CStart = iatom * 3;
 
     QUICKDouble RBx, RBy, RBz;
 
-    RBx = LOC2(devSim.xyz, 0, devSim.katom[JJ] - 1, 3, devSim.natom);
-    RBy = LOC2(devSim.xyz, 1, devSim.katom[JJ] - 1, 3, devSim.natom);
-    RBz = LOC2(devSim.xyz, 2, devSim.katom[JJ] - 1, 3, devSim.natom);
+    RBx = LOC2(devSim.xyz, 0, devSim.katom[JJ], 3, devSim.natom);
+    RBy = LOC2(devSim.xyz, 1, devSim.katom[JJ], 3, devSim.natom);
+    RBz = LOC2(devSim.xyz, 2, devSim.katom[JJ], 3, devSim.natom);
 
     int III1 = LOC2(devSim.Qsbasis, II, I, devSim.nshell, 4);
     int III2 = LOC2(devSim.Qfbasis, II, I, devSim.nshell, 4);
     int JJJ1 = LOC2(devSim.Qsbasis, JJ, J, devSim.nshell, 4);
     int JJJ2 = LOC2(devSim.Qfbasis, JJ, J, devSim.nshell, 4);
 
-    int  nbasis = devSim.nbasis;
+    int nbasis = devSim.nbasis;
 
     for (int III = III1; III <= III2; III++) {
         for (int JJJ = MAX(III, JJJ1); JJJ <= JJJ2; JJJ++) {
@@ -704,10 +836,10 @@ __device__ static inline void iclass_lri_grad
                     RAx, RAy, RAz, RBx, RBy, RBz);
 
   #if defined(OSHELL)
-            QUICKDouble DENSEJI = (QUICKDouble) (LOC2(devSim.dense, JJJ - 1, III - 1, nbasis, nbasis)
-                    + LOC2(devSim.denseb, JJJ - 1, III - 1, nbasis, nbasis));
+            QUICKDouble DENSEJI = (QUICKDouble) (LOC2(devSim.dense, JJJ, III, nbasis, nbasis)
+                    + LOC2(devSim.denseb, JJJ, III, nbasis, nbasis));
   #else
-            QUICKDouble DENSEJI = (QUICKDouble) LOC2(devSim.dense, JJJ - 1, III - 1, nbasis, nbasis);
+            QUICKDouble DENSEJI = (QUICKDouble) LOC2(devSim.dense, JJJ, III, nbasis, nbasis);
   #endif
 
             QUICKDouble constant;
@@ -717,7 +849,8 @@ __device__ static inline void iclass_lri_grad
                 constant = DENSEJI;
             }
 
-            //printf("iatom %d %d %d %d %d dmx: %f Y: %f %f %f %f %f %f %f %f %f \n",iatom, II, JJ, III, JJJ, constant, RAx, RBx, RCx, Yaax, Yaay, Yaaz, Ybbx, Ybby, Ybbz);
+//            printf("iatom %d %d %d %d %d dmx: %f Y: %f %f %f %f %f %f %f %f %f \n",
+//                    iatom, II, JJ, III, JJJ, constant, RAx, RBx, RCx, Yaax, Yaay, Yaaz, Ybbx, Ybby, Ybbz);
 
             AGradx += constant * Yaax;
             AGrady += constant * Yaay;
@@ -798,9 +931,9 @@ __device__ static inline void iclass_lri_grad_spdf2
        which means they are corrosponding coorinates for shell II, JJ, KK, and LL.
        And we don't need the coordinates now, so we will not retrieve the data now.
     */
-    QUICKDouble RAx = LOC2(devSim.xyz, 0, devSim.katom[II] - 1, 3, devSim.natom);
-    QUICKDouble RAy = LOC2(devSim.xyz, 1, devSim.katom[II] - 1, 3, devSim.natom);
-    QUICKDouble RAz = LOC2(devSim.xyz, 2, devSim.katom[II] - 1, 3, devSim.natom);
+    QUICKDouble RAx = LOC2(devSim.xyz, 0, devSim.katom[II], 3, devSim.natom);
+    QUICKDouble RAy = LOC2(devSim.xyz, 1, devSim.katom[II], 3, devSim.natom);
+    QUICKDouble RAz = LOC2(devSim.xyz, 2, devSim.katom[II], 3, devSim.natom);
 
     QUICKDouble RCx = LOC2(devSim.allxyz, 0, iatom, 3, totalatom);
     QUICKDouble RCy = LOC2(devSim.allxyz, 1, iatom, 3, totalatom);
@@ -816,8 +949,8 @@ __device__ static inline void iclass_lri_grad_spdf2
     int kPrimK = 1;
     int kPrimL = 1;
 
-    int kStartI = devSim.kstart[II] - 1;
-    int kStartJ = devSim.kstart[JJ] - 1;
+    int kStartI = devSim.kstart[II];
+    int kStartJ = devSim.kstart[JJ];
 
     QUICKDouble AGradx = 0.0;
     QUICKDouble AGrady = 0.0;
@@ -826,8 +959,8 @@ __device__ static inline void iclass_lri_grad_spdf2
     QUICKDouble BGrady = 0.0;
     QUICKDouble BGradz = 0.0;
 
-    int AStart = (devSim.katom[II] - 1) * 3;
-    int BStart = (devSim.katom[JJ] - 1) * 3;
+    int AStart = devSim.katom[II] * 3;
+    int BStart = devSim.katom[JJ] * 3;
     int CStart = iatom * 3;
 
     /*
@@ -854,8 +987,8 @@ __device__ static inline void iclass_lri_grad_spdf2
         int ii_start = devSim.prim_start[II];
         int jj_start = devSim.prim_start[JJ];
 
-        QUICKDouble AA = LOC2(devSim.gcexpo, III, devSim.Ksumtype[II] - 1, MAXPRIM, devSim.nbasis);
-        QUICKDouble BB = LOC2(devSim.gcexpo, JJJ, devSim.Ksumtype[JJ] - 1, MAXPRIM, devSim.nbasis);
+        QUICKDouble AA = LOC2(devSim.gcexpo, III, devSim.Ksumtype[II], MAXPRIM, devSim.nbasis);
+        QUICKDouble BB = LOC2(devSim.gcexpo, JJJ, devSim.Ksumtype[JJ], MAXPRIM, devSim.nbasis);
 
         QUICKDouble AB = LOC2(devSim.expoSum, ii_start + III, jj_start + JJJ, devSim.prim_total, devSim.prim_total);
         QUICKDouble Px = LOC2(devSim.weightedCenterX, ii_start + III, jj_start + JJJ, devSim.prim_total, devSim.prim_total);
@@ -939,9 +1072,9 @@ __device__ static inline void iclass_lri_grad_spdf2
 
             QUICKDouble RBx, RBy, RBz;
 
-            RBx = LOC2(devSim.xyz, 0, devSim.katom[JJ] - 1, 3, devSim.natom);
-            RBy = LOC2(devSim.xyz, 1, devSim.katom[JJ] - 1, 3, devSim.natom);
-            RBz = LOC2(devSim.xyz, 2, devSim.katom[JJ] - 1, 3, devSim.natom);
+            RBx = LOC2(devSim.xyz, 0, devSim.katom[JJ], 3, devSim.natom);
+            RBy = LOC2(devSim.xyz, 1, devSim.katom[JJ], 3, devSim.natom);
+            RBz = LOC2(devSim.xyz, 2, devSim.katom[JJ], 3, devSim.natom);
 
             int III1 = LOC2(devSim.Qsbasis, II, I, devSim.nshell, 4);
             int III2 = LOC2(devSim.Qfbasis, II, I, devSim.nshell, 4);
@@ -967,10 +1100,10 @@ __device__ static inline void iclass_lri_grad_spdf2
                      RAx, RAy, RAz, RBx, RBy, RBz);
 
   #if defined(OSHELL)
-                    QUICKDouble DENSEJI = (QUICKDouble) (LOC2(devSim.dense, JJJ - 1, III - 1, nbasis, nbasis)
-                            + LOC2(devSim.denseb, JJJ - 1, III - 1, nbasis, nbasis));
+                    QUICKDouble DENSEJI = (QUICKDouble) (LOC2(devSim.dense, JJJ, III, nbasis, nbasis)
+                            + LOC2(devSim.denseb, JJJ, III, nbasis, nbasis));
   #else
-                    QUICKDouble DENSEJI = (QUICKDouble) LOC2(devSim.dense, JJJ - 1, III - 1, nbasis, nbasis);
+                    QUICKDouble DENSEJI = (QUICKDouble) LOC2(devSim.dense, JJJ, III, nbasis, nbasis);
   #endif
 
                     QUICKDouble constant;

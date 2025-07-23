@@ -36,12 +36,12 @@ __device__ static inline void iclass_oei(unsigned int I, unsigned int J, unsigne
        Ai, Bi, Ci are the coordinates for atom katomA, katomB, katomC,
        which means they are corrosponding coorinates for shell II, JJ and nuclei.
     */
-    const QUICKDouble Ax = LOC2(devSim.allxyz, 0, devSim.katom[II] - 1, 3, devSim.natom + devSim.nextatom);
-    const QUICKDouble Ay = LOC2(devSim.allxyz, 1, devSim.katom[II] - 1, 3, devSim.natom + devSim.nextatom);
-    const QUICKDouble Az = LOC2(devSim.allxyz, 2, devSim.katom[II] - 1, 3, devSim.natom + devSim.nextatom);
-    const QUICKDouble Bx = LOC2(devSim.allxyz, 0, devSim.katom[JJ] - 1, 3, devSim.natom + devSim.nextatom);
-    const QUICKDouble By = LOC2(devSim.allxyz, 1, devSim.katom[JJ] - 1, 3, devSim.natom + devSim.nextatom);
-    const QUICKDouble Bz = LOC2(devSim.allxyz, 2, devSim.katom[JJ] - 1, 3, devSim.natom + devSim.nextatom);
+    const QUICKDouble Ax = LOC2(devSim.allxyz, 0, devSim.katom[II], 3, devSim.natom + devSim.nextatom);
+    const QUICKDouble Ay = LOC2(devSim.allxyz, 1, devSim.katom[II], 3, devSim.natom + devSim.nextatom);
+    const QUICKDouble Az = LOC2(devSim.allxyz, 2, devSim.katom[II], 3, devSim.natom + devSim.nextatom);
+    const QUICKDouble Bx = LOC2(devSim.allxyz, 0, devSim.katom[JJ], 3, devSim.natom + devSim.nextatom);
+    const QUICKDouble By = LOC2(devSim.allxyz, 1, devSim.katom[JJ], 3, devSim.natom + devSim.nextatom);
+    const QUICKDouble Bz = LOC2(devSim.allxyz, 2, devSim.katom[JJ], 3, devSim.natom + devSim.nextatom);
 
     /*
        kPrimI and kPrimJ indicates the number of primitives in shell II and JJ.
@@ -50,8 +50,8 @@ __device__ static inline void iclass_oei(unsigned int I, unsigned int J, unsigne
     */
     const int kPrimI = devSim.kprim[II];
     const int kPrimJ = devSim.kprim[JJ];
-    const int kStartI = devSim.kstart[II] - 1;
-    const int kStartJ = devSim.kstart[JJ] - 1;
+    const int kStartI = devSim.kstart[II];
+    const int kStartJ = devSim.kstart[JJ];
 
     /*
        Store array holds contracted integral values computed using VRR algorithm.
@@ -153,45 +153,45 @@ __device__ static inline void iclass_oei(unsigned int I, unsigned int J, unsigne
     for (int III = III1; III <= III2; III++) {
         // devTrans maps a basis function with certain angular momentum to store2 array. Get the correct indices now.
         const int i = (int) LOC3(devTrans,
-                LOC2(devSim.KLMN, 0, III - 1, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, III - 1, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, III - 1, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
+                LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
                 TRANSDIM, TRANSDIM, TRANSDIM);
 
         for (int JJJ = MAX(III, JJJ1); JJJ <= JJJ2; JJJ++) {
             // devTrans maps a basis function with certain angular momentum to store2 array. Get the correct indices now.
             const int j = (int) LOC3(devTrans,
-                    LOC2(devSim.KLMN, 0, JJJ - 1, 3, devSim.nbasis),
-                    LOC2(devSim.KLMN, 1, JJJ - 1, 3, devSim.nbasis),
-                    LOC2(devSim.KLMN, 2, JJJ - 1, 3, devSim.nbasis),
+                    LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
+                    LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
+                    LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
                     TRANSDIM, TRANSDIM, TRANSDIM);
 
             // multiply the integral value by normalization constants.
-            const QUICKDouble Y = devSim.cons[III - 1] * devSim.cons[JJJ - 1]
+            const QUICKDouble Y = devSim.cons[III] * devSim.cons[JJJ]
                 * LOCSTORE(&devSim.store2[blockIdx.x * blockDim.x + threadIdx.x], i - 1, j - 1, STOREDIM, STOREDIM);
 
 //            if (III == 10 && JJJ == 50) {
 //                printf("OEI debug: III JJJ I J iatm i j c1 c2 store2 Y %d %d %d %d %d %d %d %f %f %f %f\n",
 //                        III, JJJ, I, J, iatom, i - 1,
-//                        j - 1, devSim.cons[III - 1], devSim.cons[JJJ - 1],
+//                        j - 1, devSim.cons[III], devSim.cons[JJJ],
 //                        LOCSTORE(&devSim.store2[blockIdx.x * blockDim.x + threadIdx.x], i - 1, j - 1, STOREDIM, STOREDIM), Y);
 //                printf("OEI debug: dt1 dt2 dt3 dt4 dt5 dt6:  %d %d %d %d %d %d \n",
-//                        LOC2(devSim.KLMN, 0, III - 1, 3,devSim.nbasis),
-//                        LOC2(devSim.KLMN, 1, III - 1, 3,devSim.nbasis),\
-//                        LOC2(devSim.KLMN, 2, III - 1, 3,devSim.nbasis),
-//                        LOC2(devSim.KLMN, 0, JJJ - 1, 3,devSim.nbasis),
-//                        LOC2(devSim.KLMN, 1, JJJ - 1, 3,devSim.nbasis),
-//                        LOC2(devSim.KLMN, 2, JJJ - 1, 3,devSim.nbasis));
+//                        LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
+//                        LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
+//                        LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
+//                        LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
+//                        LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
+//                        LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis));
 //            }
 
             // Now add the contribution into Fock matrix.
 #if defined(USE_LEGACY_ATOMICS)
-            GPUATOMICADD(&LOC2(devSim.oULL, JJJ - 1, III - 1, devSim.nbasis, devSim.nbasis), Y, OSCALE);
+            GPUATOMICADD(&LOC2(devSim.oULL, JJJ, III, devSim.nbasis, devSim.nbasis), Y, OSCALE);
 #else
-            atomicAdd(&LOC2(devSim.o, JJJ - 1, III - 1, devSim.nbasis, devSim.nbasis), Y);
+            atomicAdd(&LOC2(devSim.o, JJJ, III, devSim.nbasis, devSim.nbasis), Y);
 #endif
 
-//            printf("addint_oei: %d %d %f %f %f \n", III, JJJ, devSim.cons[III - 1], devSim.cons[JJJ - 1],
+//            printf("addint_oei: %d %d %f %f %f \n", III, JJJ, devSim.cons[III], devSim.cons[JJJ],
 //                    LOCSTORE(&devSim.store2[blockIdx.x * blockDim.x + threadIdx.x], i - 1, j - 1, STOREDIM, STOREDIM));
         }
     }
