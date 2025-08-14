@@ -19,6 +19,7 @@
 
 #include <cuda.h>
 
+#include <stdint.h>
 #include <stdio.h>
 
 
@@ -29,8 +30,8 @@
  */
 template <typename T> struct gpu_buffer_type;
 struct gpu_calculated_type {
-    int natom; // number of atom
-    int nbasis; // number of basis sets
+    uint32_t natom; // number of atom
+    uint32_t nbasis; // number of basis sets
     gpu_buffer_type<QUICKDouble> *o;      // O matrix
     gpu_buffer_type<QUICKDouble> *ob;     // beta O matrix
     gpu_buffer_type<QUICKDouble> *dense;  // Density Matrix
@@ -64,12 +65,12 @@ struct gpu_timer_type {
 };
 
 struct gpu_cutoff_type {
-    int natom;
-    int nbasis;
-    int nshell;
+    uint32_t natom;
+    uint32_t nbasis;
+    uint32_t nshell;
 
     // the following are for pre-sorting cutoff
-    int sqrQshell;
+    uint32_t sqrQshell;
     gpu_buffer_type<int2> *sorted_YCutoffIJ;
 
     // Cutoff matrix
@@ -167,7 +168,7 @@ struct XC_quadrature_type {
     gpu_buffer_type<char> *mpi_bxccompute;
 
     // shared memory size
-    int smem_size;                                 //size of shared memory buffer in xc kernels
+    uint32_t smem_size;                                 //size of shared memory buffer in xc kernels
 };
 
 struct lri_data_type {
@@ -185,28 +186,28 @@ struct gpu_simulation_type {
     bool is_oshell;
 
     // used for DFT
-    int isg;        // isg algrothm
+    int32_t isg;        // isg algrothm
     bool prePtevl;   // precompute and store values and gradients of basis functions at grid points
     QUICKDouble *sigrad2;    // basis set range
 
-    int natom;
-    int nextatom;
-    int nextpoint;
-    int nbasis;
-    int nshell;
-    int nprim;
-    int jshell;
-    int jbasis;
-    int nElec;
-    int imult;
-    int molchg;
-    int iAtomType;
-    int maxcontract;
-    int Qshell;
-    int fStart;
-    int ffStart;
-    int maxL;
-    int Qshell_OEI; // number of Qshell pairs after OEI prescreening
+    uint32_t natom;
+    uint32_t nextatom;
+    uint32_t nextpoint;
+    uint32_t nbasis;
+    uint32_t nshell;
+    uint32_t nprim;
+    uint32_t jshell;
+    uint32_t jbasis;
+    uint32_t nElec;
+    int32_t imult;
+    int32_t molchg;
+    uint32_t iAtomType;
+    int32_t maxcontract;
+    uint32_t Qshell;
+    uint32_t fStart;
+    uint32_t ffStart;
+    uint32_t maxL;
+    uint32_t Qshell_OEI; // number of Qshell pairs after OEI prescreening
 
     //New XC implementation
     int npoints;                                //Total number of packed grid points
@@ -285,23 +286,23 @@ struct gpu_simulation_type {
     QUICKDouble *extpointxyz; // coordinates of points on which one electron properties are obtained
     int *ncenter;
 
-    int *kstart;
-    int *katom;
-    int *kprim;
-    int *Ksumtype;
-    int *Qnumber;
-    int *Qstart;
-    int *Qfinal;
-    int *Qsbasis;
-    int *Qfbasis;
-    int *sorted_Qnumber;
-    int *sorted_Q;
+    uint32_t *kstart;
+    uint32_t *katom;
+    uint32_t *kprim;
+    uint32_t *Ksumtype;
+    uint32_t *Qnumber;
+    uint32_t *Qstart;
+    uint32_t *Qfinal;
+    uint32_t *Qsbasis;
+    uint32_t *Qfbasis;
+    uint8_t *sorted_Qnumber;
+    uint32_t *sorted_Q;
     QUICKDouble *gccoeff;
     QUICKDouble *cons;
     QUICKDouble *gcexpo;
-    unsigned char *KLMN;
-    int prim_total;
-    int *prim_start;
+    uint8_t *KLMN;
+    uint32_t prim_total;
+    uint32_t *prim_start;
 
     // Some more infos about pre-calculated values
     QUICKDouble *o;
@@ -324,7 +325,7 @@ struct gpu_simulation_type {
     QUICKDouble *weightedCenterZ;
 
     // cutoff
-    int sqrQshell;
+    uint32_t sqrQshell;
     int2 *sorted_YCutoffIJ;
     QUICKDouble *cutMatrix;
     QUICKDouble *YCutoff;
@@ -344,7 +345,7 @@ struct gpu_simulation_type {
 
     QUICKDouble maxIntegralCutoff;
     QUICKDouble leastIntegralCutoff;
-    int iBatchSize;
+    uint32_t iBatchSize;
     QUICKULL *intCount;
 
     // For Grad
@@ -383,18 +384,18 @@ struct gpu_simulation_type {
 };
 
 struct gpu_basis_type {
-    int natom;
-    int nbasis;
-    int nshell;
-    int nprim;
-    int jshell;
-    int jbasis;
-    int Qshell;
-    int maxcontract;
-    int prim_total;
+    uint32_t natom;
+    uint32_t nbasis;
+    uint32_t nshell;
+    uint32_t nprim;
+    uint32_t jshell;
+    uint32_t jbasis;
+    uint32_t Qshell;
+    int32_t maxcontract;
+    uint32_t prim_total;
 
-    int fStart;
-    int ffStart;
+    uint32_t fStart;
+    uint32_t ffStart;
 
     // Gaussian Type function
     gpu_buffer_type<int> *ncontract;
@@ -405,17 +406,17 @@ struct gpu_basis_type {
     // Some more infos about basis function
     gpu_buffer_type<int> *ncenter;
     gpu_buffer_type<QUICKDouble> *sigrad2;
-    gpu_buffer_type<int> *kstart;
-    gpu_buffer_type<int> *katom;
-    gpu_buffer_type<int> *kprim;
-    gpu_buffer_type<int> *Ksumtype;
-    gpu_buffer_type<int> *Qnumber;
-    gpu_buffer_type<int> *Qstart;
-    gpu_buffer_type<int> *Qfinal;
-    gpu_buffer_type<int> *Qsbasis;
-    gpu_buffer_type<int> *Qfbasis;
-    gpu_buffer_type<int> *sorted_Qnumber;
-    gpu_buffer_type<int> *sorted_Q;
+    gpu_buffer_type<uint32_t> *kstart;
+    gpu_buffer_type<uint32_t> *katom;
+    gpu_buffer_type<uint32_t> *kprim;
+    gpu_buffer_type<uint32_t> *Ksumtype;
+    gpu_buffer_type<uint32_t> *Qnumber;
+    gpu_buffer_type<uint32_t> *Qstart;
+    gpu_buffer_type<uint32_t> *Qfinal;
+    gpu_buffer_type<uint32_t> *Qsbasis;
+    gpu_buffer_type<uint32_t> *Qfbasis;
+    gpu_buffer_type<uint8_t> *sorted_Qnumber;
+    gpu_buffer_type<uint32_t> *sorted_Q;
     gpu_buffer_type<QUICKDouble> *gccoeff;
     gpu_buffer_type<QUICKDouble> *Xcoeff;                     // 4-dimension one
     gpu_buffer_type<QUICKDouble> *Xcoeff_oei;                 // 4-dimension one, precomputed overlap prefactor for oei
@@ -425,13 +426,13 @@ struct gpu_basis_type {
     gpu_buffer_type<QUICKDouble> *weightedCenterZ;            // 4-dimension one
     gpu_buffer_type<QUICKDouble> *cons;
     gpu_buffer_type<QUICKDouble> *gcexpo;
-    gpu_buffer_type<unsigned char> *KLMN;
+    gpu_buffer_type<uint8_t> *KLMN;
     gpu_buffer_type<QUICKDouble> *Apri;
     gpu_buffer_type<QUICKDouble> *Kpri;
     gpu_buffer_type<QUICKDouble> *PpriX;
     gpu_buffer_type<QUICKDouble> *PpriY;
     gpu_buffer_type<QUICKDouble> *PpriZ;
-    gpu_buffer_type<int> *prim_start;
+    gpu_buffer_type<uint32_t> *prim_start;
 
     // For multi GPU version
     gpu_buffer_type<unsigned char> *mpi_bcompute;
@@ -446,8 +447,8 @@ struct gpu_type {
 #endif
     SM_VERSION sm_version;
     // Memory parameters
-    long long int totalCPUMemory; // total CPU memory allocated
-    long long int totalGPUMemory; // total GPU memory allocated
+    uint64_t totalCPUMemory; // total CPU memory allocated
+    uint64_t totalGPUMemory; // total GPU memory allocated
                                   // Launch parameters
     int gpu_dev_id;  // set 0 for master GPU
     unsigned int blocks;
@@ -464,20 +465,20 @@ struct gpu_type {
     // timer
     gpu_timer_type *timer;
     // Molecule specification part
-    int natom;
-    int nextatom;
-    int nextpoint;
-    int nbasis;
-    int nElec;
-    int imult;
-    int molchg;
-    int iAtomType;
+    uint32_t natom;
+    uint32_t nextatom;
+    uint32_t nextpoint;
+    uint32_t nbasis;
+    uint32_t nElec;
+    int32_t imult;
+    int32_t molchg;
+    uint32_t iAtomType;
 
-    int nshell;
-    int nprim;
-    int jshell;
-    int jbasis;
-    int maxL;
+    uint32_t nshell;
+    uint32_t nprim;
+    uint32_t jshell;
+    uint32_t jbasis;
+    uint32_t maxL;
 
     gpu_buffer_type<int> *iattype;
     gpu_buffer_type<QUICKDouble> *xyz;
@@ -514,22 +515,18 @@ static _gpu_type gpu = NULL;
 template <typename T>
 struct gpu_buffer_type {
     bool _bPinned;    // if pinned mem
-    unsigned int _length;     // length of the data
-    unsigned int _length2;    // length 2 is the row, and if it's not equals to 0, the data is a matrix
+    uint32_t _length;     // length of the data
+    uint32_t _length2;    // length 2 is the row, and if it's not equals to 0, the data is a matrix
     T *_hostData;   // data on host (CPU)
     T *_devData;    // data on device (GPU)
     T *_f90Data;    // if constructed from f90 array, it is the pointer
 
     // constructor
-    gpu_buffer_type(int length);
-    gpu_buffer_type(int length, bool bPinned);
-    gpu_buffer_type(unsigned int length);
-    gpu_buffer_type(int length, int length2);
-    gpu_buffer_type(unsigned int length, unsigned int length2);
-    gpu_buffer_type(T* f90data, int length, int length2);
-    gpu_buffer_type(T* f90Data, unsigned int length, unsigned int length2);
-    gpu_buffer_type(T* f90data, int length);
-    gpu_buffer_type(T* f90Data, unsigned int length);
+    gpu_buffer_type(uint32_t length);
+    gpu_buffer_type(uint32_t length, bool bPinned);
+    gpu_buffer_type(uint32_t length, uint32_t length2);
+    gpu_buffer_type(T* f90data, uint32_t length, uint32_t length2);
+    gpu_buffer_type(T* f90data, uint32_t length);
 
     // destructor
     virtual ~gpu_buffer_type();
@@ -554,7 +551,7 @@ struct gpu_buffer_type {
 
 
 template <typename T>
-gpu_buffer_type<T> :: gpu_buffer_type(int length) :
+gpu_buffer_type<T> :: gpu_buffer_type(uint32_t length) :
     _length(length), _length2(1), _hostData(NULL), _devData(NULL), _f90Data(NULL), _bPinned(false)
 {
     Allocate();
@@ -562,7 +559,7 @@ gpu_buffer_type<T> :: gpu_buffer_type(int length) :
 
 
 template <typename T>
-gpu_buffer_type<T> :: gpu_buffer_type(int length, bool bPinned) :
+gpu_buffer_type<T> :: gpu_buffer_type(uint32_t length, bool bPinned) :
     _length(length), _length2(1), _hostData(NULL), _devData(NULL), _f90Data(NULL), _bPinned(bPinned)
 {
     Allocate();
@@ -570,15 +567,7 @@ gpu_buffer_type<T> :: gpu_buffer_type(int length, bool bPinned) :
 
 
 template <typename T>
-gpu_buffer_type<T> :: gpu_buffer_type(unsigned int length) :
-    _length(length), _length2(1), _hostData(NULL), _devData(NULL), _f90Data(NULL), _bPinned(false)
-{
-    Allocate();
-}
-
-
-template <typename T>
-gpu_buffer_type<T> :: gpu_buffer_type(int length, int length2) :
+gpu_buffer_type<T> :: gpu_buffer_type(uint32_t length, uint32_t length2) :
     _length(length), _length2(length2), _hostData(NULL), _devData(NULL), _f90Data(NULL), _bPinned(false)
 {
     Allocate();
@@ -586,15 +575,7 @@ gpu_buffer_type<T> :: gpu_buffer_type(int length, int length2) :
 
 
 template <typename T>
-gpu_buffer_type<T> :: gpu_buffer_type(unsigned int length, unsigned int length2) :
-    _length(length), _length2(length2), _hostData(NULL), _devData(NULL), _f90Data(NULL), _bPinned(false)
-{
-    Allocate();
-}
-
-
-template <typename T>
-gpu_buffer_type<T> :: gpu_buffer_type(T* f90data, unsigned int length, unsigned int length2) :
+gpu_buffer_type<T> :: gpu_buffer_type(T* f90data, uint32_t length, uint32_t length2) :
     _length(length), _length2(length2), _hostData(NULL), _devData(NULL), _f90Data(f90data), _bPinned(false)
 {
     Allocate();
@@ -602,23 +583,7 @@ gpu_buffer_type<T> :: gpu_buffer_type(T* f90data, unsigned int length, unsigned 
 
 
 template <typename T>
-gpu_buffer_type<T> :: gpu_buffer_type(T* f90data, int length, int length2) :
-    _length(length), _length2(length2), _hostData(NULL), _devData(NULL), _f90Data(f90data), _bPinned(false)
-{
-    Allocate();
-}
-
-
-template <typename T>
-gpu_buffer_type<T> :: gpu_buffer_type(T* f90data, unsigned int length) :
-    _length(length), _length2(1), _hostData(NULL), _devData(NULL), _f90Data(f90data), _bPinned(false)
-{
-    Allocate();
-}
-
-
-template <typename T>
-gpu_buffer_type<T> :: gpu_buffer_type(T* f90data, int length) :
+gpu_buffer_type<T> :: gpu_buffer_type(T* f90data, uint32_t length) :
     _length(length), _length2(1), _hostData(NULL), _devData(NULL), _f90Data(f90data), _bPinned(false)
 {
     Allocate();

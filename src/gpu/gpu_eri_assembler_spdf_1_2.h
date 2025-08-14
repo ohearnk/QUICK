@@ -23,40 +23,40 @@
 #define STORE_OPERATOR =
 
 
-__device__ static inline void ERint_vertical_spdf_1_2(const int I, const int J, const int K, const int L,
-        const QUICKDouble Ptempx, const QUICKDouble Ptempy, const QUICKDouble Ptempz,
-        const QUICKDouble WPtempx, const QUICKDouble WPtempy, const QUICKDouble WPtempz,
-        const QUICKDouble Qtempx, const QUICKDouble Qtempy, const QUICKDouble Qtempz,
-        const QUICKDouble WQtempx, const QUICKDouble WQtempy, const QUICKDouble WQtempz,
-        const QUICKDouble ABCDtemp, const QUICKDouble ABtemp, const QUICKDouble CDtemp,
-        const QUICKDouble ABcom, const QUICKDouble CDcom,
+__device__ static inline void ERint_vertical_spdf_1_2(uint8_t I, uint8_t J, uint8_t K, uint8_t L,
+        QUICKDouble Ptempx, QUICKDouble Ptempy, QUICKDouble Ptempz,
+        QUICKDouble WPtempx, QUICKDouble WPtempy, QUICKDouble WPtempz,
+        QUICKDouble Qtempx, QUICKDouble Qtempy, QUICKDouble Qtempz,
+        QUICKDouble WQtempx, QUICKDouble WQtempy, QUICKDouble WQtempz,
+        QUICKDouble ABCDtemp, QUICKDouble ABtemp, QUICKDouble CDtemp,
+        QUICKDouble ABcom, QUICKDouble CDcom,
         QUICKDouble * const store, QUICKDouble * const YVerticalTemp)
 {
-    if ((I + J) >= 0 && (K + L) >= 5) {
+    if (I + J >= 0 && K + L >= 5) {
 #include "iclass_sshs.h"
     }
-    if ((I + J) >= 0 && (K + L) >= 6) {
+    if (I + J >= 0 && K + L >= 6) {
 #include "iclass_ssis.h"
     }
-    if ((I + J) >= 1 && (K + L) >= 5) {
+    if (I + J >= 1 && K + L >= 5) {
 #include "iclass_pshs.h"
     }
-    if ((I + J) >= 1 && (K + L) >= 6) {
+    if (I + J >= 1 && K + L >= 6) {
 #include "iclass_psis.h"
     }
-    if ((I + J) >= 2 && (K + L) >= 5) {
+    if (I + J >= 2 && K + L >= 5) {
 #include "iclass_dshs.h"
     }
-    if ((I + J) >= 2 && (K + L) >= 6) {
+    if (I + J >= 2 && K + L >= 6) {
 #include "iclass_dsis.h"
     }
-    if ((I + J) >= 3 && (K + L) >= 5) {
+    if (I + J >= 3 && K + L >= 5) {
 #include "iclass_fshs.h"
     }
-    if ((I + J) >= 3 && (K + L) >= 6) {
+    if (I + J >= 3 && K + L >= 6) {
 #include "iclass_fsis.h"
     }
-    if ((I + J) >= 4 && (K + L) >= 5) {
+    if (I + J >= 4 && K + L >= 5) {
 #include "iclass_gshs.h"
     }
 }

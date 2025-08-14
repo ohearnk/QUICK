@@ -25,8 +25,8 @@ devTrans_MP2 : arrays to save the mapping index, will be elimited by hand writin
 Sumindex: a array to store refect how many temp variable needed in VRR. can be elimited by hand writing code.
  */
 static __constant__ gpu_simulation_type devSim_MP2;
-static __constant__ int devTrans_MP2[TRANSDIM * TRANSDIM * TRANSDIM];
-static __constant__ int Sumindex_MP2[10] = {0, 0, 1, 4, 10, 20, 35, 56, 84, 120};
+static __constant__ uint8_t devTrans_MP2[TRANSDIM * TRANSDIM * TRANSDIM];
+static __constant__ uint8_t Sumindex_MP2[10] = {0, 0, 1, 4, 10, 20, 35, 56, 84, 120};
 
 // totTime is the timer for GPU 2e time. Only on under debug mode
 #if defined(DEBUG)
@@ -34,7 +34,7 @@ static float totTime;
 #endif
 
 
-__device__ static inline void FmT_MP2(int MaxM, QUICKDouble X, QUICKDouble* YVerticalTemp)
+__device__ static inline void FmT_MP2(uint32_t MaxM, QUICKDouble X, QUICKDouble * const YVerticalTemp)
 {
     const QUICKDouble PIE4 = (QUICKDouble) PI / 4.0;
     const QUICKDouble XINV = (QUICKDouble) 1.0 / X;
@@ -90,26 +90,27 @@ __device__ static inline void FmT_MP2(int MaxM, QUICKDouble X, QUICKDouble* YVer
     }
     if (X > 3.0E-7) {
         LOC3(YVerticalTemp, 0, 0, 0, VDIM1, VDIM2, VDIM3) = WW1;
-        for (int m = 1; m<= MaxM; m++) {
-            LOC3(YVerticalTemp, 0, 0, m, VDIM1, VDIM2, VDIM3) = (((2*m-1)
-                        * LOC3(YVerticalTemp, 0, 0, m-1, VDIM1, VDIM2, VDIM3))- E)*0.5*XINV;
+        for (uint32_t m = 1; m <= MaxM; m++) {
+            LOC3(YVerticalTemp, 0, 0, m, VDIM1, VDIM2, VDIM3) = (((2 * m - 1)
+                        * LOC3(YVerticalTemp, 0, 0, m - 1, VDIM1, VDIM2, VDIM3)) - E) * 0.5 * XINV;
         }
     } else {
         LOC3(YVerticalTemp, 0, 0, MaxM, VDIM1, VDIM2, VDIM3) = WW1;
-        for (int m = MaxM-1; m >=0; m--) {
+        for (uint32_t m = MaxM - 1; m >= 0; m--) {
             LOC3(YVerticalTemp, 0, 0, m, VDIM1, VDIM2, VDIM3) = (2.0 * X
-                    * LOC3(YVerticalTemp, 0, 0, m+1, VDIM1, VDIM2, VDIM3) + E) / (QUICKDouble)(m*2+1);
+                    * LOC3(YVerticalTemp, 0, 0, m + 1, VDIM1, VDIM2, VDIM3) + E) / (QUICKDouble) (m * 2 + 1);
         }
     }
 }
 
 
-__device__ static inline void vertical_MP2(int I, int J, int K, int L, QUICKDouble* YVerticalTemp, QUICKDouble* store,
+__device__ static inline void vertical_MP2(uint8_t I, uint8_t J, uint8_t K, uint8_t L,
+        QUICKDouble * const YVerticalTemp, QUICKDouble * const store,
         QUICKDouble Ptempx, QUICKDouble Ptempy, QUICKDouble Ptempz,
-        QUICKDouble WPtempx,QUICKDouble WPtempy,QUICKDouble WPtempz,
+        QUICKDouble WPtempx, QUICKDouble WPtempy, QUICKDouble WPtempz,
         QUICKDouble Qtempx, QUICKDouble Qtempy, QUICKDouble Qtempz,
-        QUICKDouble WQtempx,QUICKDouble WQtempy,QUICKDouble WQtempz,
-        QUICKDouble ABCDtemp,QUICKDouble ABtemp,
+        QUICKDouble WQtempx, QUICKDouble WQtempy, QUICKDouble WQtempz,
+        QUICKDouble ABCDtemp, QUICKDouble ABtemp,
         QUICKDouble CDtemp, QUICKDouble ABcom, QUICKDouble CDcom)
 {
     LOC2(store, 0, 0, STOREDIM, STOREDIM) += VY(0, 0, 0);
@@ -5017,485 +5018,471 @@ __device__ static inline void vertical_MP2(int I, int J, int K, int L, QUICKDoub
 
 
 #if !defined(GPU_SP)
-__device__ static inline int lefthrr_MP2(QUICKDouble RAx, QUICKDouble RAy, QUICKDouble RAz,
+__device__ static inline uint8_t lefthrr_MP2(QUICKDouble RAx, QUICKDouble RAy, QUICKDouble RAz,
         QUICKDouble RBx, QUICKDouble RBy, QUICKDouble RBz,
-        int KLMNAx, int KLMNAy, int KLMNAz,
-        int KLMNBx, int KLMNBy, int KLMNBz,
-        int IJTYPE,QUICKDouble* coefAngularL, int* angularL)
+        uint8_t KLMNAx, uint8_t KLMNAy, uint8_t KLMNAz,
+        uint8_t KLMNBx, uint8_t KLMNBy, uint8_t KLMNBz,
+        uint8_t IJTYPE, QUICKDouble * const coefAngularL, uint8_t * const angularL)
 {
-    int numAngularL;
+    uint8_t numAngularL;
+
     switch (IJTYPE) {
-
         case 0:
-            {
-                numAngularL = 1;
-                coefAngularL[0] = 1.0;
-                angularL[0] = (int) LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
-                break;
-            }
+            numAngularL = 1;
+            coefAngularL[0] = 1.0;
+            angularL[0] = LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
+            break;
         case 1:
-            {
-                coefAngularL[0] = 1.0;
-                numAngularL = 2;
-                angularL[0] = (int) LOC3(devTrans_MP2, KLMNAx + KLMNBx, KLMNAy + KLMNBy, KLMNAz + KLMNBz, TRANSDIM, TRANSDIM, TRANSDIM);
-                angularL[1] = (int) LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
+            coefAngularL[0] = 1.0;
+            numAngularL = 2;
+            angularL[0] = LOC3(devTrans_MP2, KLMNAx + KLMNBx, KLMNAy + KLMNBy, KLMNAz + KLMNBz, TRANSDIM, TRANSDIM, TRANSDIM);
+            angularL[1] = LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
 
-                if (KLMNBx != 0) {
-                    coefAngularL[1] = RAx-RBx;
-                }else if(KLMNBy !=0 ){
-                    coefAngularL[1] = RAy-RBy;
-                }else if (KLMNBz != 0) {
-                    coefAngularL[1] = RAz-RBz;
-                }
-                break;
+            if (KLMNBx != 0) {
+                coefAngularL[1] = RAx - RBx;
+            } else if(KLMNBy != 0) {
+                coefAngularL[1] = RAy - RBy;
+            } else if (KLMNBz != 0) {
+                coefAngularL[1] = RAz - RBz;
             }
+            break;
         case 2:
-            {
-                coefAngularL[0] = 1.0;
-                angularL[0] = (int) LOC3(devTrans_MP2, KLMNAx + KLMNBx, KLMNAy + KLMNBy, KLMNAz + KLMNBz, TRANSDIM, TRANSDIM, TRANSDIM);
+            coefAngularL[0] = 1.0;
+            angularL[0] = LOC3(devTrans_MP2, KLMNAx + KLMNBx, KLMNAy + KLMNBy, KLMNAz + KLMNBz, TRANSDIM, TRANSDIM, TRANSDIM);
 
-                if (KLMNBx == 2) {
-                    numAngularL = 3;
-                    QUICKDouble tmp = RAx - RBx;
-                    coefAngularL[1] = 2 * tmp;
-                    angularL[1] = (int) LOC3(devTrans_MP2, KLMNAx+1, KLMNAy, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
-                    coefAngularL[2]= tmp * tmp;
-                    angularL[2] = (int) LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
-                }else if(KLMNBy == 2) {
-                    numAngularL = 3;
-                    QUICKDouble tmp = RAy - RBy;
-                    coefAngularL[1] = 2 * tmp;
-                    angularL[1] = (int) LOC3(devTrans_MP2, KLMNAx, KLMNAy+1, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
-                    coefAngularL[2]= tmp * tmp;
-                    angularL[2] = (int) LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
-                }else if (KLMNBz == 2 ){
-                    numAngularL = 3;
-                    QUICKDouble tmp = RAz - RBz;
-                    coefAngularL[1] = 2 * tmp;
-                    angularL[1] = (int) LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz+1, TRANSDIM, TRANSDIM, TRANSDIM);
-                    coefAngularL[2]= tmp * tmp;
-                    angularL[2] = (int) LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
-                }else if (KLMNBx == 1 && KLMNBy == 1){
-                    numAngularL = 4;
-                    coefAngularL[1] = RAx - RBx;
-                    coefAngularL[2] = RAy - RBy;
-                    coefAngularL[3] = (RAx - RBx) * (RAy - RBy);
-                    angularL[1] = (int) LOC3(devTrans_MP2, KLMNAx, KLMNAy+1, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
-                    angularL[2] = (int) LOC3(devTrans_MP2, KLMNAx+1, KLMNAy, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
-                    angularL[3] = (int) LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
-
-                }else if (KLMNBx == 1 && KLMNBz == 1) {
-                    numAngularL = 4;
-                    coefAngularL[1] = RAx - RBx;
-                    coefAngularL[2] = RAz - RBz;
-                    coefAngularL[3] = (RAx - RBx) * (RAz - RBz);
-                    angularL[1] = (int) LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz+1, TRANSDIM, TRANSDIM, TRANSDIM);
-                    angularL[2] = (int) LOC3(devTrans_MP2, KLMNAx+1, KLMNAy, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
-                    angularL[3] = (int) LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
-                }else if (KLMNBy == 1 && KLMNBz == 1) {
-                    numAngularL = 4;
-                    coefAngularL[1] = RAy - RBy;
-                    coefAngularL[2] = RAz - RBz;
-                    coefAngularL[3] = (RAy - RBy) * (RAz - RBz);
-                    angularL[1] = (int) LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz+1, TRANSDIM, TRANSDIM, TRANSDIM);
-                    angularL[2] = (int) LOC3(devTrans_MP2, KLMNAx, KLMNAy+1, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
-                    angularL[3] = (int) LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
-                }
-                break;
+            if (KLMNBx == 2) {
+                numAngularL = 3;
+                QUICKDouble tmp = RAx - RBx;
+                coefAngularL[1] = 2 * tmp;
+                angularL[1] = LOC3(devTrans_MP2, KLMNAx+1, KLMNAy, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
+                coefAngularL[2]= tmp * tmp;
+                angularL[2] = LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
+            } else if(KLMNBy == 2) {
+                numAngularL = 3;
+                QUICKDouble tmp = RAy - RBy;
+                coefAngularL[1] = 2 * tmp;
+                angularL[1] = LOC3(devTrans_MP2, KLMNAx, KLMNAy+1, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
+                coefAngularL[2]= tmp * tmp;
+                angularL[2] = LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
+            } else if (KLMNBz == 2) {
+                numAngularL = 3;
+                QUICKDouble tmp = RAz - RBz;
+                coefAngularL[1] = 2 * tmp;
+                angularL[1] = LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz+1, TRANSDIM, TRANSDIM, TRANSDIM);
+                coefAngularL[2]= tmp * tmp;
+                angularL[2] = LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
+            } else if (KLMNBx == 1 && KLMNBy == 1) {
+                numAngularL = 4;
+                coefAngularL[1] = RAx - RBx;
+                coefAngularL[2] = RAy - RBy;
+                coefAngularL[3] = (RAx - RBx) * (RAy - RBy);
+                angularL[1] = LOC3(devTrans_MP2, KLMNAx, KLMNAy+1, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
+                angularL[2] = LOC3(devTrans_MP2, KLMNAx+1, KLMNAy, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
+                angularL[3] = LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
+            } else if (KLMNBx == 1 && KLMNBz == 1) {
+                numAngularL = 4;
+                coefAngularL[1] = RAx - RBx;
+                coefAngularL[2] = RAz - RBz;
+                coefAngularL[3] = (RAx - RBx) * (RAz - RBz);
+                angularL[1] = LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz+1, TRANSDIM, TRANSDIM, TRANSDIM);
+                angularL[2] = LOC3(devTrans_MP2, KLMNAx+1, KLMNAy, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
+                angularL[3] = LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
+            } else if (KLMNBy == 1 && KLMNBz == 1) {
+                numAngularL = 4;
+                coefAngularL[1] = RAy - RBy;
+                coefAngularL[2] = RAz - RBz;
+                coefAngularL[3] = (RAy - RBy) * (RAz - RBz);
+                angularL[1] = LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz+1, TRANSDIM, TRANSDIM, TRANSDIM);
+                angularL[2] = LOC3(devTrans_MP2, KLMNAx, KLMNAy+1, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
+                angularL[3] = LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
             }
+            break;
         case 3:
-            {
-                coefAngularL[0] = 1.0;
-                angularL[0] = (int) LOC3(devTrans_MP2, KLMNAx + KLMNBx, KLMNAy + KLMNBy, KLMNAz + KLMNBz, TRANSDIM, TRANSDIM, TRANSDIM);
-                if (KLMNBx == 3) {
-                    numAngularL = 4;
-                    QUICKDouble tmp = RAx - RBx;
+            coefAngularL[0] = 1.0;
+            angularL[0] = LOC3(devTrans_MP2, KLMNAx + KLMNBx, KLMNAy + KLMNBy, KLMNAz + KLMNBz, TRANSDIM, TRANSDIM, TRANSDIM);
+            if (KLMNBx == 3) {
+                numAngularL = 4;
+                QUICKDouble tmp = RAx - RBx;
 
-                    coefAngularL[1] = 3 * tmp;
-                    coefAngularL[2] = 3 * tmp * tmp;
-                    coefAngularL[3] = tmp * tmp * tmp;
+                coefAngularL[1] = 3 * tmp;
+                coefAngularL[2] = 3 * tmp * tmp;
+                coefAngularL[3] = tmp * tmp * tmp;
 
-                    angularL[1] = (int) LOC3(devTrans_MP2, KLMNAx+2, KLMNAy, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
-                    angularL[2] = (int) LOC3(devTrans_MP2, KLMNAx+1, KLMNAy, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
-                    angularL[3] = (int) LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
-                }else if (KLMNBy == 3) {
-                    numAngularL = 4;
-                    QUICKDouble tmp = RAy - RBy;
-                    coefAngularL[1] = 3 * tmp;
-                    coefAngularL[2] = 3 * tmp * tmp;
-                    coefAngularL[3] = tmp * tmp * tmp;
+                angularL[1] = LOC3(devTrans_MP2, KLMNAx+2, KLMNAy, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
+                angularL[2] = LOC3(devTrans_MP2, KLMNAx+1, KLMNAy, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
+                angularL[3] = LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
+            } else if (KLMNBy == 3) {
+                numAngularL = 4;
+                QUICKDouble tmp = RAy - RBy;
+                coefAngularL[1] = 3 * tmp;
+                coefAngularL[2] = 3 * tmp * tmp;
+                coefAngularL[3] = tmp * tmp * tmp;
 
-                    angularL[1] = (int) LOC3(devTrans_MP2, KLMNAx, KLMNAy+2, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
-                    angularL[2] = (int) LOC3(devTrans_MP2, KLMNAx, KLMNAy+1, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
-                    angularL[3] = (int) LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
-                }else if (KLMNBz == 3) {
-                    numAngularL = 4;
+                angularL[1] = LOC3(devTrans_MP2, KLMNAx, KLMNAy+2, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
+                angularL[2] = LOC3(devTrans_MP2, KLMNAx, KLMNAy+1, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
+                angularL[3] = LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
+            } else if (KLMNBz == 3) {
+                numAngularL = 4;
 
-                    QUICKDouble tmp = RAz - RBz;
-                    coefAngularL[1] = 3 * tmp;
-                    coefAngularL[2] = 3 * tmp * tmp;
-                    coefAngularL[3] = tmp * tmp * tmp;
+                QUICKDouble tmp = RAz - RBz;
+                coefAngularL[1] = 3 * tmp;
+                coefAngularL[2] = 3 * tmp * tmp;
+                coefAngularL[3] = tmp * tmp * tmp;
 
-                    angularL[1] = (int) LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz+2, TRANSDIM, TRANSDIM, TRANSDIM);
-                    angularL[2] = (int) LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz+1, TRANSDIM, TRANSDIM, TRANSDIM);
-                    angularL[3] = (int) LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
-                }else if (KLMNBx == 1 && KLMNBy ==2) {
-                    numAngularL = 6;
-                    QUICKDouble tmp = RAx - RBx;
-                    QUICKDouble tmp2 = RAy - RBy;
+                angularL[1] = LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz+2, TRANSDIM, TRANSDIM, TRANSDIM);
+                angularL[2] = LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz+1, TRANSDIM, TRANSDIM, TRANSDIM);
+                angularL[3] = LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
+            } else if (KLMNBx == 1 && KLMNBy == 2) {
+                numAngularL = 6;
+                QUICKDouble tmp = RAx - RBx;
+                QUICKDouble tmp2 = RAy - RBy;
 
-                    coefAngularL[1] = tmp;
-                    coefAngularL[2] = 2 * tmp2;
-                    coefAngularL[3] = 2 * tmp * tmp2;
-                    coefAngularL[4] = tmp2 * tmp2;
-                    coefAngularL[5] = tmp * tmp2 * tmp2;
+                coefAngularL[1] = tmp;
+                coefAngularL[2] = 2 * tmp2;
+                coefAngularL[3] = 2 * tmp * tmp2;
+                coefAngularL[4] = tmp2 * tmp2;
+                coefAngularL[5] = tmp * tmp2 * tmp2;
 
-                    angularL[1] = (int) LOC3(devTrans_MP2, KLMNAx, KLMNAy+2, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
-                    angularL[2] = (int) LOC3(devTrans_MP2, KLMNAx+1, KLMNAy+1, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
-                    angularL[3] = (int) LOC3(devTrans_MP2, KLMNAx, KLMNAy+1, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
-                    angularL[4] = (int) LOC3(devTrans_MP2, KLMNAx+1, KLMNAy, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
-                    angularL[5] = (int) LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
-                }else if (KLMNBx == 1 && KLMNBz ==2) {
-                    numAngularL = 6;
-                    QUICKDouble tmp = RAx - RBx;
-                    QUICKDouble tmp2 = RAz - RBz;
-                    coefAngularL[1] = tmp;
-                    coefAngularL[2] = 2 * tmp2;
-                    coefAngularL[3] = 2 * tmp * tmp2;
-                    coefAngularL[4] = tmp2 * tmp2;
-                    coefAngularL[5] = tmp * tmp2 * tmp2;
+                angularL[1] = LOC3(devTrans_MP2, KLMNAx, KLMNAy+2, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
+                angularL[2] = LOC3(devTrans_MP2, KLMNAx+1, KLMNAy+1, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
+                angularL[3] = LOC3(devTrans_MP2, KLMNAx, KLMNAy+1, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
+                angularL[4] = LOC3(devTrans_MP2, KLMNAx+1, KLMNAy, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
+                angularL[5] = LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
+            } else if (KLMNBx == 1 && KLMNBz == 2) {
+                numAngularL = 6;
+                QUICKDouble tmp = RAx - RBx;
+                QUICKDouble tmp2 = RAz - RBz;
+                coefAngularL[1] = tmp;
+                coefAngularL[2] = 2 * tmp2;
+                coefAngularL[3] = 2 * tmp * tmp2;
+                coefAngularL[4] = tmp2 * tmp2;
+                coefAngularL[5] = tmp * tmp2 * tmp2;
 
-                    angularL[1] = (int) LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz+2, TRANSDIM, TRANSDIM, TRANSDIM);
-                    angularL[2] = (int) LOC3(devTrans_MP2, KLMNAx+1, KLMNAy, KLMNAz+1, TRANSDIM, TRANSDIM, TRANSDIM);
-                    angularL[3] = (int) LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz+1, TRANSDIM, TRANSDIM, TRANSDIM);
-                    angularL[4] = (int) LOC3(devTrans_MP2, KLMNAx+1, KLMNAy, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
-                    angularL[5] = (int) LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
-                }else if (KLMNBy == 1 && KLMNBz ==2) {
-                    numAngularL = 6;
-                    QUICKDouble tmp = RAy - RBy;
-                    QUICKDouble tmp2 = RAz - RBz;
-                    coefAngularL[1] = tmp;
-                    coefAngularL[2] = 2 * tmp2;
-                    coefAngularL[3] = 2 * tmp * tmp2;
-                    coefAngularL[4] = tmp2 * tmp2;
-                    coefAngularL[5] = tmp * tmp2 * tmp2;
+                angularL[1] = LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz+2, TRANSDIM, TRANSDIM, TRANSDIM);
+                angularL[2] = LOC3(devTrans_MP2, KLMNAx+1, KLMNAy, KLMNAz+1, TRANSDIM, TRANSDIM, TRANSDIM);
+                angularL[3] = LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz+1, TRANSDIM, TRANSDIM, TRANSDIM);
+                angularL[4] = LOC3(devTrans_MP2, KLMNAx+1, KLMNAy, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
+                angularL[5] = LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
+            } else if (KLMNBy == 1 && KLMNBz == 2) {
+                numAngularL = 6;
+                QUICKDouble tmp = RAy - RBy;
+                QUICKDouble tmp2 = RAz - RBz;
+                coefAngularL[1] = tmp;
+                coefAngularL[2] = 2 * tmp2;
+                coefAngularL[3] = 2 * tmp * tmp2;
+                coefAngularL[4] = tmp2 * tmp2;
+                coefAngularL[5] = tmp * tmp2 * tmp2;
 
-                    angularL[1] = (int) LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz+2, TRANSDIM, TRANSDIM, TRANSDIM);
-                    angularL[2] = (int) LOC3(devTrans_MP2, KLMNAx, KLMNAy+1, KLMNAz+1, TRANSDIM, TRANSDIM, TRANSDIM);
-                    angularL[3] = (int) LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz+1, TRANSDIM, TRANSDIM, TRANSDIM);
-                    angularL[4] = (int) LOC3(devTrans_MP2, KLMNAx, KLMNAy+1, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
-                    angularL[5] = (int) LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
-                }else if (KLMNBx == 1 && KLMNBy == 1) {
-                    numAngularL = 8;
-                    QUICKDouble tmp = RAx - RBx;
-                    QUICKDouble tmp2 = RAy - RBy;
-                    QUICKDouble tmp3 = RAz - RBz;
+                angularL[1] = LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz+2, TRANSDIM, TRANSDIM, TRANSDIM);
+                angularL[2] = LOC3(devTrans_MP2, KLMNAx, KLMNAy+1, KLMNAz+1, TRANSDIM, TRANSDIM, TRANSDIM);
+                angularL[3] = LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz+1, TRANSDIM, TRANSDIM, TRANSDIM);
+                angularL[4] = LOC3(devTrans_MP2, KLMNAx, KLMNAy+1, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
+                angularL[5] = LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
+            } else if (KLMNBx == 1 && KLMNBy == 1) {
+                numAngularL = 8;
+                QUICKDouble tmp = RAx - RBx;
+                QUICKDouble tmp2 = RAy - RBy;
+                QUICKDouble tmp3 = RAz - RBz;
 
-                    coefAngularL[1] = tmp;
-                    coefAngularL[2] = tmp2;
-                    coefAngularL[3] = tmp3;
-                    coefAngularL[4] = tmp * tmp2;
-                    coefAngularL[5] = tmp * tmp3;
-                    coefAngularL[6] = tmp2 * tmp3;
-                    coefAngularL[7] = tmp * tmp2 * tmp3;
+                coefAngularL[1] = tmp;
+                coefAngularL[2] = tmp2;
+                coefAngularL[3] = tmp3;
+                coefAngularL[4] = tmp * tmp2;
+                coefAngularL[5] = tmp * tmp3;
+                coefAngularL[6] = tmp2 * tmp3;
+                coefAngularL[7] = tmp * tmp2 * tmp3;
 
-                    angularL[1] = (int) LOC3(devTrans_MP2, KLMNAx, KLMNAx+1, KLMNAx+1, TRANSDIM, TRANSDIM, TRANSDIM);
-                    angularL[2] = (int) LOC3(devTrans_MP2, KLMNAx+1, KLMNAx, KLMNAx+1, TRANSDIM, TRANSDIM, TRANSDIM);
-                    angularL[3] = (int) LOC3(devTrans_MP2, KLMNAx+1, KLMNAx+1, KLMNAx, TRANSDIM, TRANSDIM, TRANSDIM);
-                    angularL[4] = (int) LOC3(devTrans_MP2, KLMNAx, KLMNAx, KLMNAx+1, TRANSDIM, TRANSDIM, TRANSDIM);
-                    angularL[5] = (int) LOC3(devTrans_MP2, KLMNAx, KLMNAx+1, KLMNAx, TRANSDIM, TRANSDIM, TRANSDIM);
-                    angularL[6] = (int) LOC3(devTrans_MP2, KLMNAx+1, KLMNAx, KLMNAx, TRANSDIM, TRANSDIM, TRANSDIM);
-                    angularL[7] = (int) LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
-                }
-                break;
-
+                angularL[1] = LOC3(devTrans_MP2, KLMNAx, KLMNAx+1, KLMNAx+1, TRANSDIM, TRANSDIM, TRANSDIM);
+                angularL[2] = LOC3(devTrans_MP2, KLMNAx+1, KLMNAx, KLMNAx+1, TRANSDIM, TRANSDIM, TRANSDIM);
+                angularL[3] = LOC3(devTrans_MP2, KLMNAx+1, KLMNAx+1, KLMNAx, TRANSDIM, TRANSDIM, TRANSDIM);
+                angularL[4] = LOC3(devTrans_MP2, KLMNAx, KLMNAx, KLMNAx+1, TRANSDIM, TRANSDIM, TRANSDIM);
+                angularL[5] = LOC3(devTrans_MP2, KLMNAx, KLMNAx+1, KLMNAx, TRANSDIM, TRANSDIM, TRANSDIM);
+                angularL[6] = LOC3(devTrans_MP2, KLMNAx+1, KLMNAx, KLMNAx, TRANSDIM, TRANSDIM, TRANSDIM);
+                angularL[7] = LOC3(devTrans_MP2, KLMNAx, KLMNAy, KLMNAz, TRANSDIM, TRANSDIM, TRANSDIM);
             }
+            break;
+        default:
+            numAngular = 0;
+            break;
     }
+
     return numAngularL;
 }
 #endif
 
 
-__device__ static inline QUICKDouble hrrwhole_MP2(int I, int J, int K, int L,
-        int III, int JJJ, int KKK, int LLL, int IJKLTYPE, QUICKDouble* store,
-        QUICKDouble RAx,QUICKDouble RAy,QUICKDouble RAz,
-        QUICKDouble RBx,QUICKDouble RBy,QUICKDouble RBz,
-        QUICKDouble RCx,QUICKDouble RCy,QUICKDouble RCz,
-        QUICKDouble RDx,QUICKDouble RDy,QUICKDouble RDz)
+__device__ static inline QUICKDouble hrrwhole_MP2(uint8_t I, uint8_t J, uint8_t K, uint8_t L,
+        uint32_t III, uint32_t JJJ, uint32_t KKK, uint32_t LLL,
+        uint32_t IJKLTYPE, QUICKDouble * const store,
+        QUICKDouble RAx, QUICKDouble RAy, QUICKDouble RAz,
+        QUICKDouble RBx, QUICKDouble RBy, QUICKDouble RBz,
+        QUICKDouble RCx, QUICKDouble RCy, QUICKDouble RCz,
+        QUICKDouble RDx, QUICKDouble RDy, QUICKDouble RDz)
 {
     QUICKDouble Y;
 #ifdef GPU_SP
-    int NAx = LOC2(devSim_MP2.KLMN, 0, III, 3,devSim_MP2.nbasis);
-    int NAy = LOC2(devSim_MP2.KLMN, 1, III, 3,devSim_MP2.nbasis);
-    int NAz = LOC2(devSim_MP2.KLMN, 2, III, 3,devSim_MP2.nbasis);
+    uint8_t NAx = LOC2(devSim_MP2.KLMN, 0, III, 3,devSim_MP2.nbasis);
+    uint8_t NAy = LOC2(devSim_MP2.KLMN, 1, III, 3,devSim_MP2.nbasis);
+    uint8_t NAz = LOC2(devSim_MP2.KLMN, 2, III, 3,devSim_MP2.nbasis);
 
-    int NBx = LOC2(devSim_MP2.KLMN, 0, JJJ, 3,devSim_MP2.nbasis);
-    int NBy = LOC2(devSim_MP2.KLMN, 1, JJJ, 3,devSim_MP2.nbasis);
-    int NBz = LOC2(devSim_MP2.KLMN, 2, JJJ, 3,devSim_MP2.nbasis);
+    uint8_t NBx = LOC2(devSim_MP2.KLMN, 0, JJJ, 3,devSim_MP2.nbasis);
+    uint8_t NBy = LOC2(devSim_MP2.KLMN, 1, JJJ, 3,devSim_MP2.nbasis);
+    uint8_t NBz = LOC2(devSim_MP2.KLMN, 2, JJJ, 3,devSim_MP2.nbasis);
 
-    int NCx = LOC2(devSim_MP2.KLMN, 0, KKK, 3,devSim_MP2.nbasis);
-    int NCy = LOC2(devSim_MP2.KLMN, 1, KKK, 3,devSim_MP2.nbasis);
-    int NCz = LOC2(devSim_MP2.KLMN, 2, KKK, 3,devSim_MP2.nbasis);
+    uint8_t NCx = LOC2(devSim_MP2.KLMN, 0, KKK, 3,devSim_MP2.nbasis);
+    uint8_t NCy = LOC2(devSim_MP2.KLMN, 1, KKK, 3,devSim_MP2.nbasis);
+    uint8_t NCz = LOC2(devSim_MP2.KLMN, 2, KKK, 3,devSim_MP2.nbasis);
 
-    int NDx = LOC2(devSim_MP2.KLMN, 0, LLL, 3,devSim_MP2.nbasis);
-    int NDy = LOC2(devSim_MP2.KLMN, 1, LLL, 3,devSim_MP2.nbasis);
-    int NDz = LOC2(devSim_MP2.KLMN, 2, LLL, 3,devSim_MP2.nbasis);
+    uint8_t NDx = LOC2(devSim_MP2.KLMN, 0, LLL, 3,devSim_MP2.nbasis);
+    uint8_t NDy = LOC2(devSim_MP2.KLMN, 1, LLL, 3,devSim_MP2.nbasis);
+    uint8_t NDz = LOC2(devSim_MP2.KLMN, 2, LLL, 3,devSim_MP2.nbasis);
 
-
-    int MA = LOC3(devTrans_MP2, NAx, NAy, NAz, TRANSDIM, TRANSDIM, TRANSDIM);
-    int MB = LOC3(devTrans_MP2, NBx, NBy, NBz, TRANSDIM, TRANSDIM, TRANSDIM);
-    int MC = LOC3(devTrans_MP2, NCx, NCy, NCz, TRANSDIM, TRANSDIM, TRANSDIM);
-    int MD = LOC3(devTrans_MP2, NDx, NDy, NDz, TRANSDIM, TRANSDIM, TRANSDIM);
+    uint8_t MA = LOC3(devTrans_MP2, NAx, NAy, NAz, TRANSDIM, TRANSDIM, TRANSDIM);
+    uint8_t MB = LOC3(devTrans_MP2, NBx, NBy, NBz, TRANSDIM, TRANSDIM, TRANSDIM);
+    uint8_t MC = LOC3(devTrans_MP2, NCx, NCy, NCz, TRANSDIM, TRANSDIM, TRANSDIM);
+    uint8_t MD = LOC3(devTrans_MP2, NDx, NDy, NDz, TRANSDIM, TRANSDIM, TRANSDIM);
 
     switch (IJKLTYPE) {
         case 0:
         case 10:
         case 1000:
         case 1010:
-            {
-                Y = (QUICKDouble) LOC2(store, MA - 1, MC - 1, STOREDIM, STOREDIM);
-                break;
-            }
+            Y = (QUICKDouble) LOC2(store, MA, MC, STOREDIM, STOREDIM);
+            break;
         case 2000:
         case 20:
         case 2010:
         case 1020:
         case 2020:
-            {
-                Y = (QUICKDouble) LOC2(store, MA - 1, MC - 1, STOREDIM, STOREDIM)
-                    * devSim_MP2.cons[III] * devSim_MP2.cons[JJJ]
-                    * devSim_MP2.cons[KKK] * devSim_MP2.cons[LLL];
-                break;
-            }
+            Y = (QUICKDouble) LOC2(store, MA, MC, STOREDIM, STOREDIM)
+                * devSim_MP2.cons[III] * devSim_MP2.cons[JJJ]
+                * devSim_MP2.cons[KKK] * devSim_MP2.cons[LLL];
+            break;
         case 100:
-            {
-                if (NBx != 0) {
-                    Y = (QUICKDouble) LOC2(store, MB-1, 0, STOREDIM, STOREDIM) + (RAx-RBx)*LOC2(store, 0, 0, STOREDIM, STOREDIM);
-                }else if (NBy != 0) {
-                    Y = (QUICKDouble) LOC2(store, MB-1, 0, STOREDIM, STOREDIM) + (RAy-RBy)*LOC2(store, 0, 0, STOREDIM, STOREDIM);
-                }else if (NBz != 0) {
-                    Y = (QUICKDouble) LOC2(store, MB-1, 0, STOREDIM, STOREDIM) + (RAz-RBz)*LOC2(store, 0, 0, STOREDIM, STOREDIM);
-                }
-                break;
+            if (NBx != 0) {
+                Y = (QUICKDouble) LOC2(store, MB, 0, STOREDIM, STOREDIM) + (RAx - RBx)
+                    * LOC2(store, 0, 0, STOREDIM, STOREDIM);
+            } else if (NBy != 0) {
+                Y = (QUICKDouble) LOC2(store, MB, 0, STOREDIM, STOREDIM) + (RAy - RBy)
+                    * LOC2(store, 0, 0, STOREDIM, STOREDIM);
+            } else if (NBz != 0) {
+                Y = (QUICKDouble) LOC2(store, MB, 0, STOREDIM, STOREDIM) + (RAz - RBz)
+                    * LOC2(store, 0, 0, STOREDIM, STOREDIM);
             }
+            break;
         case 110:
-            {
-
-                if (NBx != 0) {
-                    Y = (QUICKDouble) LOC2(store, MB-1, MC-1, STOREDIM, STOREDIM) + (RAx-RBx)*LOC2(store, 0, MC-1, STOREDIM, STOREDIM);
-                }else if (NBy != 0) {
-                    Y = (QUICKDouble) LOC2(store, MB-1, MC-1, STOREDIM, STOREDIM) + (RAy-RBy)*LOC2(store, 0, MC-1, STOREDIM, STOREDIM);
-                }else if (NBz != 0) {
-                    Y = (QUICKDouble) LOC2(store, MB-1, MC-1, STOREDIM, STOREDIM) + (RAz-RBz)*LOC2(store, 0, MC-1, STOREDIM, STOREDIM);
-                }
-                break;
+            if (NBx != 0) {
+                Y = (QUICKDouble) LOC2(store, MB, MC, STOREDIM, STOREDIM) + (RAx - RBx)
+                    * LOC2(store, 0, MC, STOREDIM, STOREDIM);
+            } else if (NBy != 0) {
+                Y = (QUICKDouble) LOC2(store, MB, MC, STOREDIM, STOREDIM) + (RAy - RBy)
+                    * LOC2(store, 0, MC, STOREDIM, STOREDIM);
+            } else if (NBz != 0) {
+                Y = (QUICKDouble) LOC2(store, MB, MC, STOREDIM, STOREDIM) + (RAz - RBz)
+                    * LOC2(store, 0, MC, STOREDIM, STOREDIM);
             }
+            break;
         case 101:
-            {
-                QUICKDouble Y1,Y2;
-                if (NDx != 0) {
-                    QUICKDouble c = (QUICKDouble) (RCx - RDx);
-                    Y1 = (QUICKDouble) LOC2(store, MB-1, MD-1 , STOREDIM, STOREDIM) + c * LOC2(store, MB-1,  0, STOREDIM, STOREDIM);
-                    Y2 = (QUICKDouble) LOC2(store,    0, MD-1 , STOREDIM, STOREDIM) + c * LOC2(store,    0,  0, STOREDIM, STOREDIM);
-                }else if (NDy != 0) {
-                    QUICKDouble c = (QUICKDouble) (RCy - RDy);
-                    Y1 = (QUICKDouble) LOC2(store, MB-1, MD-1 , STOREDIM, STOREDIM) + c * LOC2(store, MB-1,  0, STOREDIM, STOREDIM);
-                    Y2 = (QUICKDouble) LOC2(store,    0, MD-1 , STOREDIM, STOREDIM) + c * LOC2(store,    0,  0, STOREDIM, STOREDIM);
-                }else if (NDz != 0) {
-                    QUICKDouble c = (QUICKDouble) (RCz - RDz);
-                    Y1 = (QUICKDouble) LOC2(store, MB-1, MD-1 , STOREDIM, STOREDIM) + c * LOC2(store, MB-1,  0, STOREDIM, STOREDIM);
-                    Y2 = (QUICKDouble) LOC2(store,    0, MD-1 , STOREDIM, STOREDIM) + c * LOC2(store,    0,  0, STOREDIM, STOREDIM);
-                }
-
-                if (NBx != 0) {
-                    Y = Y1 + (RAx-RBx)*Y2;
-                }else if (NBy != 0) {
-                    Y = Y1 + (RAy-RBy)*Y2;
-                }else if (NBz != 0) {
-                    Y = Y1 + (RAz-RBz)*Y2;
-                }
-                break;
+            QUICKDouble Y1, Y2;
+            if (NDx != 0) {
+                QUICKDouble c = (QUICKDouble) (RCx - RDx);
+                Y1 = (QUICKDouble) LOC2(store, MB, MD, STOREDIM, STOREDIM) + c
+                    * LOC2(store, MB, 0, STOREDIM, STOREDIM);
+                Y2 = (QUICKDouble) LOC2(store, 0, MD, STOREDIM, STOREDIM) + c
+                    * LOC2(store, 0,  0, STOREDIM, STOREDIM);
+            } else if (NDy != 0) {
+                QUICKDouble c = (QUICKDouble) (RCy - RDy);
+                Y1 = (QUICKDouble) LOC2(store, MB, MD, STOREDIM, STOREDIM) + c
+                    * LOC2(store, MB, 0, STOREDIM, STOREDIM);
+                Y2 = (QUICKDouble) LOC2(store, 0, MD, STOREDIM, STOREDIM) + c
+                    * LOC2(store, 0,  0, STOREDIM, STOREDIM);
+            } else if (NDz != 0) {
+                QUICKDouble c = (QUICKDouble) (RCz - RDz);
+                Y1 = (QUICKDouble) LOC2(store, MB, MD, STOREDIM, STOREDIM) + c
+                    * LOC2(store, MB, 0, STOREDIM, STOREDIM);
+                Y2 = (QUICKDouble) LOC2(store, 0, MD, STOREDIM, STOREDIM) + c
+                    * LOC2(store, 0,  0, STOREDIM, STOREDIM);
             }
+
+            if (NBx != 0) {
+                Y = Y1 + (RAx - RBx) * Y2;
+            } else if (NBy != 0) {
+                Y = Y1 + (RAy - RBy) * Y2;
+            } else if (NBz != 0) {
+                Y = Y1 + (RAz - RBz) * Y2;
+            }
+            break;
         case 111:
-            {
-                QUICKDouble Y1,Y2;
-                int MCD = (int) LOC3(devTrans_MP2, NCx+NDx, NCy+NDy, NCz+NDz, TRANSDIM, TRANSDIM, TRANSDIM);
-                if (NDx != 0) {
-                    QUICKDouble c = (QUICKDouble) (RCx - RDx);
-                    Y1 = (QUICKDouble) LOC2(store, MB-1, MCD-1 , STOREDIM, STOREDIM) + c * LOC2(store, MB-1,  MC-1, STOREDIM, STOREDIM);
-                    Y2 = (QUICKDouble) LOC2(store,    0, MCD-1 , STOREDIM, STOREDIM) + c * LOC2(store,    0,  MC-1, STOREDIM, STOREDIM);
-                }else if (NDy != 0) {
-                    QUICKDouble c = (QUICKDouble) (RCy - RDy);
-                    Y1 = (QUICKDouble) LOC2(store, MB-1, MCD-1 , STOREDIM, STOREDIM) + c * LOC2(store, MB-1,  MC-1, STOREDIM, STOREDIM);
-                    Y2 = (QUICKDouble) LOC2(store,    0, MCD-1 , STOREDIM, STOREDIM) + c * LOC2(store,    0,  MC-1, STOREDIM, STOREDIM);
-                }else if (NDz != 0) {
-                    QUICKDouble c = (QUICKDouble) (RCz - RDz);
-                    Y1 = (QUICKDouble) LOC2(store, MB-1, MCD-1 , STOREDIM, STOREDIM) + c * LOC2(store, MB-1,  MC-1, STOREDIM, STOREDIM);
-                    Y2 = (QUICKDouble) LOC2(store,    0, MCD-1 , STOREDIM, STOREDIM) + c * LOC2(store,    0,  MC-1, STOREDIM, STOREDIM);
-                }
-
-                if (NBx != 0) {
-                    Y = Y1 + (RAx-RBx)*Y2;
-                }else if (NBy != 0) {
-                    Y = Y1 + (RAy-RBy)*Y2;
-                }else if (NBz != 0) {
-                    Y = Y1 + (RAz-RBz)*Y2;
-                }
-                break;
+            QUICKDouble Y1,Y2;
+            uint8_t MCD = LOC3(devTrans_MP2, NCx + NDx, NCy + NDy, NCz + NDz, TRANSDIM, TRANSDIM, TRANSDIM);
+            if (NDx != 0) {
+                QUICKDouble c = (QUICKDouble) (RCx - RDx);
+                Y1 = (QUICKDouble) LOC2(store, MB, MCD, STOREDIM, STOREDIM) + c * LOC2(store, MB, MC, STOREDIM, STOREDIM);
+                Y2 = (QUICKDouble) LOC2(store, 0, MCD, STOREDIM, STOREDIM) + c * LOC2(store, 0, MC, STOREDIM, STOREDIM);
+            } else if (NDy != 0) {
+                QUICKDouble c = (QUICKDouble) (RCy - RDy);
+                Y1 = (QUICKDouble) LOC2(store, MB, MCD, STOREDIM, STOREDIM) + c * LOC2(store, MB, MC, STOREDIM, STOREDIM);
+                Y2 = (QUICKDouble) LOC2(store, 0, MCD, STOREDIM, STOREDIM) + c * LOC2(store, 0, MC, STOREDIM, STOREDIM);
+            } else if (NDz != 0) {
+                QUICKDouble c = (QUICKDouble) (RCz - RDz);
+                Y1 = (QUICKDouble) LOC2(store, MB, MCD, STOREDIM, STOREDIM) + c * LOC2(store, MB, MC, STOREDIM, STOREDIM);
+                Y2 = (QUICKDouble) LOC2(store, 0, MCD, STOREDIM, STOREDIM) + c * LOC2(store, 0, MC, STOREDIM, STOREDIM);
             }
+
+            if (NBx != 0) {
+                Y = Y1 + (RAx - RBx) * Y2;
+            } else if (NBy != 0) {
+                Y = Y1 + (RAy - RBy) * Y2;
+            } else if (NBz != 0) {
+                Y = Y1 + (RAz - RBz) * Y2;
+            }
+            break;
         case 1100:
-            {
-                int MAB = (int) LOC3(devTrans_MP2, NAx+NBx, NAy+NBy, NAz+NBz, TRANSDIM, TRANSDIM, TRANSDIM);
-                if (NBx != 0) {
-                    Y = (QUICKDouble) LOC2(store, MAB-1, 0 , STOREDIM, STOREDIM) + (RAx-RBx)*LOC2(store, MA-1, 0, STOREDIM, STOREDIM);
-                }else if (NBy != 0) {
-                    Y = (QUICKDouble) LOC2(store, MAB-1, 0 , STOREDIM, STOREDIM) + (RAy-RBy)*LOC2(store, MA-1, 0, STOREDIM, STOREDIM);
-                }else if (NBz != 0) {
-                    Y = (QUICKDouble) LOC2(store, MAB-1, 0 , STOREDIM, STOREDIM) + (RAz-RBz)*LOC2(store, MA-1, 0, STOREDIM, STOREDIM);
-                }
-                break;
+            uint8_t MAB = LOC3(devTrans_MP2, NAx + NBx, NAy + NBy, NAz + NBz, TRANSDIM, TRANSDIM, TRANSDIM);
+            if (NBx != 0) {
+                Y = (QUICKDouble) LOC2(store, MAB, 0, STOREDIM, STOREDIM) + (RAx - RBx) * LOC2(store, MA, 0, STOREDIM, STOREDIM);
+            } else if (NBy != 0) {
+                Y = (QUICKDouble) LOC2(store, MAB, 0, STOREDIM, STOREDIM) + (RAy - RBy) * LOC2(store, MA, 0, STOREDIM, STOREDIM);
+            } else if (NBz != 0) {
+                Y = (QUICKDouble) LOC2(store, MAB, 0, STOREDIM, STOREDIM) + (RAz - RBz) * LOC2(store, MA, 0, STOREDIM, STOREDIM);
             }
+            break;
         case 1110:
-            {
-                int MAB = (int) LOC3(devTrans_MP2, NAx+NBx, NAy+NBy, NAz+NBz, TRANSDIM, TRANSDIM, TRANSDIM);
+            uint8_t MAB = LOC3(devTrans_MP2, NAx + NBx, NAy + NBy, NAz + NBz, TRANSDIM, TRANSDIM, TRANSDIM);
 
-                if (NBx != 0) {
-                    Y = (QUICKDouble) LOC2(store, MAB-1, MC-1 , STOREDIM, STOREDIM) + (RAx-RBx)*LOC2(store, MA-1, MC-1, STOREDIM, STOREDIM);
-                }else if (NBy != 0) {
-                    Y = (QUICKDouble) LOC2(store, MAB-1, MC-1 , STOREDIM, STOREDIM) + (RAy-RBy)*LOC2(store, MA-1, MC-1, STOREDIM, STOREDIM);
-                }else if (NBz != 0) {
-                    Y = (QUICKDouble) LOC2(store, MAB-1, MC-1 , STOREDIM, STOREDIM) + (RAz-RBz)*LOC2(store, MA-1, MC-1, STOREDIM, STOREDIM);
-                }
-                break;
+            if (NBx != 0) {
+                Y = (QUICKDouble) LOC2(store, MAB, MC, STOREDIM, STOREDIM) + (RAx - RBx) * LOC2(store, MA, MC, STOREDIM, STOREDIM);
+            } else if (NBy != 0) {
+                Y = (QUICKDouble) LOC2(store, MAB, MC, STOREDIM, STOREDIM) + (RAy - RBy) * LOC2(store, MA, MC, STOREDIM, STOREDIM);
+            } else if (NBz != 0) {
+                Y = (QUICKDouble) LOC2(store, MAB, MC, STOREDIM, STOREDIM) + (RAz - RBz) * LOC2(store, MA, MC, STOREDIM, STOREDIM);
             }
+            break;
         case 1101:
-            {
-                QUICKDouble Y1,Y2;
-                int MAB = (int) LOC3(devTrans_MP2, NAx+NBx, NAy+NBy, NAz+NBz, TRANSDIM, TRANSDIM, TRANSDIM);
-                if (NDx != 0) {
-                    QUICKDouble c = (QUICKDouble) (RCx - RDx);
-                    Y1 = (QUICKDouble) LOC2(store, MAB-1, MD-1 , STOREDIM, STOREDIM) + c * LOC2(store, MAB-1,  0, STOREDIM, STOREDIM);
-                    Y2 = (QUICKDouble) LOC2(store,  MA-1, MD-1 , STOREDIM, STOREDIM) + c * LOC2(store,  MA-1,  0, STOREDIM, STOREDIM);
-                }else if (NDy != 0) {
-                    QUICKDouble c = (QUICKDouble) (RCy - RDy);
-                    Y1 = (QUICKDouble) LOC2(store, MAB-1, MD-1 , STOREDIM, STOREDIM) + c * LOC2(store, MAB-1,  0, STOREDIM, STOREDIM);
-                    Y2 = (QUICKDouble) LOC2(store,  MA-1, MD-1 , STOREDIM, STOREDIM) + c * LOC2(store,  MA-1,  0, STOREDIM, STOREDIM);
-                }else if (NDz != 0) {
-                    QUICKDouble c = (QUICKDouble) (RCz - RDz);
-                    Y1 = (QUICKDouble) LOC2(store, MAB-1, MD-1 , STOREDIM, STOREDIM) + c * LOC2(store, MAB-1,  0, STOREDIM, STOREDIM);
-                    Y2 = (QUICKDouble) LOC2(store,  MA-1, MD-1 , STOREDIM, STOREDIM) + c * LOC2(store,  MA-1,  0, STOREDIM, STOREDIM);
-                }
-
-                if (NBx != 0) {
-                    Y = Y1 + (RAx-RBx)*Y2;
-                }else if (NBy != 0) {
-                    Y = Y1 + (RAy-RBy)*Y2;
-                }else if (NBz != 0) {
-                    Y = Y1 + (RAz-RBz)*Y2;
-                }
-                break;
+            QUICKDouble Y1,Y2;
+            uint8_t MAB = LOC3(devTrans_MP2, NAx + NBx, NAy + NBy, NAz + NBz, TRANSDIM, TRANSDIM, TRANSDIM);
+            if (NDx != 0) {
+                QUICKDouble c = (QUICKDouble) (RCx - RDx);
+                Y1 = (QUICKDouble) LOC2(store, MAB, MD, STOREDIM, STOREDIM) + c * LOC2(store, MAB,  0, STOREDIM, STOREDIM);
+                Y2 = (QUICKDouble) LOC2(store,  MA, MD, STOREDIM, STOREDIM) + c * LOC2(store,  MA,  0, STOREDIM, STOREDIM);
+            } else if (NDy != 0) {
+                QUICKDouble c = (QUICKDouble) (RCy - RDy);
+                Y1 = (QUICKDouble) LOC2(store, MAB, MD, STOREDIM, STOREDIM) + c * LOC2(store, MAB,  0, STOREDIM, STOREDIM);
+                Y2 = (QUICKDouble) LOC2(store,  MA, MD, STOREDIM, STOREDIM) + c * LOC2(store,  MA,  0, STOREDIM, STOREDIM);
+            } else if (NDz != 0) {
+                QUICKDouble c = (QUICKDouble) (RCz - RDz);
+                Y1 = (QUICKDouble) LOC2(store, MAB, MD, STOREDIM, STOREDIM) + c * LOC2(store, MAB,  0, STOREDIM, STOREDIM);
+                Y2 = (QUICKDouble) LOC2(store,  MA, MD, STOREDIM, STOREDIM) + c * LOC2(store,  MA,  0, STOREDIM, STOREDIM);
             }
+
+            if (NBx != 0) {
+                Y = Y1 + (RAx - RBx) * Y2;
+            } else if (NBy != 0) {
+                Y = Y1 + (RAy - RBy) * Y2;
+            } else if (NBz != 0) {
+                Y = Y1 + (RAz - RBz) * Y2;
+            }
+            break;
         case 1111:
-            {
-                QUICKDouble Y1,Y2;
-                int MAB = (int) LOC3(devTrans_MP2, NAx+NBx, NAy+NBy, NAz+NBz, TRANSDIM, TRANSDIM, TRANSDIM);
-                int MCD = (int) LOC3(devTrans_MP2, NCx+NDx, NCy+NDy, NCz+NDz, TRANSDIM, TRANSDIM, TRANSDIM);
+            QUICKDouble Y1,Y2;
+            uint8_t MAB = LOC3(devTrans_MP2, NAx + NBx, NAy + NBy, NAz + NBz, TRANSDIM, TRANSDIM, TRANSDIM);
+            uint8_t MCD = LOC3(devTrans_MP2, NCx + NDx, NCy + NDy, NCz + NDz, TRANSDIM, TRANSDIM, TRANSDIM);
 
-                if (NDx != 0) {
-                    QUICKDouble c = (QUICKDouble) (RCx - RDx);
-                    Y1 = (QUICKDouble) LOC2(store, MAB-1, MCD-1 , STOREDIM, STOREDIM) + c * LOC2(store, MAB-1, MC-1, STOREDIM, STOREDIM);
-                    Y2 = (QUICKDouble) LOC2(store,  MA-1, MCD-1 , STOREDIM, STOREDIM) + c * LOC2(store,  MA-1, MC-1, STOREDIM, STOREDIM);
-                }else if (NDy != 0) {
-                    QUICKDouble c = (QUICKDouble) (RCy - RDy);
-                    Y1 = (QUICKDouble) LOC2(store, MAB-1, MCD-1 , STOREDIM, STOREDIM) + c * LOC2(store, MAB-1, MC-1, STOREDIM, STOREDIM);
-                    Y2 = (QUICKDouble) LOC2(store,  MA-1, MCD-1 , STOREDIM, STOREDIM) + c * LOC2(store,  MA-1, MC-1, STOREDIM, STOREDIM);
-                }else if (NDz != 0) {
-                    QUICKDouble c = (QUICKDouble) (RCz - RDz);
-                    Y1 = (QUICKDouble) LOC2(store, MAB-1, MCD-1 , STOREDIM, STOREDIM) + c * LOC2(store, MAB-1, MC-1, STOREDIM, STOREDIM);
-                    Y2 = (QUICKDouble) LOC2(store,  MA-1, MCD-1 , STOREDIM, STOREDIM) + c * LOC2(store,  MA-1, MC-1, STOREDIM, STOREDIM);
-                }
-
-                if (NBx != 0) {
-                    Y = Y1 + (RAx-RBx)*Y2;
-                }else if (NBy != 0) {
-                    Y = Y1 + (RAy-RBy)*Y2;
-                }else if (NBz != 0) {
-                    Y = Y1 + (RAz-RBz)*Y2;
-                }
-
-                break;
+            if (NDx != 0) {
+                QUICKDouble c = (QUICKDouble) (RCx - RDx);
+                Y1 = (QUICKDouble) LOC2(store, MAB, MCD, STOREDIM, STOREDIM) + c * LOC2(store, MAB, MC, STOREDIM, STOREDIM);
+                Y2 = (QUICKDouble) LOC2(store,  MA, MCD, STOREDIM, STOREDIM) + c * LOC2(store,  MA, MC, STOREDIM, STOREDIM);
+            } else if (NDy != 0) {
+                QUICKDouble c = (QUICKDouble) (RCy - RDy);
+                Y1 = (QUICKDouble) LOC2(store, MAB, MCD, STOREDIM, STOREDIM) + c * LOC2(store, MAB, MC, STOREDIM, STOREDIM);
+                Y2 = (QUICKDouble) LOC2(store,  MA, MCD, STOREDIM, STOREDIM) + c * LOC2(store,  MA, MC, STOREDIM, STOREDIM);
+            } else if (NDz != 0) {
+                QUICKDouble c = (QUICKDouble) (RCz - RDz);
+                Y1 = (QUICKDouble) LOC2(store, MAB, MCD, STOREDIM, STOREDIM) + c * LOC2(store, MAB, MC, STOREDIM, STOREDIM);
+                Y2 = (QUICKDouble) LOC2(store,  MA, MCD, STOREDIM, STOREDIM) + c * LOC2(store,  MA, MC, STOREDIM, STOREDIM);
             }
+
+            if (NBx != 0) {
+                Y = Y1 + (RAx - RBx) * Y2;
+            } else if (NBy != 0) {
+                Y = Y1 + (RAy - RBy) * Y2;
+            } else if (NBz != 0) {
+                Y = Y1 + (RAz - RBz) * Y2;
+            }
+
+            break;
         case 1:
-            {
-                if (NDx != 0) {
-                    Y = (QUICKDouble) LOC2(store, 0, MD-1, STOREDIM, STOREDIM) + (RCx-RDx)*LOC2(store, 0, 0, STOREDIM, STOREDIM);
-                }else if (NDy != 0) {
-                    Y = (QUICKDouble) LOC2(store, 0, MD-1, STOREDIM, STOREDIM) + (RCy-RDy)*LOC2(store, 0, 0, STOREDIM, STOREDIM);
-                }else if (NDz != 0) {
-                    Y = (QUICKDouble) LOC2(store, 0, MD-1, STOREDIM, STOREDIM) + (RCz-RDz)*LOC2(store, 0, 0, STOREDIM, STOREDIM);
-                }
-                break;
+            if (NDx != 0) {
+                Y = (QUICKDouble) LOC2(store, 0, MD, STOREDIM, STOREDIM) + (RCx - RDx) * LOC2(store, 0, 0, STOREDIM, STOREDIM);
+            } else if (NDy != 0) {
+                Y = (QUICKDouble) LOC2(store, 0, MD, STOREDIM, STOREDIM) + (RCy - RDy) * LOC2(store, 0, 0, STOREDIM, STOREDIM);
+            } else if (NDz != 0) {
+                Y = (QUICKDouble) LOC2(store, 0, MD, STOREDIM, STOREDIM) + (RCz - RDz) * LOC2(store, 0, 0, STOREDIM, STOREDIM);
             }
+            break;
         case 11:
-            {
-                int MCD = (int) LOC3(devTrans_MP2, NCx+NDx, NCy+NDy, NCz+NDz, TRANSDIM, TRANSDIM, TRANSDIM);
-                if (NDx != 0) {
-                    Y = (QUICKDouble) LOC2(store, 0, MCD-1, STOREDIM, STOREDIM) + (RCx-RDx)*LOC2(store, 0, MC-1, STOREDIM, STOREDIM);
-                }else if (NDy != 0) {
-                    Y = (QUICKDouble) LOC2(store, 0, MCD-1, STOREDIM, STOREDIM) + (RCy-RDy)*LOC2(store, 0, MC-1, STOREDIM, STOREDIM);
-                }else if (NDz != 0) {
-                    Y = (QUICKDouble) LOC2(store, 0, MCD-1, STOREDIM, STOREDIM) + (RCz-RDz)*LOC2(store, 0, MC-1, STOREDIM, STOREDIM);
-                }
-                break;
+            uint8_t MCD = LOC3(devTrans_MP2, NCx + NDx, NCy + NDy, NCz + NDz, TRANSDIM, TRANSDIM, TRANSDIM);
+            if (NDx != 0) {
+                Y = (QUICKDouble) LOC2(store, 0, MCD, STOREDIM, STOREDIM) + (RCx - RDx) * LOC2(store, 0, MC, STOREDIM, STOREDIM);
+            } else if (NDy != 0) {
+                Y = (QUICKDouble) LOC2(store, 0, MCD, STOREDIM, STOREDIM) + (RCy - RDy) * LOC2(store, 0, MC, STOREDIM, STOREDIM);
+            } else if (NDz != 0) {
+                Y = (QUICKDouble) LOC2(store, 0, MCD, STOREDIM, STOREDIM) + (RCz - RDz) * LOC2(store, 0, MC, STOREDIM, STOREDIM);
             }
+            break;
         case 1001:
-            {
-                if (NDx != 0) {
-                    Y = (QUICKDouble) LOC2(store, MA-1, MD-1, STOREDIM, STOREDIM) + (RCx-RDx)*LOC2(store, MA-1, 0, STOREDIM, STOREDIM);
-                }else if (NDy != 0) {
-                    Y = (QUICKDouble) LOC2(store, MA-1, MD-1, STOREDIM, STOREDIM) + (RCy-RDy)*LOC2(store, MA-1, 0, STOREDIM, STOREDIM);
-                }else if (NDz != 0) {
-                    Y = (QUICKDouble) LOC2(store, MA-1, MD-1, STOREDIM, STOREDIM) + (RCz-RDz)*LOC2(store, MA-1, 0, STOREDIM, STOREDIM);
-                }
+            if (NDx != 0) {
+                Y = (QUICKDouble) LOC2(store, MA, MD, STOREDIM, STOREDIM) + (RCx - RDx) * LOC2(store, MA, 0, STOREDIM, STOREDIM);
+            } else if (NDy != 0) {
+                Y = (QUICKDouble) LOC2(store, MA, MD, STOREDIM, STOREDIM) + (RCy - RDy) * LOC2(store, MA, 0, STOREDIM, STOREDIM);
+            } else if (NDz != 0) {
+                Y = (QUICKDouble) LOC2(store, MA, MD, STOREDIM, STOREDIM) + (RCz - RDz) * LOC2(store, MA, 0, STOREDIM, STOREDIM);
             }
         case 1011:
-            {
-                int MCD = (int) LOC3(devTrans_MP2, NCx+NDx, NCy+NDy, NCz+NDz, TRANSDIM, TRANSDIM, TRANSDIM);
-                if (NDx != 0) {
-                    Y = (QUICKDouble) LOC2(store, MA-1, MCD-1, STOREDIM, STOREDIM) + (RCx-RDx)*LOC2(store, MA-1, MC-1, STOREDIM, STOREDIM);
-                }else if (NDy != 0) {
-                    Y = (QUICKDouble) LOC2(store, MA-1, MCD-1, STOREDIM, STOREDIM) + (RCy-RDy)*LOC2(store, MA-1, MC-1, STOREDIM, STOREDIM);
-                }else if (NDz != 0) {
-                    Y = (QUICKDouble) LOC2(store, MA-1, MCD-1, STOREDIM, STOREDIM) + (RCz-RDz)*LOC2(store, MA-1, MC-1, STOREDIM, STOREDIM);
-                }
-                break;
+            uint8_t MCD = LOC3(devTrans_MP2, NCx + NDx, NCy + NDy, NCz + NDz, TRANSDIM, TRANSDIM, TRANSDIM);
+            if (NDx != 0) {
+                Y = (QUICKDouble) LOC2(store, MA, MCD, STOREDIM, STOREDIM) + (RCx - RDx) * LOC2(store, MA, MC, STOREDIM, STOREDIM);
+            } else if (NDy != 0) {
+                Y = (QUICKDouble) LOC2(store, MA, MCD, STOREDIM, STOREDIM) + (RCy - RDy) * LOC2(store, MA, MC, STOREDIM, STOREDIM);
+            } else if (NDz != 0) {
+                Y = (QUICKDouble) LOC2(store, MA, MCD, STOREDIM, STOREDIM) + (RCz - RDz) * LOC2(store, MA, MC, STOREDIM, STOREDIM);
             }
+            break;
         default:
             break;
     }
 #else
 
-    int angularL[8], angularR[8];
+    uint8_t angularL[8], angularR[8];
     QUICKDouble coefAngularL[8], coefAngularR[8];
     Y = (QUICKDouble) 0.0;
 
-    int numAngularL = lefthrr_MP2(RAx, RAy, RAz, RBx, RBy, RBz,
-            LOC2(devSim_MP2.KLMN,0,III,3,devSim_MP2.nbasis), LOC2(devSim_MP2.KLMN,1,III,3,devSim_MP2.nbasis), LOC2(devSim_MP2.KLMN,2,III,3,devSim_MP2.nbasis),
-            LOC2(devSim_MP2.KLMN,0,JJJ,3,devSim_MP2.nbasis), LOC2(devSim_MP2.KLMN,1,JJJ,3,devSim_MP2.nbasis), LOC2(devSim_MP2.KLMN,2,JJJ,3,devSim_MP2.nbasis),
+    uint8_t numAngularL = lefthrr_MP2(RAx, RAy, RAz, RBx, RBy, RBz,
+            LOC2(devSim_MP2.KLMN, 0, III, 3, devSim_MP2.nbasis),
+            LOC2(devSim_MP2.KLMN, 1, III, 3, devSim_MP2.nbasis),
+            LOC2(devSim_MP2.KLMN, 2, III, 3, devSim_MP2.nbasis),
+            LOC2(devSim_MP2.KLMN, 0, JJJ, 3, devSim_MP2.nbasis),
+            LOC2(devSim_MP2.KLMN, 1, JJJ, 3, devSim_MP2.nbasis),
+            LOC2(devSim_MP2.KLMN, 2, JJJ, 3, devSim_MP2.nbasis),
             J, coefAngularL, angularL);
-    int numAngularR = lefthrr_MP2(RCx, RCy, RCz, RDx, RDy, RDz,
-            LOC2(devSim_MP2.KLMN,0,KKK,3,devSim_MP2.nbasis), LOC2(devSim_MP2.KLMN,1,KKK,3,devSim_MP2.nbasis), LOC2(devSim_MP2.KLMN,2,KKK,3,devSim_MP2.nbasis),
-            LOC2(devSim_MP2.KLMN,0,LLL,3,devSim_MP2.nbasis), LOC2(devSim_MP2.KLMN,1,LLL,3,devSim_MP2.nbasis), LOC2(devSim_MP2.KLMN,2,LLL,3,devSim_MP2.nbasis),
+    uint8_t numAngularR = lefthrr_MP2(RCx, RCy, RCz, RDx, RDy, RDz,
+            LOC2(devSim_MP2.KLMN, 0, KKK, 3, devSim_MP2.nbasis),
+            LOC2(devSim_MP2.KLMN, 1, KKK, 3, devSim_MP2.nbasis),
+            LOC2(devSim_MP2.KLMN, 2, KKK, 3, devSim_MP2.nbasis),
+            LOC2(devSim_MP2.KLMN, 0, LLL, 3, devSim_MP2.nbasis),
+            LOC2(devSim_MP2.KLMN, 1, LLL, 3, devSim_MP2.nbasis),
+            LOC2(devSim_MP2.KLMN, 2, LLL, 3, devSim_MP2.nbasis),
             L, coefAngularR, angularR);
 
-    for (int i = 0; i<numAngularL; i++) {
-        for (int j = 0; j<numAngularR; j++) {
-            Y += coefAngularL[i] * coefAngularR[j] * LOC2(store, angularL[i]-1, angularR[j]-1 , STOREDIM, STOREDIM);
+    for (uint8_t i = 0; i < numAngularL; i++) {
+        for (uint8_t j = 0; j < numAngularR; j++) {
+            Y += coefAngularL[i] * coefAngularR[j] * LOC2(store, angularL[i], angularR[j], STOREDIM, STOREDIM);
         }
     }
 
-    Y = Y * devSim_MP2.cons[III] * devSim_MP2.cons[JJJ] * devSim_MP2.cons[KKK] * devSim_MP2.cons[LLL];
+    Y *= devSim_MP2.cons[III] * devSim_MP2.cons[JJJ] * devSim_MP2.cons[KKK] * devSim_MP2.cons[LLL];
 #endif
+
     return Y;
 }
 
@@ -5504,8 +5491,8 @@ __device__ static inline QUICKDouble hrrwhole_MP2(int I, int J, int K, int L,
    iclass subroutine is to generate 2-electron intergral using HRR and VRR method, which is the most
    performance algrithem for electron intergral evaluation. See description below for details
  */
-__device__ static inline void iclass_MP2(int I, int J, int K, int L, unsigned int II, unsigned int JJ,
-        unsigned int KK, unsigned int LL, QUICKDouble DNMax)
+__device__ static inline void iclass_MP2(uint8_t I, uint8_t J, uint8_t K, uint8_t L,
+        uint32_t II, uint32_t JJ, uint32_t KK, uint32_t LL, QUICKDouble DNMax)
 {
     /*
        kAtom A, B, C ,D is the coresponding atom for shell ii, jj, kk, ll
@@ -5528,14 +5515,14 @@ __device__ static inline void iclass_MP2(int I, int J, int K, int L, unsigned in
        kStartI, J, K, and L indicates the starting guassian function for shell I, J, K, and L.
        We retrieve from global memory and save them to register to avoid multiple retrieve.
      */
-    int kPrimI = devSim_MP2.kprim[II];
-    int kPrimJ = devSim_MP2.kprim[JJ];
-    int kPrimK = devSim_MP2.kprim[KK];
-    int kPrimL = devSim_MP2.kprim[LL];
-    int kStartI = devSim_MP2.kstart[II];
-    int kStartJ = devSim_MP2.kstart[JJ];
-    int kStartK = devSim_MP2.kstart[KK];
-    int kStartL = devSim_MP2.kstart[LL];
+    uint32_t kPrimI = devSim_MP2.kprim[II];
+    uint32_t kPrimJ = devSim_MP2.kprim[JJ];
+    uint32_t kPrimK = devSim_MP2.kprim[KK];
+    uint32_t kPrimL = devSim_MP2.kprim[LL];
+    uint32_t kStartI = devSim_MP2.kstart[II];
+    uint32_t kStartJ = devSim_MP2.kstart[JJ];
+    uint32_t kStartK = devSim_MP2.kstart[KK];
+    uint32_t kStartL = devSim_MP2.kstart[LL];
 
     /*
        store saves temp contracted integral as [as|bs] type. the dimension should be allocatable but because
@@ -5548,15 +5535,15 @@ __device__ static inline void iclass_MP2(int I, int J, int K, int L, unsigned in
     /*
        Initial the neccessary element for
      */
-    for (int i = Sumindex_MP2[K + 1] + 1; i <= Sumindex_MP2[K + L + 2]; i++) {
-        for (int j = Sumindex_MP2[I + 1] + 1; j <= Sumindex_MP2[I + J + 2]; j++) {
+    for (uint8_t i = Sumindex_MP2[K + 1] + 1; i <= Sumindex_MP2[K + L + 2]; i++) {
+        for (uint8_t j = Sumindex_MP2[I + 1] + 1; j <= Sumindex_MP2[I + J + 2]; j++) {
             LOC2(store, j - 1, i - 1, STOREDIM, STOREDIM) = 0;
         }
     }
 
-    for (int i = 0; i < kPrimI * kPrimJ; i++) {
-        int JJJ = (int) i / kPrimI;
-        int III = (int) i - kPrimI * JJJ;
+    for (uint32_t i = 0; i < kPrimI * kPrimJ; i++) {
+        uint32_t JJJ = i / kPrimI;
+        uint32_t III = i - kPrimI * JJJ;
         /*
            In the following comments, we have I, J, K, L denote the primitive gaussian function we use, and
            for example, expo(III, ksumtype(II)) stands for the expo for the IIIth primitive guassian function for II shell,
@@ -5569,8 +5556,8 @@ __device__ static inline void iclass_MP2(int I, int J, int K, int L, unsigned in
            Those two are pre-calculated in CPU stage.
 
          */
-        int ii_start = devSim_MP2.prim_start[II];
-        int jj_start = devSim_MP2.prim_start[JJ];
+        uint32_t ii_start = devSim_MP2.prim_start[II];
+        uint32_t jj_start = devSim_MP2.prim_start[JJ];
 
         QUICKDouble AB = LOC2(devSim_MP2.expoSum, ii_start + III, jj_start + JJJ, devSim_MP2.prim_total, devSim_MP2.prim_total);
         QUICKDouble Px = LOC2(devSim_MP2.weightedCenterX, ii_start + III, jj_start + JJJ, devSim_MP2.prim_total, devSim_MP2.prim_total);
@@ -5585,9 +5572,9 @@ __device__ static inline void iclass_MP2(int I, int J, int K, int L, unsigned in
         QUICKDouble X1 = LOC4(devSim_MP2.Xcoeff, kStartI + III, kStartJ + JJJ,
                 I - devSim_MP2.Qstart[II], J - devSim_MP2.Qstart[JJ], devSim_MP2.jbasis, devSim_MP2.jbasis, 2, 2);
 
-        for (int j = 0; j < kPrimK * kPrimL; j++) {
-            int LLL = (int) j / kPrimK;
-            int KKK = (int) j - kPrimK * LLL;
+        for (uint32_t j = 0; j < kPrimK * kPrimL; j++) {
+            uint32_t LLL = j / kPrimK;
+            uint32_t KKK = j - kPrimK * LLL;
 
             if (cutoffPrim * LOC2(devSim_MP2.cutPrim, kStartK + KKK, kStartL + LLL, devSim_MP2.jbasis, devSim_MP2.jbasis)
                     > devSim_MP2.primLimit) {
@@ -5604,10 +5591,11 @@ __device__ static inline void iclass_MP2(int I, int J, int K, int L, unsigned in
 
                    ABCDtemp = 1/2(expo(I)+expo(J)+expo(K)+expo(L))
                  */
-                int kk_start = devSim_MP2.prim_start[KK];
-                int ll_start = devSim_MP2.prim_start[LL];
+                uint32_t kk_start = devSim_MP2.prim_start[KK];
+                uint32_t ll_start = devSim_MP2.prim_start[LL];
 
-                QUICKDouble CD = LOC2(devSim_MP2.expoSum, kk_start + KKK, ll_start + LLL, devSim_MP2.prim_total, devSim_MP2.prim_total);
+                QUICKDouble CD = LOC2(devSim_MP2.expoSum, kk_start + KKK, ll_start + LLL,
+                        devSim_MP2.prim_total, devSim_MP2.prim_total);
                 QUICKDouble ABCD = 1.0 / (AB + CD);
 
                 /*
@@ -5647,7 +5635,7 @@ __device__ static inline void iclass_MP2(int I, int J, int K, int L, unsigned in
                 FmT_MP2(I + J + K + L, AB * CD * ABCD * (SQR(Px - Qx) + SQR(Py - Qy) + SQR(Pz - Qz)),
                         YVerticalTemp);
 
-                for (int i = 0; i <= I + J + K + L; i++) {
+                for (uint32_t i = 0; i <= I + J + K + L; i++) {
                     VY(0, 0, i) *= X2;
                 }
 
@@ -5666,7 +5654,7 @@ __device__ static inline void iclass_MP2(int I, int J, int K, int L, unsigned in
     }
 
     // IJKLTYPE is the I, J, K, L type
-    int IJKLTYPE = (int) (1000 * I + 100 * J + 10 * K + L);
+    uint32_t IJKLTYPE = 1000 * I + 100 * J + 10 * K + L;
 
     QUICKDouble RBx = LOC2(devSim_MP2.xyz, 0, devSim_MP2.katom[JJ], 3, devSim_MP2.natom);
     QUICKDouble RBy = LOC2(devSim_MP2.xyz, 1, devSim_MP2.katom[JJ], 3, devSim_MP2.natom);
@@ -5675,17 +5663,17 @@ __device__ static inline void iclass_MP2(int I, int J, int K, int L, unsigned in
     QUICKDouble RDy = LOC2(devSim_MP2.xyz, 1, devSim_MP2.katom[LL], 3, devSim_MP2.natom);
     QUICKDouble RDz = LOC2(devSim_MP2.xyz, 2, devSim_MP2.katom[LL], 3, devSim_MP2.natom);
 
-    int III1 = LOC2(devSim_MP2.Qsbasis, II, I, devSim_MP2.nshell, 4);
-    int III2 = LOC2(devSim_MP2.Qfbasis, II, I, devSim_MP2.nshell, 4);
-    int JJJ1 = LOC2(devSim_MP2.Qsbasis, JJ, J, devSim_MP2.nshell, 4);
-    int JJJ2 = LOC2(devSim_MP2.Qfbasis, JJ, J, devSim_MP2.nshell, 4);
-    int KKK1 = LOC2(devSim_MP2.Qsbasis, KK, K, devSim_MP2.nshell, 4);
-    int KKK2 = LOC2(devSim_MP2.Qfbasis, KK, K, devSim_MP2.nshell, 4);
-    int LLL1 = LOC2(devSim_MP2.Qsbasis, LL, L, devSim_MP2.nshell, 4);
-    int LLL2 = LOC2(devSim_MP2.Qfbasis, LL, L, devSim_MP2.nshell, 4);
+    uint32_t III1 = LOC2(devSim_MP2.Qsbasis, II, I, devSim_MP2.nshell, 4);
+    uint32_t III2 = LOC2(devSim_MP2.Qfbasis, II, I, devSim_MP2.nshell, 4);
+    uint32_t JJJ1 = LOC2(devSim_MP2.Qsbasis, JJ, J, devSim_MP2.nshell, 4);
+    uint32_t JJJ2 = LOC2(devSim_MP2.Qfbasis, JJ, J, devSim_MP2.nshell, 4);
+    uint32_t KKK1 = LOC2(devSim_MP2.Qsbasis, KK, K, devSim_MP2.nshell, 4);
+    uint32_t KKK2 = LOC2(devSim_MP2.Qfbasis, KK, K, devSim_MP2.nshell, 4);
+    uint32_t LLL1 = LOC2(devSim_MP2.Qsbasis, LL, L, devSim_MP2.nshell, 4);
+    uint32_t LLL2 = LOC2(devSim_MP2.Qfbasis, LL, L, devSim_MP2.nshell, 4);
 
     // maxIJKL is the max of I,J, K,L
-    int maxIJKL = (int) MAX(MAX(I,J), MAX(K,L));
+    uint8_t maxIJKL = MAX(MAX(I,J), MAX(K,L));
 
     if ((maxIJKL == 2 && (J != 0 || L != 0)) || maxIJKL >= 3) {
         IJKLTYPE = 999;
@@ -5700,16 +5688,16 @@ __device__ static inline void iclass_MP2(int I, int J, int K, int L, unsigned in
         hybrid_coeff = 0.0;
     }
 
-    for (int III = III1; III <= III2; III++) {
-        for (int JJJ = MAX(III, JJJ1); JJJ <= JJJ2; JJJ++) {
+    for (uint32_t III = III1; III <= III2; III++) {
+        for (uint32_t JJJ = MAX(III, JJJ1); JJJ <= JJJ2; JJJ++) {
             QUICKDouble o_JI = 0.0;
 
-            for (int KKK = MAX(III, KKK1); KKK <= KKK2; KKK++) {
+            for (uint32_t KKK = MAX(III, KKK1); KKK <= KKK2; KKK++) {
                 QUICKDouble o_KI = 0.0;
                 QUICKDouble o_JK = 0.0;
                 QUICKDouble o_JK_MM = 0.0;
 
-                for (int LLL = MAX(KKK, LLL1); LLL <= LLL2; LLL++) {
+                for (uint32_t LLL = MAX(KKK, LLL1); LLL <= LLL2; LLL++) {
                     if (III < KKK
                             || (III == JJJ && III == LLL)
                             || (III == JJJ && III < LLL)
@@ -5890,13 +5878,13 @@ __global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) get2e_MP2_kerne
         int JJ = devSim_MP2.sorted_YCutoffIJ[a].y;
         int KK = devSim_MP2.sorted_YCutoffIJ[b].x;
         int LL = devSim_MP2.sorted_YCutoffIJ[b].y;
-        int ii = devSim_MP2.sorted_Q[II];
-        int jj = devSim_MP2.sorted_Q[JJ];
-        int kk = devSim_MP2.sorted_Q[KK];
-        int ll = devSim_MP2.sorted_Q[LL];
+        uint32_t ii = devSim_MP2.sorted_Q[II];
+        uint32_t jj = devSim_MP2.sorted_Q[JJ];
+        uint32_t kk = devSim_MP2.sorted_Q[KK];
+        uint32_t ll = devSim_MP2.sorted_Q[LL];
 
         if (ii <= kk) {
-            int nshell = devSim_MP2.nshell;
+            uint32_t nshell = devSim_MP2.nshell;
             QUICKDouble DNMax = MAX(
                     MAX(4.0 * LOC2(devSim_MP2.cutMatrix, ii, jj, nshell, nshell),
                         4.0 * LOC2(devSim_MP2.cutMatrix, kk, ll, nshell, nshell)),
@@ -5909,10 +5897,10 @@ __global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) get2e_MP2_kerne
                     > devSim_MP2.integralCutoff
                     && LOC2(devSim_MP2.YCutoff, kk, ll, nshell, nshell) * LOC2(devSim_MP2.YCutoff, ii, jj, nshell, nshell) * DNMax
                     > devSim_MP2.integralCutoff) {
-                int iii = devSim_MP2.sorted_Qnumber[II];
-                int jjj = devSim_MP2.sorted_Qnumber[JJ];
-                int kkk = devSim_MP2.sorted_Qnumber[KK];
-                int lll = devSim_MP2.sorted_Qnumber[LL];
+                uint8_t iii = devSim_MP2.sorted_Qnumber[II];
+                uint8_t jjj = devSim_MP2.sorted_Qnumber[JJ];
+                uint8_t kkk = devSim_MP2.sorted_Qnumber[KK];
+                uint8_t lll = devSim_MP2.sorted_Qnumber[LL];
 
                 iclass_MP2(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
             }
@@ -5923,130 +5911,131 @@ __global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) get2e_MP2_kerne
 
 void upload_para_to_const_MP2()
 {
-    int trans[TRANSDIM * TRANSDIM * TRANSDIM];
+    uint8_t trans[TRANSDIM * TRANSDIM * TRANSDIM] = {};
 
-    LOC3(trans, 0, 0, 0, TRANSDIM, TRANSDIM, TRANSDIM) =   1;
-    LOC3(trans, 0, 0, 1, TRANSDIM, TRANSDIM, TRANSDIM) =   4;
-    LOC3(trans, 0, 0, 2, TRANSDIM, TRANSDIM, TRANSDIM) =  10;
-    LOC3(trans, 0, 0, 3, TRANSDIM, TRANSDIM, TRANSDIM) =  20;
-    LOC3(trans, 0, 0, 4, TRANSDIM, TRANSDIM, TRANSDIM) =  35;
-    LOC3(trans, 0, 0, 5, TRANSDIM, TRANSDIM, TRANSDIM) =  56;
-    LOC3(trans, 0, 0, 6, TRANSDIM, TRANSDIM, TRANSDIM) =  84;
-    LOC3(trans, 0, 0, 7, TRANSDIM, TRANSDIM, TRANSDIM) = 120;
-    LOC3(trans, 0, 1, 0, TRANSDIM, TRANSDIM, TRANSDIM) =   3;
-    LOC3(trans, 0, 1, 1, TRANSDIM, TRANSDIM, TRANSDIM) =   6;
-    LOC3(trans, 0, 1, 2, TRANSDIM, TRANSDIM, TRANSDIM) =  17;
-    LOC3(trans, 0, 1, 3, TRANSDIM, TRANSDIM, TRANSDIM) =  32;
-    LOC3(trans, 0, 1, 4, TRANSDIM, TRANSDIM, TRANSDIM) =  48;
-    LOC3(trans, 0, 1, 5, TRANSDIM, TRANSDIM, TRANSDIM) =  67;
-    LOC3(trans, 0, 1, 6, TRANSDIM, TRANSDIM, TRANSDIM) = 100;
-    LOC3(trans, 0, 2, 0, TRANSDIM, TRANSDIM, TRANSDIM) =   9;
-    LOC3(trans, 0, 2, 1, TRANSDIM, TRANSDIM, TRANSDIM) =  16;
-    LOC3(trans, 0, 2, 2, TRANSDIM, TRANSDIM, TRANSDIM) =  23;
-    LOC3(trans, 0, 2, 3, TRANSDIM, TRANSDIM, TRANSDIM) =  42;
-    LOC3(trans, 0, 2, 4, TRANSDIM, TRANSDIM, TRANSDIM) =  73;
-    LOC3(trans, 0, 2, 5, TRANSDIM, TRANSDIM, TRANSDIM) = 106;
-    LOC3(trans, 0, 3, 0, TRANSDIM, TRANSDIM, TRANSDIM) =  19;
-    LOC3(trans, 0, 3, 1, TRANSDIM, TRANSDIM, TRANSDIM) =  31;
-    LOC3(trans, 0, 3, 2, TRANSDIM, TRANSDIM, TRANSDIM) =  43;
-    LOC3(trans, 0, 3, 3, TRANSDIM, TRANSDIM, TRANSDIM) =  79;
-    LOC3(trans, 0, 3, 4, TRANSDIM, TRANSDIM, TRANSDIM) = 112;
-    LOC3(trans, 0, 4, 0, TRANSDIM, TRANSDIM, TRANSDIM) =  34;
-    LOC3(trans, 0, 4, 1, TRANSDIM, TRANSDIM, TRANSDIM) =  49;
-    LOC3(trans, 0, 4, 2, TRANSDIM, TRANSDIM, TRANSDIM) =  74;
-    LOC3(trans, 0, 4, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 113;
-    LOC3(trans, 0, 5, 0, TRANSDIM, TRANSDIM, TRANSDIM) =  55;
-    LOC3(trans, 0, 5, 1, TRANSDIM, TRANSDIM, TRANSDIM) =  68;
-    LOC3(trans, 0, 5, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 107;
-    LOC3(trans, 0, 6, 0, TRANSDIM, TRANSDIM, TRANSDIM) =  83;
-    LOC3(trans, 0, 6, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 101;
-    LOC3(trans, 0, 7, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 119;
-    LOC3(trans, 1, 0, 0, TRANSDIM, TRANSDIM, TRANSDIM) =   2;
-    LOC3(trans, 1, 0, 1, TRANSDIM, TRANSDIM, TRANSDIM) =   7;
-    LOC3(trans, 1, 0, 2, TRANSDIM, TRANSDIM, TRANSDIM) =  15;
-    LOC3(trans, 1, 0, 3, TRANSDIM, TRANSDIM, TRANSDIM) =  28;
-    LOC3(trans, 1, 0, 4, TRANSDIM, TRANSDIM, TRANSDIM) =  50;
-    LOC3(trans, 1, 0, 5, TRANSDIM, TRANSDIM, TRANSDIM) =  69;
-    LOC3(trans, 1, 0, 6, TRANSDIM, TRANSDIM, TRANSDIM) = 102;
-    LOC3(trans, 1, 1, 0, TRANSDIM, TRANSDIM, TRANSDIM) =   5;
-    LOC3(trans, 1, 1, 1, TRANSDIM, TRANSDIM, TRANSDIM) =  11;
-    LOC3(trans, 1, 1, 2, TRANSDIM, TRANSDIM, TRANSDIM) =  26;
-    LOC3(trans, 1, 1, 3, TRANSDIM, TRANSDIM, TRANSDIM) =  41;
-    LOC3(trans, 1, 1, 4, TRANSDIM, TRANSDIM, TRANSDIM) =  59;
-    LOC3(trans, 1, 1, 5, TRANSDIM, TRANSDIM, TRANSDIM) =  87;
-    LOC3(trans, 1, 2, 0, TRANSDIM, TRANSDIM, TRANSDIM) =  13;
-    LOC3(trans, 1, 2, 1, TRANSDIM, TRANSDIM, TRANSDIM) =  25;
-    LOC3(trans, 1, 2, 2, TRANSDIM, TRANSDIM, TRANSDIM) =  36;
-    LOC3(trans, 1, 2, 3, TRANSDIM, TRANSDIM, TRANSDIM) =  60;
-    LOC3(trans, 1, 2, 4, TRANSDIM, TRANSDIM, TRANSDIM) =  88;
-    LOC3(trans, 1, 3, 0, TRANSDIM, TRANSDIM, TRANSDIM) =  30;
-    LOC3(trans, 1, 3, 1, TRANSDIM, TRANSDIM, TRANSDIM) =  40;
-    LOC3(trans, 1, 3, 2, TRANSDIM, TRANSDIM, TRANSDIM) =  61;
-    LOC3(trans, 1, 3, 3, TRANSDIM, TRANSDIM, TRANSDIM) =  94;
-    LOC3(trans, 1, 4, 0, TRANSDIM, TRANSDIM, TRANSDIM) =  52;
-    LOC3(trans, 1, 4, 1, TRANSDIM, TRANSDIM, TRANSDIM) =  58;
-    LOC3(trans, 1, 4, 2, TRANSDIM, TRANSDIM, TRANSDIM) =  89;
-    LOC3(trans, 1, 5, 0, TRANSDIM, TRANSDIM, TRANSDIM) =  71;
-    LOC3(trans, 1, 5, 1, TRANSDIM, TRANSDIM, TRANSDIM) =  86;
-    LOC3(trans, 1, 6, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 104;
-    LOC3(trans, 2, 0, 0, TRANSDIM, TRANSDIM, TRANSDIM) =   8;
-    LOC3(trans, 2, 0, 1, TRANSDIM, TRANSDIM, TRANSDIM) =  14;
-    LOC3(trans, 2, 0, 2, TRANSDIM, TRANSDIM, TRANSDIM) =  22;
-    LOC3(trans, 2, 0, 3, TRANSDIM, TRANSDIM, TRANSDIM) =  44;
-    LOC3(trans, 2, 0, 4, TRANSDIM, TRANSDIM, TRANSDIM) =  75;
-    LOC3(trans, 2, 0, 5, TRANSDIM, TRANSDIM, TRANSDIM) = 108;
-    LOC3(trans, 2, 1, 0, TRANSDIM, TRANSDIM, TRANSDIM) =  12;
-    LOC3(trans, 2, 1, 1, TRANSDIM, TRANSDIM, TRANSDIM) =  24;
-    LOC3(trans, 2, 1, 2, TRANSDIM, TRANSDIM, TRANSDIM) =  37;
-    LOC3(trans, 2, 1, 3, TRANSDIM, TRANSDIM, TRANSDIM) =  62;
-    LOC3(trans, 2, 1, 4, TRANSDIM, TRANSDIM, TRANSDIM) =  90;
-    LOC3(trans, 2, 2, 0, TRANSDIM, TRANSDIM, TRANSDIM) =  21;
-    LOC3(trans, 2, 2, 1, TRANSDIM, TRANSDIM, TRANSDIM) =  38;
-    LOC3(trans, 2, 2, 2, TRANSDIM, TRANSDIM, TRANSDIM) =  66;
-    LOC3(trans, 2, 2, 3, TRANSDIM, TRANSDIM, TRANSDIM) =  99;
-    LOC3(trans, 2, 3, 0, TRANSDIM, TRANSDIM, TRANSDIM) =  46;
-    LOC3(trans, 2, 3, 1, TRANSDIM, TRANSDIM, TRANSDIM) =  64;
-    LOC3(trans, 2, 3, 2, TRANSDIM, TRANSDIM, TRANSDIM) =  98;
-    LOC3(trans, 2, 4, 0, TRANSDIM, TRANSDIM, TRANSDIM) =  77;
-    LOC3(trans, 2, 4, 1, TRANSDIM, TRANSDIM, TRANSDIM) =  92;
-    LOC3(trans, 2, 5, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 110;
-    LOC3(trans, 3, 0, 0, TRANSDIM, TRANSDIM, TRANSDIM) =  18;
-    LOC3(trans, 3, 0, 1, TRANSDIM, TRANSDIM, TRANSDIM) =  27;
-    LOC3(trans, 3, 0, 2, TRANSDIM, TRANSDIM, TRANSDIM) =  45;
-    LOC3(trans, 3, 0, 3, TRANSDIM, TRANSDIM, TRANSDIM) =  80;
-    LOC3(trans, 3, 0, 4, TRANSDIM, TRANSDIM, TRANSDIM) = 114;
-    LOC3(trans, 3, 1, 0, TRANSDIM, TRANSDIM, TRANSDIM) =  29;
-    LOC3(trans, 3, 1, 1, TRANSDIM, TRANSDIM, TRANSDIM) =  39;
-    LOC3(trans, 3, 1, 2, TRANSDIM, TRANSDIM, TRANSDIM) =  63;
-    LOC3(trans, 3, 1, 3, TRANSDIM, TRANSDIM, TRANSDIM) =  95;
-    LOC3(trans, 3, 2, 0, TRANSDIM, TRANSDIM, TRANSDIM) =  47;
-    LOC3(trans, 3, 2, 1, TRANSDIM, TRANSDIM, TRANSDIM) =  65;
-    LOC3(trans, 3, 2, 2, TRANSDIM, TRANSDIM, TRANSDIM) =  97;
-    LOC3(trans, 3, 3, 0, TRANSDIM, TRANSDIM, TRANSDIM) =  81;
-    LOC3(trans, 3, 3, 1, TRANSDIM, TRANSDIM, TRANSDIM) =  96;
-    LOC3(trans, 3, 4, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 116;
-    LOC3(trans, 4, 0, 0, TRANSDIM, TRANSDIM, TRANSDIM) =  33;
-    LOC3(trans, 4, 0, 1, TRANSDIM, TRANSDIM, TRANSDIM) =  51;
-    LOC3(trans, 4, 0, 2, TRANSDIM, TRANSDIM, TRANSDIM) =  76;
-    LOC3(trans, 4, 0, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 115;
-    LOC3(trans, 4, 1, 0, TRANSDIM, TRANSDIM, TRANSDIM) =  53;
-    LOC3(trans, 4, 1, 1, TRANSDIM, TRANSDIM, TRANSDIM) =  57;
-    LOC3(trans, 4, 1, 2, TRANSDIM, TRANSDIM, TRANSDIM) =  91;
-    LOC3(trans, 4, 2, 0, TRANSDIM, TRANSDIM, TRANSDIM) =  78;
-    LOC3(trans, 4, 2, 1, TRANSDIM, TRANSDIM, TRANSDIM) =  93;
-    LOC3(trans, 4, 3, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 117;
-    LOC3(trans, 5, 0, 0, TRANSDIM, TRANSDIM, TRANSDIM) =  54;
-    LOC3(trans, 5, 0, 1, TRANSDIM, TRANSDIM, TRANSDIM) =  70;
-    LOC3(trans, 5, 0, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 109;
-    LOC3(trans, 5, 1, 0, TRANSDIM, TRANSDIM, TRANSDIM) =  72;
-    LOC3(trans, 5, 1, 1, TRANSDIM, TRANSDIM, TRANSDIM) =  85;
-    LOC3(trans, 5, 2, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 111;
-    LOC3(trans, 6, 0, 0, TRANSDIM, TRANSDIM, TRANSDIM) =  82;
-    LOC3(trans, 6, 0, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 103;
-    LOC3(trans, 6, 1, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 105;
-    LOC3(trans, 7, 0, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 118;
+    LOC3(trans, 0, 0, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 0;
+    LOC3(trans, 0, 0, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 3;
+    LOC3(trans, 0, 0, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 9;
+    LOC3(trans, 0, 0, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 19;
+    LOC3(trans, 0, 0, 4, TRANSDIM, TRANSDIM, TRANSDIM) = 34;
+    LOC3(trans, 0, 0, 5, TRANSDIM, TRANSDIM, TRANSDIM) = 55;
+    LOC3(trans, 0, 0, 6, TRANSDIM, TRANSDIM, TRANSDIM) = 83;
+    LOC3(trans, 0, 0, 7, TRANSDIM, TRANSDIM, TRANSDIM) = 119;
+    LOC3(trans, 0, 1, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 2;
+    LOC3(trans, 0, 1, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 5;
+    LOC3(trans, 0, 1, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 16;
+    LOC3(trans, 0, 1, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 31;
+    LOC3(trans, 0, 1, 4, TRANSDIM, TRANSDIM, TRANSDIM) = 47;
+    LOC3(trans, 0, 1, 5, TRANSDIM, TRANSDIM, TRANSDIM) = 66;
+    LOC3(trans, 0, 1, 6, TRANSDIM, TRANSDIM, TRANSDIM) = 99;
+    LOC3(trans, 0, 2, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 8;
+    LOC3(trans, 0, 2, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 15;
+    LOC3(trans, 0, 2, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 22;
+    LOC3(trans, 0, 2, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 41;
+    LOC3(trans, 0, 2, 4, TRANSDIM, TRANSDIM, TRANSDIM) = 72;
+    LOC3(trans, 0, 2, 5, TRANSDIM, TRANSDIM, TRANSDIM) = 105;
+    LOC3(trans, 0, 3, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 18;
+    LOC3(trans, 0, 3, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 30;
+    LOC3(trans, 0, 3, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 42;
+    LOC3(trans, 0, 3, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 78;
+    LOC3(trans, 0, 3, 4, TRANSDIM, TRANSDIM, TRANSDIM) = 111;
+    LOC3(trans, 0, 4, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 33;
+    LOC3(trans, 0, 4, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 48;
+    LOC3(trans, 0, 4, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 73;
+    LOC3(trans, 0, 4, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 112;
+    LOC3(trans, 0, 5, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 54;
+    LOC3(trans, 0, 5, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 67;
+    LOC3(trans, 0, 5, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 106;
+    LOC3(trans, 0, 6, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 82;
+    LOC3(trans, 0, 6, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 100;
+    LOC3(trans, 0, 7, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 118;
+    LOC3(trans, 1, 0, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 1;
+    LOC3(trans, 1, 0, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 6;
+    LOC3(trans, 1, 0, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 14;
+    LOC3(trans, 1, 0, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 27;
+    LOC3(trans, 1, 0, 4, TRANSDIM, TRANSDIM, TRANSDIM) = 49;
+    LOC3(trans, 1, 0, 5, TRANSDIM, TRANSDIM, TRANSDIM) = 68;
+    LOC3(trans, 1, 0, 6, TRANSDIM, TRANSDIM, TRANSDIM) = 101;
+    LOC3(trans, 1, 1, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 4;
+    LOC3(trans, 1, 1, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 10;
+    LOC3(trans, 1, 1, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 25;
+    LOC3(trans, 1, 1, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 40;
+    LOC3(trans, 1, 1, 4, TRANSDIM, TRANSDIM, TRANSDIM) = 58;
+    LOC3(trans, 1, 1, 5, TRANSDIM, TRANSDIM, TRANSDIM) = 86;
+    LOC3(trans, 1, 2, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 12;
+    LOC3(trans, 1, 2, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 24;
+    LOC3(trans, 1, 2, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 35;
+    LOC3(trans, 1, 2, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 59;
+    LOC3(trans, 1, 2, 4, TRANSDIM, TRANSDIM, TRANSDIM) = 87;
+    LOC3(trans, 1, 3, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 29;
+    LOC3(trans, 1, 3, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 39;
+    LOC3(trans, 1, 3, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 60;
+    LOC3(trans, 1, 3, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 93;
+    LOC3(trans, 1, 4, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 51;
+    LOC3(trans, 1, 4, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 57;
+    LOC3(trans, 1, 4, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 88;
+    LOC3(trans, 1, 5, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 70;
+    LOC3(trans, 1, 5, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 85;
+    LOC3(trans, 1, 6, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 103;
+    LOC3(trans, 2, 0, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 7;
+    LOC3(trans, 2, 0, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 13;
+    LOC3(trans, 2, 0, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 21;
+    LOC3(trans, 2, 0, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 43;
+    LOC3(trans, 2, 0, 4, TRANSDIM, TRANSDIM, TRANSDIM) = 74;
+    LOC3(trans, 2, 0, 5, TRANSDIM, TRANSDIM, TRANSDIM) = 109;
+    LOC3(trans, 2, 1, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 11;
+    LOC3(trans, 2, 1, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 23;
+    LOC3(trans, 2, 1, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 36;
+    LOC3(trans, 2, 1, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 61;
+    LOC3(trans, 2, 1, 4, TRANSDIM, TRANSDIM, TRANSDIM) = 89;
+    LOC3(trans, 2, 2, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 20;
+    LOC3(trans, 2, 2, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 37;
+    LOC3(trans, 2, 2, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 65;
+    LOC3(trans, 2, 2, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 98;
+    LOC3(trans, 2, 3, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 45;
+    LOC3(trans, 2, 3, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 63;
+    LOC3(trans, 2, 3, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 97;
+    LOC3(trans, 2, 4, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 76;
+    LOC3(trans, 2, 4, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 91;
+    LOC3(trans, 2, 5, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 109;
+    LOC3(trans, 3, 0, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 17;
+    LOC3(trans, 3, 0, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 26;
+    LOC3(trans, 3, 0, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 44;
+    LOC3(trans, 3, 0, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 79;
+    LOC3(trans, 3, 0, 4, TRANSDIM, TRANSDIM, TRANSDIM) = 113;
+    LOC3(trans, 3, 1, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 28;
+    LOC3(trans, 3, 1, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 38;
+    LOC3(trans, 3, 1, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 62;
+    LOC3(trans, 3, 1, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 94;
+    LOC3(trans, 3, 2, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 46;
+    LOC3(trans, 3, 2, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 64;
+    LOC3(trans, 3, 2, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 96;
+    LOC3(trans, 3, 3, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 80;
+    LOC3(trans, 3, 3, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 95;
+    LOC3(trans, 3, 4, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 115;
+    LOC3(trans, 4, 0, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 32;
+    LOC3(trans, 4, 0, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 50;
+    LOC3(trans, 4, 0, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 75;
+    LOC3(trans, 4, 0, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 114;
+    LOC3(trans, 4, 1, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 52;
+    LOC3(trans, 4, 1, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 56;
+    LOC3(trans, 4, 1, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 90;
+    LOC3(trans, 4, 2, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 77;
+    LOC3(trans, 4, 2, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 92;
+    LOC3(trans, 4, 3, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 116;
+    LOC3(trans, 5, 0, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 53;
+    LOC3(trans, 5, 0, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 69;
+    LOC3(trans, 5, 0, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 108;
+    LOC3(trans, 5, 1, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 71;
+    LOC3(trans, 5, 1, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 84;
+    LOC3(trans, 5, 2, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 110;
+    LOC3(trans, 6, 0, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 81;
+    LOC3(trans, 6, 0, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 102;
+    LOC3(trans, 6, 1, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 104;
+    LOC3(trans, 7, 0, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 117;
 
-    gpuMemcpyToSymbol((const void *) devTrans_MP2, (const void *) trans, sizeof(int) * TRANSDIM * TRANSDIM * TRANSDIM);
+    gpuMemcpyToSymbol((const void *) devTrans_MP2, (const void *) trans,
+            sizeof(uint8_t) * TRANSDIM * TRANSDIM * TRANSDIM);
 }
 
 

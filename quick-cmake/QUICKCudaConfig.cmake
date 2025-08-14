@@ -17,6 +17,8 @@ if(CUDA)
     set(CUDA_NVCC_FLAGS "")
 
     set(CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER})
+    set(CUDA_STANDARD 11)
+    list(APPEND CUDA_NVCC_FLAGS ${CMAKE_CUDA_STANDARD})
 
     #SM12.0 = GB202, GB203, GB205, GB206, GB207 (Blackwell)
     set(SM120FLAGS -gencode arch=compute_120,code=sm_120)
@@ -274,9 +276,9 @@ if(CUDA)
 
     # optimization level
     if(OPTIMIZE)
-        list(APPEND CUDA_NVCC_FLAGS -O2)
+        list(APPEND CUDA_NVCC_FLAGS "-O2")
     else()
-        list(APPEND CUDA_NVCC_FLAGS -O0)
+        list(APPEND CUDA_NVCC_FLAGS "-O0")
     endif()
 
     # debug flags
@@ -294,7 +296,7 @@ if(CUDA)
     list(APPEND CUDA_NVCC_FLAGS --use_fast_math)
 
     if(TARGET_LINUX OR TARGET_OSX)
-        list(APPEND CUDA_NVCC_FLAGS --compiler-options -fPIC)
+        list(APPEND CUDA_NVCC_FLAGS "--compiler-options=-O2,-fPIC")
     endif()
 
     # SPDF

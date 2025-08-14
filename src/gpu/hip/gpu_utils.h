@@ -27,9 +27,9 @@ void _gpuMemcpyToSymbol(void const * const, void const * const, size_t,
         const char * const, int);
 void _gpuHostGetDevicePointer(void **, void * const, unsigned int,
         const char * const, int);
-void _gpuHostAllocCheck(void **, size_t *, size_t, unsigned int, int, double,
+void _gpuHostAllocCheck(void **, size_t *, size_t, unsigned int, bool, double,
         const char * const, int);
-void _gpuHostReallocCheck(void **, size_t *, size_t, unsigned int, int, double,
+void _gpuHostReallocCheck(void **, size_t *, size_t, unsigned int, bool, double,
         const char * const, int);
 void _gpuEventCreate(hipEvent_t *, const char * const, int);
 void _gpuEventDestroy(hipEvent_t, const char * const, int);

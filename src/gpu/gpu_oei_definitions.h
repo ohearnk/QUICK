@@ -14,7 +14,7 @@
 
 /* PS true integral, m=0 */ 
 __device__ __inline__ PSint_0::PSint_0(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
-                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   x_1_0 = PAx * VY(0, 0, 0) - PCx * VY(0, 0, 1);
   x_2_0 = PAy * VY(0, 0, 0) - PCy * VY(0, 0, 1);
@@ -24,7 +24,7 @@ __device__ __inline__ PSint_0::PSint_0(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
 
 /* PS auxilary integral, m=1 */ 
 __device__ __inline__ PSint_1::PSint_1(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
-                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   x_1_0 = PAx * VY(0, 0, 1) - PCx * VY(0, 0, 2);
   x_2_0 = PAy * VY(0, 0, 1) - PCy * VY(0, 0, 2);
@@ -34,7 +34,7 @@ __device__ __inline__ PSint_1::PSint_1(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
 
 /* PS auxilary integral, m=2 */ 
 __device__ __inline__ PSint_2::PSint_2(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
-                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   x_1_0 = PAx * VY(0, 0, 2) - PCx * VY(0, 0, 3);
   x_2_0 = PAy * VY(0, 0, 2) - PCy * VY(0, 0, 3);
@@ -44,7 +44,7 @@ __device__ __inline__ PSint_2::PSint_2(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
 
 /* PS auxilary integral, m=3 */ 
 __device__ __inline__ PSint_3::PSint_3(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
-                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   x_1_0 = PAx * VY(0, 0, 3) - PCx * VY(0, 0, 4);
   x_2_0 = PAy * VY(0, 0, 3) - PCy * VY(0, 0, 4);
@@ -54,7 +54,7 @@ __device__ __inline__ PSint_3::PSint_3(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
 
 /* PS auxilary integral, m=4 */ 
 __device__ __inline__ PSint_4::PSint_4(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
-                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   x_1_0 = PAx * VY(0, 0, 4) - PCx * VY(0, 0, 5);
   x_2_0 = PAy * VY(0, 0, 4) - PCy * VY(0, 0, 5);
@@ -64,7 +64,7 @@ __device__ __inline__ PSint_4::PSint_4(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
 
 /* PS auxilary integral, m=5 */ 
 __device__ __inline__ PSint_5::PSint_5(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
-                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   x_1_0 = PAx * VY(0, 0, 5) - PCx * VY(0, 0, 6);
   x_2_0 = PAy * VY(0, 0, 5) - PCy * VY(0, 0, 6);
@@ -74,7 +74,7 @@ __device__ __inline__ PSint_5::PSint_5(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
 
 /* SP true integral, m=0 */ 
 __device__ __inline__ SPint_0::SPint_0(QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz,
-                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   x_0_1 = PBx * VY(0, 0, 0) - PCx * VY(0, 0, 1);
   x_0_2 = PBy * VY(0, 0, 0) - PCy * VY(0, 0, 1);
@@ -84,7 +84,7 @@ __device__ __inline__ SPint_0::SPint_0(QUICKDouble PBx, QUICKDouble PBy, QUICKDo
 
 /* SP auxilary integral, m=1 */ 
 __device__ __inline__ SPint_1::SPint_1(QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz,
-                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   x_0_1 = PBx * VY(0, 0, 1) - PCx * VY(0, 0, 2);
   x_0_2 = PBy * VY(0, 0, 1) - PCy * VY(0, 0, 2);
@@ -94,7 +94,7 @@ __device__ __inline__ SPint_1::SPint_1(QUICKDouble PBx, QUICKDouble PBy, QUICKDo
 
 /* SP auxilary integral, m=2 */ 
 __device__ __inline__ SPint_2::SPint_2(QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz,
-                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   x_0_1 = PBx * VY(0, 0, 2) - PCx * VY(0, 0, 3);
   x_0_2 = PBy * VY(0, 0, 2) - PCy * VY(0, 0, 3);
@@ -104,7 +104,7 @@ __device__ __inline__ SPint_2::SPint_2(QUICKDouble PBx, QUICKDouble PBy, QUICKDo
 
 /* SP auxilary integral, m=3 */ 
 __device__ __inline__ SPint_3::SPint_3(QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz,
-                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   x_0_1 = PBx * VY(0, 0, 3) - PCx * VY(0, 0, 4);
   x_0_2 = PBy * VY(0, 0, 3) - PCy * VY(0, 0, 4);
@@ -114,7 +114,7 @@ __device__ __inline__ SPint_3::SPint_3(QUICKDouble PBx, QUICKDouble PBy, QUICKDo
 
 /* SP auxilary integral, m=4 */ 
 __device__ __inline__ SPint_4::SPint_4(QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz,
-                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   x_0_1 = PBx * VY(0, 0, 4) - PCx * VY(0, 0, 5);
   x_0_2 = PBy * VY(0, 0, 4) - PCy * VY(0, 0, 5);
@@ -124,7 +124,7 @@ __device__ __inline__ SPint_4::SPint_4(QUICKDouble PBx, QUICKDouble PBy, QUICKDo
 
 /* SP auxilary integral, m=5 */ 
 __device__ __inline__ SPint_5::SPint_5(QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz,
-                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   x_0_1 = PBx * VY(0, 0, 5) - PCx * VY(0, 0, 6);
   x_0_2 = PBy * VY(0, 0, 5) - PCy * VY(0, 0, 6);
@@ -135,7 +135,7 @@ __device__ __inline__ SPint_5::SPint_5(QUICKDouble PBx, QUICKDouble PBy, QUICKDo
 /* PP true integral, m=0 */ 
 __device__ __inline__ PPint_0::PPint_0(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   PSint_0 ps_0(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=0 
   PSint_1 ps_1(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=1 
@@ -158,7 +158,7 @@ __device__ __inline__ PPint_0::PPint_0(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
 /* PP auxilary integral, m=1 */ 
 __device__ __inline__ PPint_1::PPint_1(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   PSint_1 ps_1(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=1 
   PSint_2 ps_2(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=2 
@@ -181,7 +181,7 @@ __device__ __inline__ PPint_1::PPint_1(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
 /* PP auxilary integral, m=2 */ 
 __device__ __inline__ PPint_2::PPint_2(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   PSint_2 ps_2(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=2 
   PSint_3 ps_3(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=3 
@@ -203,7 +203,7 @@ __device__ __inline__ PPint_2::PPint_2(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
 
 /* DS true integral, m=0 */ 
 __device__ __inline__ DSint_0::DSint_0(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
-                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   PSint_0 ps_0(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=0 
   PSint_1 ps_1(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=1 
@@ -222,7 +222,7 @@ __device__ __inline__ DSint_0::DSint_0(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
 
 /* DS auxilary integral, m=1 */ 
 __device__ __inline__ DSint_1::DSint_1(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
-                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   PSint_1 ps_1(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=1 
   PSint_2 ps_2(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=2 
@@ -241,7 +241,7 @@ __device__ __inline__ DSint_1::DSint_1(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
 
 /* DS auxilary integral, m=2 */ 
 __device__ __inline__ DSint_2::DSint_2(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
-                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   PSint_2 ps_2(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=2 
   PSint_3 ps_3(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=3 
@@ -260,7 +260,7 @@ __device__ __inline__ DSint_2::DSint_2(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
 
 /* DS auxilary integral, m=3 */ 
 __device__ __inline__ DSint_3::DSint_3(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
-                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   PSint_3 ps_3(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=3 
   PSint_4 ps_4(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=4 
@@ -279,7 +279,7 @@ __device__ __inline__ DSint_3::DSint_3(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
 
 /* DS auxilary integral, m=4 */ 
 __device__ __inline__ DSint_4::DSint_4(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
-                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   PSint_4 ps_4(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=4 
   PSint_5 ps_5(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=5 
@@ -298,7 +298,7 @@ __device__ __inline__ DSint_4::DSint_4(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
 
 /* SD true integral, m=0 */ 
 __device__ __inline__ SDint_0::SDint_0(QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz,
-                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   SPint_0 sp_0(PBx, PBy, PBz, PCx, PCy, PCz, store, YVerticalTemp); // construct [s|p] for m=0 
   SPint_1 sp_1(PBx, PBy, PBz, PCx, PCy, PCz, store, YVerticalTemp); // construct [s|p] for m=1 
@@ -317,7 +317,7 @@ __device__ __inline__ SDint_0::SDint_0(QUICKDouble PBx, QUICKDouble PBy, QUICKDo
 
 /* SD auxilary integral, m=1 */ 
 __device__ __inline__ SDint_1::SDint_1(QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz,
-                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   SPint_1 sp_1(PBx, PBy, PBz, PCx, PCy, PCz, store, YVerticalTemp); // construct [s|p] for m=1 
   SPint_2 sp_2(PBx, PBy, PBz, PCx, PCy, PCz, store, YVerticalTemp); // construct [s|p] for m=2 
@@ -336,7 +336,7 @@ __device__ __inline__ SDint_1::SDint_1(QUICKDouble PBx, QUICKDouble PBy, QUICKDo
 
 /* SD auxilary integral, m=2 */ 
 __device__ __inline__ SDint_2::SDint_2(QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz,
-                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   SPint_2 sp_2(PBx, PBy, PBz, PCx, PCy, PCz, store, YVerticalTemp); // construct [s|p] for m=2 
   SPint_3 sp_3(PBx, PBy, PBz, PCx, PCy, PCz, store, YVerticalTemp); // construct [s|p] for m=3 
@@ -355,7 +355,7 @@ __device__ __inline__ SDint_2::SDint_2(QUICKDouble PBx, QUICKDouble PBy, QUICKDo
 
 /* SD auxilary integral, m=3 */ 
 __device__ __inline__ SDint_3::SDint_3(QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz,
-                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   SPint_3 sp_3(PBx, PBy, PBz, PCx, PCy, PCz, store, YVerticalTemp); // construct [s|p] for m=3 
   SPint_4 sp_4(PBx, PBy, PBz, PCx, PCy, PCz, store, YVerticalTemp); // construct [s|p] for m=4 
@@ -374,7 +374,7 @@ __device__ __inline__ SDint_3::SDint_3(QUICKDouble PBx, QUICKDouble PBy, QUICKDo
 
 /* SD auxilary integral, m=4 */ 
 __device__ __inline__ SDint_4::SDint_4(QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz,
-                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   SPint_4 sp_4(PBx, PBy, PBz, PCx, PCy, PCz, store, YVerticalTemp); // construct [s|p] for m=4 
   SPint_5 sp_5(PBx, PBy, PBz, PCx, PCy, PCz, store, YVerticalTemp); // construct [s|p] for m=5 
@@ -394,7 +394,7 @@ __device__ __inline__ SDint_4::SDint_4(QUICKDouble PBx, QUICKDouble PBy, QUICKDo
 /* DP true integral, m=0 */ 
 __device__ __inline__ DPint_0::DPint_0(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   PSint_0 ps_0(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=0 
   PSint_1 ps_1(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=1 
@@ -434,7 +434,7 @@ __device__ __inline__ DPint_0::DPint_0(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
 /* DP integral partial class - Part 1, m=0 */ 
 __device__ __inline__ DPint_0_1::DPint_0_1(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   PSint_0 ps_0(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=0 
   PSint_1 ps_1(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=1 
@@ -452,7 +452,7 @@ __device__ __inline__ DPint_0_1::DPint_0_1(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* DP integral partial class - Part 2, m=0 */ 
 __device__ __inline__ DPint_0_2::DPint_0_2(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   PSint_0 ps_0(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=0 
   PSint_1 ps_1(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=1 
@@ -470,7 +470,7 @@ __device__ __inline__ DPint_0_2::DPint_0_2(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* DP integral partial class - Part 3, m=0 */ 
 __device__ __inline__ DPint_0_3::DPint_0_3(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   PSint_0 ps_0(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=0 
   PSint_1 ps_1(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=1 
@@ -488,7 +488,7 @@ __device__ __inline__ DPint_0_3::DPint_0_3(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* DP integral partial class - Part 4, m=0 */ 
 __device__ __inline__ DPint_0_4::DPint_0_4(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   PSint_0 ps_0(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=0 
   PSint_1 ps_1(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=1 
@@ -505,7 +505,7 @@ __device__ __inline__ DPint_0_4::DPint_0_4(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* DP integral partial class - Part 5, m=0 */ 
 __device__ __inline__ DPint_0_5::DPint_0_5(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   PSint_0 ps_0(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=0 
   PSint_1 ps_1(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=1 
@@ -522,7 +522,7 @@ __device__ __inline__ DPint_0_5::DPint_0_5(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* DP integral partial class - Part 6, m=0 */ 
 __device__ __inline__ DPint_0_6::DPint_0_6(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   PSint_0 ps_0(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=0 
   PSint_1 ps_1(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=1 
@@ -539,7 +539,7 @@ __device__ __inline__ DPint_0_6::DPint_0_6(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* DP auxilary integral, m=1 */ 
 __device__ __inline__ DPint_1::DPint_1(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   PSint_1 ps_1(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=1 
   PSint_2 ps_2(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=2 
@@ -579,7 +579,7 @@ __device__ __inline__ DPint_1::DPint_1(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
 /* DP integral partial class - Part 1, m=1 */ 
 __device__ __inline__ DPint_1_1::DPint_1_1(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   PSint_1 ps_1(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=1 
   PSint_2 ps_2(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=2 
@@ -597,7 +597,7 @@ __device__ __inline__ DPint_1_1::DPint_1_1(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* DP integral partial class - Part 2, m=1 */ 
 __device__ __inline__ DPint_1_2::DPint_1_2(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   PSint_1 ps_1(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=1 
   PSint_2 ps_2(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=2 
@@ -615,7 +615,7 @@ __device__ __inline__ DPint_1_2::DPint_1_2(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* DP integral partial class - Part 3, m=1 */ 
 __device__ __inline__ DPint_1_3::DPint_1_3(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   PSint_1 ps_1(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=1 
   PSint_2 ps_2(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=2 
@@ -633,7 +633,7 @@ __device__ __inline__ DPint_1_3::DPint_1_3(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* DP integral partial class - Part 4, m=1 */ 
 __device__ __inline__ DPint_1_4::DPint_1_4(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   PSint_1 ps_1(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=1 
   PSint_2 ps_2(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=2 
@@ -650,7 +650,7 @@ __device__ __inline__ DPint_1_4::DPint_1_4(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* DP integral partial class - Part 5, m=1 */ 
 __device__ __inline__ DPint_1_5::DPint_1_5(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   PSint_1 ps_1(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=1 
   PSint_2 ps_2(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=2 
@@ -667,7 +667,7 @@ __device__ __inline__ DPint_1_5::DPint_1_5(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* DP integral partial class - Part 6, m=1 */ 
 __device__ __inline__ DPint_1_6::DPint_1_6(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   PSint_1 ps_1(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=1 
   PSint_2 ps_2(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=2 
@@ -684,7 +684,7 @@ __device__ __inline__ DPint_1_6::DPint_1_6(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* DP auxilary integral, m=2 */ 
 __device__ __inline__ DPint_2::DPint_2(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   PSint_2 ps_2(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=2 
   PSint_3 ps_3(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=3 
@@ -724,7 +724,7 @@ __device__ __inline__ DPint_2::DPint_2(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
 /* DP integral partial class - Part 1, m=2 */ 
 __device__ __inline__ DPint_2_1::DPint_2_1(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   PSint_2 ps_2(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=2 
   PSint_3 ps_3(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=3 
@@ -742,7 +742,7 @@ __device__ __inline__ DPint_2_1::DPint_2_1(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* DP integral partial class - Part 2, m=2 */ 
 __device__ __inline__ DPint_2_2::DPint_2_2(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   PSint_2 ps_2(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=2 
   PSint_3 ps_3(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=3 
@@ -760,7 +760,7 @@ __device__ __inline__ DPint_2_2::DPint_2_2(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* DP integral partial class - Part 3, m=2 */ 
 __device__ __inline__ DPint_2_3::DPint_2_3(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   PSint_2 ps_2(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=2 
   PSint_3 ps_3(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=3 
@@ -778,7 +778,7 @@ __device__ __inline__ DPint_2_3::DPint_2_3(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* DP integral partial class - Part 4, m=2 */ 
 __device__ __inline__ DPint_2_4::DPint_2_4(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   PSint_2 ps_2(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=2 
   PSint_3 ps_3(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=3 
@@ -795,7 +795,7 @@ __device__ __inline__ DPint_2_4::DPint_2_4(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* DP integral partial class - Part 5, m=2 */ 
 __device__ __inline__ DPint_2_5::DPint_2_5(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   PSint_2 ps_2(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=2 
   PSint_3 ps_3(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=3 
@@ -812,7 +812,7 @@ __device__ __inline__ DPint_2_5::DPint_2_5(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* DP integral partial class - Part 6, m=2 */ 
 __device__ __inline__ DPint_2_6::DPint_2_6(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   PSint_2 ps_2(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=2 
   PSint_3 ps_3(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=3 
@@ -829,7 +829,7 @@ __device__ __inline__ DPint_2_6::DPint_2_6(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* PD true integral, m=0 */ 
 __device__ __inline__ PDint_0::PDint_0(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   SPint_0 sp_0(PBx, PBy, PBz, PCx, PCy, PCz, store, YVerticalTemp); // construct [s|p] for m=0 
   SPint_1 sp_1(PBx, PBy, PBz, PCx, PCy, PCz, store, YVerticalTemp); // construct [s|p] for m=1 
@@ -869,7 +869,7 @@ __device__ __inline__ PDint_0::PDint_0(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
 /* PD auxilary integral, m=1 */ 
 __device__ __inline__ PDint_1::PDint_1(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   SPint_1 sp_1(PBx, PBy, PBz, PCx, PCy, PCz, store, YVerticalTemp); // construct [s|p] for m=1 
   SPint_2 sp_2(PBx, PBy, PBz, PCx, PCy, PCz, store, YVerticalTemp); // construct [s|p] for m=2 
@@ -909,7 +909,7 @@ __device__ __inline__ PDint_1::PDint_1(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
 /* PD auxilary integral, m=2 */ 
 __device__ __inline__ PDint_2::PDint_2(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   SPint_2 sp_2(PBx, PBy, PBz, PCx, PCy, PCz, store, YVerticalTemp); // construct [s|p] for m=2 
   SPint_3 sp_3(PBx, PBy, PBz, PCx, PCy, PCz, store, YVerticalTemp); // construct [s|p] for m=3 
@@ -949,7 +949,7 @@ __device__ __inline__ PDint_2::PDint_2(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
 /* DD true integral, m=0 */ 
 __device__ __inline__ DDint_0::DDint_0(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   PPint_0 pp_0(PAx, PAy, PAz, PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [p|p] for m=0 
   DSint_0 ds_0(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=0 
@@ -1312,7 +1312,7 @@ __device__ __inline__ DDint_0::DDint_0(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
 /* DD auxilary integral, m=1 */ 
 __device__ __inline__ DDint_1::DDint_1(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   PPint_1 pp_1(PAx, PAy, PAz, PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [p|p] for m=1 
   DSint_1 ds_1(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=1 
@@ -1674,7 +1674,7 @@ __device__ __inline__ DDint_1::DDint_1(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
 
 /* FS true integral, m=0 */ 
 __device__ __inline__ FSint_0::FSint_0(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
-                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   PSint_0 ps_0(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=0 
   PSint_1 ps_1(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=1 
@@ -1732,7 +1732,7 @@ __device__ __inline__ FSint_0::FSint_0(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
 
 /* FS auxilary integral, m=1 */ 
 __device__ __inline__ FSint_1::FSint_1(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
-                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   PSint_1 ps_1(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=1 
   PSint_2 ps_2(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=2 
@@ -1790,7 +1790,7 @@ __device__ __inline__ FSint_1::FSint_1(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
 
 /* FS auxilary integral, m=2 */ 
 __device__ __inline__ FSint_2::FSint_2(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
-                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   PSint_2 ps_2(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=2 
   PSint_3 ps_3(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=3 
@@ -1848,7 +1848,7 @@ __device__ __inline__ FSint_2::FSint_2(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
 
 /* FS auxilary integral, m=3 */ 
 __device__ __inline__ FSint_3::FSint_3(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
-                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   PSint_3 ps_3(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=3 
   PSint_4 ps_4(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=4 
@@ -1906,7 +1906,7 @@ __device__ __inline__ FSint_3::FSint_3(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
 
 /* SF true integral, m=0 */ 
 __device__ __inline__ SFint_0::SFint_0(QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz,
-                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   SPint_0 sp_0(PBx, PBy, PBz, PCx, PCy, PCz, store, YVerticalTemp); // construct [s|p] for m=0 
   SPint_1 sp_1(PBx, PBy, PBz, PCx, PCy, PCz, store, YVerticalTemp); // construct [s|p] for m=1 
@@ -1964,7 +1964,7 @@ __device__ __inline__ SFint_0::SFint_0(QUICKDouble PBx, QUICKDouble PBy, QUICKDo
 
 /* SF auxilary integral, m=1 */ 
 __device__ __inline__ SFint_1::SFint_1(QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz,
-                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   SPint_1 sp_1(PBx, PBy, PBz, PCx, PCy, PCz, store, YVerticalTemp); // construct [s|p] for m=1 
   SPint_2 sp_2(PBx, PBy, PBz, PCx, PCy, PCz, store, YVerticalTemp); // construct [s|p] for m=2 
@@ -2022,7 +2022,7 @@ __device__ __inline__ SFint_1::SFint_1(QUICKDouble PBx, QUICKDouble PBy, QUICKDo
 
 /* SF auxilary integral, m=2 */ 
 __device__ __inline__ SFint_2::SFint_2(QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz,
-                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   SPint_2 sp_2(PBx, PBy, PBz, PCx, PCy, PCz, store, YVerticalTemp); // construct [s|p] for m=2 
   SPint_3 sp_3(PBx, PBy, PBz, PCx, PCy, PCz, store, YVerticalTemp); // construct [s|p] for m=3 
@@ -2080,7 +2080,7 @@ __device__ __inline__ SFint_2::SFint_2(QUICKDouble PBx, QUICKDouble PBy, QUICKDo
 
 /* SF auxilary integral, m=3 */ 
 __device__ __inline__ SFint_3::SFint_3(QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz,
-                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   SPint_3 sp_3(PBx, PBy, PBz, PCx, PCy, PCz, store, YVerticalTemp); // construct [s|p] for m=3 
   SPint_4 sp_4(PBx, PBy, PBz, PCx, PCy, PCz, store, YVerticalTemp); // construct [s|p] for m=4 
@@ -2139,7 +2139,7 @@ __device__ __inline__ SFint_3::SFint_3(QUICKDouble PBx, QUICKDouble PBy, QUICKDo
 /* FP true integral, m=0 */ 
 __device__ __inline__ FPint_0::FPint_0(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   DSint_0 ds_0(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=0 
   DSint_1 ds_1(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=1 
@@ -2522,7 +2522,7 @@ __device__ __inline__ FPint_0::FPint_0(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
 /* FP integral partial class - Part 1, m=0 */ 
 __device__ __inline__ FPint_0_1::FPint_0_1(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   DSint_0 ds_0(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=0 
   DSint_1 ds_1(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=1 
@@ -2553,7 +2553,7 @@ __device__ __inline__ FPint_0_1::FPint_0_1(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* FP integral partial class - Part 2, m=0 */ 
 __device__ __inline__ FPint_0_2::FPint_0_2(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   DSint_0 ds_0(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=0 
   DSint_1 ds_1(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=1 
@@ -2583,7 +2583,7 @@ __device__ __inline__ FPint_0_2::FPint_0_2(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* FP integral partial class - Part 3, m=0 */ 
 __device__ __inline__ FPint_0_3::FPint_0_3(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   DSint_0 ds_0(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=0 
   DSint_1 ds_1(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=1 
@@ -2613,7 +2613,7 @@ __device__ __inline__ FPint_0_3::FPint_0_3(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* FP integral partial class - Part 4, m=0 */ 
 __device__ __inline__ FPint_0_4::FPint_0_4(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   DSint_0 ds_0(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=0 
   DSint_1 ds_1(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=1 
@@ -2643,7 +2643,7 @@ __device__ __inline__ FPint_0_4::FPint_0_4(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* FP integral partial class - Part 5, m=0 */ 
 __device__ __inline__ FPint_0_5::FPint_0_5(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   DSint_0 ds_0(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=0 
   DSint_1 ds_1(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=1 
@@ -2673,7 +2673,7 @@ __device__ __inline__ FPint_0_5::FPint_0_5(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* FP integral partial class - Part 6, m=0 */ 
 __device__ __inline__ FPint_0_6::FPint_0_6(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   DSint_0 ds_0(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=0 
   DSint_1 ds_1(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=1 
@@ -2703,7 +2703,7 @@ __device__ __inline__ FPint_0_6::FPint_0_6(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* FP integral partial class - Part 7, m=0 */ 
 __device__ __inline__ FPint_0_7::FPint_0_7(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   DSint_0 ds_0(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=0 
   DSint_1 ds_1(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=1 
@@ -2733,7 +2733,7 @@ __device__ __inline__ FPint_0_7::FPint_0_7(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* FP integral partial class - Part 8, m=0 */ 
 __device__ __inline__ FPint_0_8::FPint_0_8(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   DSint_0 ds_0(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=0 
   DSint_1 ds_1(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=1 
@@ -2762,7 +2762,7 @@ __device__ __inline__ FPint_0_8::FPint_0_8(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* FP integral partial class - Part 9, m=0 */ 
 __device__ __inline__ FPint_0_9::FPint_0_9(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   DSint_0 ds_0(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=0 
   DSint_1 ds_1(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=1 
@@ -2791,7 +2791,7 @@ __device__ __inline__ FPint_0_9::FPint_0_9(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* FP integral partial class - Part 10, m=0 */ 
 __device__ __inline__ FPint_0_10::FPint_0_10(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   DSint_0 ds_0(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=0 
   DSint_1 ds_1(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=1 
@@ -2820,7 +2820,7 @@ __device__ __inline__ FPint_0_10::FPint_0_10(QUICKDouble PAx, QUICKDouble PAy, Q
 /* FP auxilary integral, m=1 */ 
 __device__ __inline__ FPint_1::FPint_1(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   DSint_1 ds_1(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=1 
   DSint_2 ds_2(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=2 
@@ -3203,7 +3203,7 @@ __device__ __inline__ FPint_1::FPint_1(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
 /* FP integral partial class - Part 1, m=1 */ 
 __device__ __inline__ FPint_1_1::FPint_1_1(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   DSint_1 ds_1(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=1 
   DSint_2 ds_2(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=2 
@@ -3234,7 +3234,7 @@ __device__ __inline__ FPint_1_1::FPint_1_1(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* FP integral partial class - Part 2, m=1 */ 
 __device__ __inline__ FPint_1_2::FPint_1_2(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   DSint_1 ds_1(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=1 
   DSint_2 ds_2(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=2 
@@ -3264,7 +3264,7 @@ __device__ __inline__ FPint_1_2::FPint_1_2(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* FP integral partial class - Part 3, m=1 */ 
 __device__ __inline__ FPint_1_3::FPint_1_3(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   DSint_1 ds_1(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=1 
   DSint_2 ds_2(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=2 
@@ -3294,7 +3294,7 @@ __device__ __inline__ FPint_1_3::FPint_1_3(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* FP integral partial class - Part 4, m=1 */ 
 __device__ __inline__ FPint_1_4::FPint_1_4(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   DSint_1 ds_1(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=1 
   DSint_2 ds_2(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=2 
@@ -3324,7 +3324,7 @@ __device__ __inline__ FPint_1_4::FPint_1_4(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* FP integral partial class - Part 5, m=1 */ 
 __device__ __inline__ FPint_1_5::FPint_1_5(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   DSint_1 ds_1(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=1 
   DSint_2 ds_2(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=2 
@@ -3354,7 +3354,7 @@ __device__ __inline__ FPint_1_5::FPint_1_5(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* FP integral partial class - Part 6, m=1 */ 
 __device__ __inline__ FPint_1_6::FPint_1_6(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   DSint_1 ds_1(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=1 
   DSint_2 ds_2(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=2 
@@ -3384,7 +3384,7 @@ __device__ __inline__ FPint_1_6::FPint_1_6(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* FP integral partial class - Part 7, m=1 */ 
 __device__ __inline__ FPint_1_7::FPint_1_7(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   DSint_1 ds_1(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=1 
   DSint_2 ds_2(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=2 
@@ -3414,7 +3414,7 @@ __device__ __inline__ FPint_1_7::FPint_1_7(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* FP integral partial class - Part 8, m=1 */ 
 __device__ __inline__ FPint_1_8::FPint_1_8(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   DSint_1 ds_1(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=1 
   DSint_2 ds_2(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=2 
@@ -3443,7 +3443,7 @@ __device__ __inline__ FPint_1_8::FPint_1_8(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* FP integral partial class - Part 9, m=1 */ 
 __device__ __inline__ FPint_1_9::FPint_1_9(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   DSint_1 ds_1(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=1 
   DSint_2 ds_2(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=2 
@@ -3472,7 +3472,7 @@ __device__ __inline__ FPint_1_9::FPint_1_9(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* FP integral partial class - Part 10, m=1 */ 
 __device__ __inline__ FPint_1_10::FPint_1_10(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   DSint_1 ds_1(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=1 
   DSint_2 ds_2(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=2 
@@ -3501,7 +3501,7 @@ __device__ __inline__ FPint_1_10::FPint_1_10(QUICKDouble PAx, QUICKDouble PAy, Q
 /* FP auxilary integral, m=2 */ 
 __device__ __inline__ FPint_2::FPint_2(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   DSint_2 ds_2(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=2 
   DSint_3 ds_3(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=3 
@@ -3884,7 +3884,7 @@ __device__ __inline__ FPint_2::FPint_2(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
 /* FP integral partial class - Part 1, m=2 */ 
 __device__ __inline__ FPint_2_1::FPint_2_1(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   DSint_2 ds_2(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=2 
   DSint_3 ds_3(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=3 
@@ -3915,7 +3915,7 @@ __device__ __inline__ FPint_2_1::FPint_2_1(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* FP integral partial class - Part 2, m=2 */ 
 __device__ __inline__ FPint_2_2::FPint_2_2(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   DSint_2 ds_2(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=2 
   DSint_3 ds_3(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=3 
@@ -3945,7 +3945,7 @@ __device__ __inline__ FPint_2_2::FPint_2_2(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* FP integral partial class - Part 3, m=2 */ 
 __device__ __inline__ FPint_2_3::FPint_2_3(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   DSint_2 ds_2(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=2 
   DSint_3 ds_3(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=3 
@@ -3975,7 +3975,7 @@ __device__ __inline__ FPint_2_3::FPint_2_3(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* FP integral partial class - Part 4, m=2 */ 
 __device__ __inline__ FPint_2_4::FPint_2_4(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   DSint_2 ds_2(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=2 
   DSint_3 ds_3(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=3 
@@ -4005,7 +4005,7 @@ __device__ __inline__ FPint_2_4::FPint_2_4(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* FP integral partial class - Part 5, m=2 */ 
 __device__ __inline__ FPint_2_5::FPint_2_5(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   DSint_2 ds_2(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=2 
   DSint_3 ds_3(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=3 
@@ -4035,7 +4035,7 @@ __device__ __inline__ FPint_2_5::FPint_2_5(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* FP integral partial class - Part 6, m=2 */ 
 __device__ __inline__ FPint_2_6::FPint_2_6(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   DSint_2 ds_2(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=2 
   DSint_3 ds_3(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=3 
@@ -4065,7 +4065,7 @@ __device__ __inline__ FPint_2_6::FPint_2_6(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* FP integral partial class - Part 7, m=2 */ 
 __device__ __inline__ FPint_2_7::FPint_2_7(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   DSint_2 ds_2(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=2 
   DSint_3 ds_3(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=3 
@@ -4095,7 +4095,7 @@ __device__ __inline__ FPint_2_7::FPint_2_7(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* FP integral partial class - Part 8, m=2 */ 
 __device__ __inline__ FPint_2_8::FPint_2_8(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   DSint_2 ds_2(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=2 
   DSint_3 ds_3(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=3 
@@ -4124,7 +4124,7 @@ __device__ __inline__ FPint_2_8::FPint_2_8(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* FP integral partial class - Part 9, m=2 */ 
 __device__ __inline__ FPint_2_9::FPint_2_9(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   DSint_2 ds_2(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=2 
   DSint_3 ds_3(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=3 
@@ -4153,7 +4153,7 @@ __device__ __inline__ FPint_2_9::FPint_2_9(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* FP integral partial class - Part 10, m=2 */ 
 __device__ __inline__ FPint_2_10::FPint_2_10(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                     QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                    QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                    QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   DSint_2 ds_2(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=2 
   DSint_3 ds_3(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|s] for m=3 
@@ -4182,7 +4182,7 @@ __device__ __inline__ FPint_2_10::FPint_2_10(QUICKDouble PAx, QUICKDouble PAy, Q
 /* PF true integral, m=0 */ 
 __device__ __inline__ PFint_0::PFint_0(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   SDint_0 sd_0(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=0 
   SDint_1 sd_1(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=1 
@@ -4565,7 +4565,7 @@ __device__ __inline__ PFint_0::PFint_0(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
 /* PF integral partial class - Part 1, m=0 */ 
 __device__ __inline__ PFint_0_1::PFint_0_1(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   SDint_0 sd_0(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=0 
   SDint_1 sd_1(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=1 
@@ -4596,7 +4596,7 @@ __device__ __inline__ PFint_0_1::PFint_0_1(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* PF integral partial class - Part 2, m=0 */ 
 __device__ __inline__ PFint_0_2::PFint_0_2(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   SDint_0 sd_0(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=0 
   SDint_1 sd_1(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=1 
@@ -4626,7 +4626,7 @@ __device__ __inline__ PFint_0_2::PFint_0_2(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* PF integral partial class - Part 3, m=0 */ 
 __device__ __inline__ PFint_0_3::PFint_0_3(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   SDint_0 sd_0(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=0 
   SDint_1 sd_1(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=1 
@@ -4656,7 +4656,7 @@ __device__ __inline__ PFint_0_3::PFint_0_3(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* PF integral partial class - Part 4, m=0 */ 
 __device__ __inline__ PFint_0_4::PFint_0_4(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   SDint_0 sd_0(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=0 
   SDint_1 sd_1(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=1 
@@ -4686,7 +4686,7 @@ __device__ __inline__ PFint_0_4::PFint_0_4(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* PF integral partial class - Part 5, m=0 */ 
 __device__ __inline__ PFint_0_5::PFint_0_5(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   SDint_0 sd_0(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=0 
   SDint_1 sd_1(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=1 
@@ -4716,7 +4716,7 @@ __device__ __inline__ PFint_0_5::PFint_0_5(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* PF integral partial class - Part 6, m=0 */ 
 __device__ __inline__ PFint_0_6::PFint_0_6(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   SDint_0 sd_0(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=0 
   SDint_1 sd_1(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=1 
@@ -4746,7 +4746,7 @@ __device__ __inline__ PFint_0_6::PFint_0_6(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* PF integral partial class - Part 7, m=0 */ 
 __device__ __inline__ PFint_0_7::PFint_0_7(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   SDint_0 sd_0(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=0 
   SDint_1 sd_1(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=1 
@@ -4776,7 +4776,7 @@ __device__ __inline__ PFint_0_7::PFint_0_7(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* PF integral partial class - Part 8, m=0 */ 
 __device__ __inline__ PFint_0_8::PFint_0_8(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   SDint_0 sd_0(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=0 
   SDint_1 sd_1(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=1 
@@ -4805,7 +4805,7 @@ __device__ __inline__ PFint_0_8::PFint_0_8(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* PF integral partial class - Part 9, m=0 */ 
 __device__ __inline__ PFint_0_9::PFint_0_9(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   SDint_0 sd_0(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=0 
   SDint_1 sd_1(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=1 
@@ -4834,7 +4834,7 @@ __device__ __inline__ PFint_0_9::PFint_0_9(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* PF integral partial class - Part 10, m=0 */ 
 __device__ __inline__ PFint_0_10::PFint_0_10(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   SDint_0 sd_0(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=0 
   SDint_1 sd_1(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=1 
@@ -4863,7 +4863,7 @@ __device__ __inline__ PFint_0_10::PFint_0_10(QUICKDouble PAx, QUICKDouble PAy, Q
 /* PF auxilary integral, m=1 */ 
 __device__ __inline__ PFint_1::PFint_1(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   SDint_1 sd_1(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=1 
   SDint_2 sd_2(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=2 
@@ -5246,7 +5246,7 @@ __device__ __inline__ PFint_1::PFint_1(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
 /* PF integral partial class - Part 1, m=1 */ 
 __device__ __inline__ PFint_1_1::PFint_1_1(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   SDint_1 sd_1(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=1 
   SDint_2 sd_2(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=2 
@@ -5277,7 +5277,7 @@ __device__ __inline__ PFint_1_1::PFint_1_1(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* PF integral partial class - Part 2, m=1 */ 
 __device__ __inline__ PFint_1_2::PFint_1_2(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   SDint_1 sd_1(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=1 
   SDint_2 sd_2(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=2 
@@ -5307,7 +5307,7 @@ __device__ __inline__ PFint_1_2::PFint_1_2(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* PF integral partial class - Part 3, m=1 */ 
 __device__ __inline__ PFint_1_3::PFint_1_3(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   SDint_1 sd_1(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=1 
   SDint_2 sd_2(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=2 
@@ -5337,7 +5337,7 @@ __device__ __inline__ PFint_1_3::PFint_1_3(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* PF integral partial class - Part 4, m=1 */ 
 __device__ __inline__ PFint_1_4::PFint_1_4(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   SDint_1 sd_1(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=1 
   SDint_2 sd_2(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=2 
@@ -5367,7 +5367,7 @@ __device__ __inline__ PFint_1_4::PFint_1_4(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* PF integral partial class - Part 5, m=1 */ 
 __device__ __inline__ PFint_1_5::PFint_1_5(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   SDint_1 sd_1(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=1 
   SDint_2 sd_2(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=2 
@@ -5397,7 +5397,7 @@ __device__ __inline__ PFint_1_5::PFint_1_5(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* PF integral partial class - Part 6, m=1 */ 
 __device__ __inline__ PFint_1_6::PFint_1_6(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   SDint_1 sd_1(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=1 
   SDint_2 sd_2(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=2 
@@ -5427,7 +5427,7 @@ __device__ __inline__ PFint_1_6::PFint_1_6(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* PF integral partial class - Part 7, m=1 */ 
 __device__ __inline__ PFint_1_7::PFint_1_7(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   SDint_1 sd_1(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=1 
   SDint_2 sd_2(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=2 
@@ -5457,7 +5457,7 @@ __device__ __inline__ PFint_1_7::PFint_1_7(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* PF integral partial class - Part 8, m=1 */ 
 __device__ __inline__ PFint_1_8::PFint_1_8(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   SDint_1 sd_1(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=1 
   SDint_2 sd_2(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=2 
@@ -5486,7 +5486,7 @@ __device__ __inline__ PFint_1_8::PFint_1_8(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* PF integral partial class - Part 9, m=1 */ 
 __device__ __inline__ PFint_1_9::PFint_1_9(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   SDint_1 sd_1(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=1 
   SDint_2 sd_2(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=2 
@@ -5515,7 +5515,7 @@ __device__ __inline__ PFint_1_9::PFint_1_9(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* PF integral partial class - Part 10, m=1 */ 
 __device__ __inline__ PFint_1_10::PFint_1_10(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   SDint_1 sd_1(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=1 
   SDint_2 sd_2(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=2 
@@ -5544,7 +5544,7 @@ __device__ __inline__ PFint_1_10::PFint_1_10(QUICKDouble PAx, QUICKDouble PAy, Q
 /* PF auxilary integral, m=2 */ 
 __device__ __inline__ PFint_2::PFint_2(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   SDint_2 sd_2(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=2 
   SDint_3 sd_3(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=3 
@@ -5927,7 +5927,7 @@ __device__ __inline__ PFint_2::PFint_2(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
 /* PF integral partial class - Part 1, m=2 */ 
 __device__ __inline__ PFint_2_1::PFint_2_1(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   SDint_2 sd_2(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=2 
   SDint_3 sd_3(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=3 
@@ -5958,7 +5958,7 @@ __device__ __inline__ PFint_2_1::PFint_2_1(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* PF integral partial class - Part 2, m=2 */ 
 __device__ __inline__ PFint_2_2::PFint_2_2(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   SDint_2 sd_2(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=2 
   SDint_3 sd_3(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=3 
@@ -5988,7 +5988,7 @@ __device__ __inline__ PFint_2_2::PFint_2_2(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* PF integral partial class - Part 3, m=2 */ 
 __device__ __inline__ PFint_2_3::PFint_2_3(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   SDint_2 sd_2(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=2 
   SDint_3 sd_3(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=3 
@@ -6018,7 +6018,7 @@ __device__ __inline__ PFint_2_3::PFint_2_3(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* PF integral partial class - Part 4, m=2 */ 
 __device__ __inline__ PFint_2_4::PFint_2_4(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   SDint_2 sd_2(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=2 
   SDint_3 sd_3(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=3 
@@ -6048,7 +6048,7 @@ __device__ __inline__ PFint_2_4::PFint_2_4(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* PF integral partial class - Part 5, m=2 */ 
 __device__ __inline__ PFint_2_5::PFint_2_5(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   SDint_2 sd_2(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=2 
   SDint_3 sd_3(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=3 
@@ -6078,7 +6078,7 @@ __device__ __inline__ PFint_2_5::PFint_2_5(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* PF integral partial class - Part 6, m=2 */ 
 __device__ __inline__ PFint_2_6::PFint_2_6(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   SDint_2 sd_2(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=2 
   SDint_3 sd_3(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=3 
@@ -6108,7 +6108,7 @@ __device__ __inline__ PFint_2_6::PFint_2_6(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* PF integral partial class - Part 7, m=2 */ 
 __device__ __inline__ PFint_2_7::PFint_2_7(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   SDint_2 sd_2(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=2 
   SDint_3 sd_3(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=3 
@@ -6138,7 +6138,7 @@ __device__ __inline__ PFint_2_7::PFint_2_7(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* PF integral partial class - Part 8, m=2 */ 
 __device__ __inline__ PFint_2_8::PFint_2_8(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   SDint_2 sd_2(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=2 
   SDint_3 sd_3(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=3 
@@ -6167,7 +6167,7 @@ __device__ __inline__ PFint_2_8::PFint_2_8(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* PF integral partial class - Part 9, m=2 */ 
 __device__ __inline__ PFint_2_9::PFint_2_9(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   SDint_2 sd_2(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=2 
   SDint_3 sd_3(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=3 
@@ -6196,7 +6196,7 @@ __device__ __inline__ PFint_2_9::PFint_2_9(QUICKDouble PAx, QUICKDouble PAy, QUI
 /* PF integral partial class - Part 10, m=2 */ 
 __device__ __inline__ PFint_2_10::PFint_2_10(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   SDint_2 sd_2(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=2 
   SDint_3 sd_3(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|d] for m=3 
@@ -6225,7 +6225,7 @@ __device__ __inline__ PFint_2_10::PFint_2_10(QUICKDouble PAx, QUICKDouble PAy, Q
 /* FD true integral, m=0 */ 
 __device__ __inline__ FDint_0::FDint_0(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   DPint_0 dp_0(PAx, PAy, PAz, PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|p] for m=0 
   FSint_0 fs_0(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [f|s] for m=0 
@@ -7549,7 +7549,7 @@ __device__ __inline__ FDint_0::FDint_0(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
 /* FD auxilary integral, m=1 */ 
 __device__ __inline__ FDint_1::FDint_1(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   DPint_1 dp_1(PAx, PAy, PAz, PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|p] for m=1 
   FSint_1 fs_1(PAx, PAy, PAz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [f|s] for m=1 
@@ -8873,7 +8873,7 @@ __device__ __inline__ FDint_1::FDint_1(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
 /* DF true integral, m=0 */ 
 __device__ __inline__ DFint_0::DFint_0(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   PDint_0 pd_0(PAx, PAy, PAz, PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [p|d] for m=0 
   SFint_0 sf_0(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|f] for m=0 
@@ -10197,7 +10197,7 @@ __device__ __inline__ DFint_0::DFint_0(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
 /* DF auxilary integral, m=1 */ 
 __device__ __inline__ DFint_1::DFint_1(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   PDint_1 pd_1(PAx, PAy, PAz, PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [p|d] for m=1 
   SFint_1 sf_1(PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [s|f] for m=1 
@@ -11521,7 +11521,7 @@ __device__ __inline__ DFint_1::DFint_1(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
 /* FF true integral, m=0 */ 
 __device__ __inline__ FFint_0::FFint_0(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz, QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-                QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp){ 
+                QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
   DDint_0 dd_0(PAx, PAy, PAz, PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [d|d] for m=0 
   FPint_0 fp_0(PAx, PAy, PAz, PBx, PBy, PBz, PCx, PCy, PCz, TwoZetaInv, store, YVerticalTemp); // construct [f|p] for m=0 

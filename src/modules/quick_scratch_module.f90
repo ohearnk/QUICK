@@ -25,12 +25,12 @@ module quick_scratch_module
     ! store some scratch arrays
     
     type quick_scratch_type
-        double precision, dimension(:,:), allocatable :: hold,hold2
+        double precision, dimension(:,:), allocatable :: hold, hold2
         ! variables required for fullx subroutines
         double precision, dimension(:,:), allocatable :: tmpx, tmphold, tmpco, V
         double precision, dimension(:), allocatable :: Sminhalf, IDEGEN1
         ! magic variables required for classopt subroutine
-        double precision, dimension(:), allocatable :: X44,X44aa,X44bb,X44cc,X44dd  
+        double precision, dimension(:), allocatable :: X44, X44aa, X44bb, X44cc, X44dd  
 #ifdef MPIV
         ! to store the result of operator reduction
         double precision, dimension(:,:), allocatable :: osum, obsum
@@ -77,6 +77,14 @@ module quick_scratch_module
             if(.not. allocated(self%osum)) allocate(self%osum(nbasis,nbasis))
             if(.not. allocated(self%obsum)) allocate(self%obsum(nbasis,nbasis))
 #endif
+
+            self%hold=0.0d0
+            self%hold2=0.0d0
+#ifdef MPIV
+            self%osum=0.0d0
+            self%obsum=0.0d0
+#endif
+
             return
             
         end subroutine allocate_quick_scratch
@@ -98,7 +106,7 @@ module quick_scratch_module
 
         subroutine allocate_fullx_scratch(self,nbasis)
             implicit none
-            integer :: nbasis, ii, jj
+            integer :: nbasis, ii
             type (quick_scratch_type) self
 
             if(.not. allocated(self%tmpx)) allocate(self%tmpx(nbasis,nbasis))
@@ -116,12 +124,11 @@ module quick_scratch_module
             self%IDEGEN1=0.0d0
 
             do ii=1,nbasis
-              do jj=1, nbasis
-                if(ii .eq. jj) then
-                  self%tmpx(jj,ii)=1.0d0
-                  self%tmphold(jj,ii)=1.0d0
-                endif
-              enddo
+                self%tmpx(ii,ii)=1.0d0
+            enddo
+
+            do ii=1,nbasis
+                self%tmphold(ii,ii)=1.0d0
             enddo
 
             return

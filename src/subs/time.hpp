@@ -19,9 +19,10 @@
 #define __TIME_H__
 
 extern "C" {
+
 void init_ref_time_();
-void walltime_(double* t);
+void walltime_(double *);
+
 }
 
 #endif
-

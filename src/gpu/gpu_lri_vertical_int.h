@@ -5,7 +5,7 @@
 #include "include/h_all_subroutines.h"
 
 
-__device__ static inline void vertical_spdf2(int I, int J, int K, int L,
+__device__ static inline void vertical_spdf2(uint8_t I, uint8_t J, uint8_t K, uint8_t L,
         QUICKDouble * const YVerticalTemp, QUICKDouble * const store,
         QUICKDouble Ptempx, QUICKDouble Ptempy, QUICKDouble Ptempz,
         QUICKDouble WPtempx, QUICKDouble WPtempy, QUICKDouble WPtempz,
@@ -74,7 +74,7 @@ __device__ static inline void vertical_spdf2(int I, int J, int K, int L,
 }
 
 
-__device__ static inline void vertical2_spdf2(int I, int J, int K, int L,
+__device__ static inline void vertical2_spdf2(uint8_t I, uint8_t J, uint8_t K, uint8_t L,
         QUICKDouble * const YVerticalTemp, QUICKDouble * const store,
         QUICKDouble Ptempx, QUICKDouble Ptempy, QUICKDouble Ptempz,
         QUICKDouble WPtempx, QUICKDouble WPtempy, QUICKDouble WPtempz,
@@ -136,7 +136,7 @@ __device__ static inline void vertical2_spdf2(int I, int J, int K, int L,
 #undef STOREDIM
 #define STOREDIM STOREDIM_S
 // Vertical for s, p, d orbitals
-__device__ static inline void vertical(int I, int J, int K, int L,
+__device__ static inline void vertical(uint8_t I, uint8_t J, uint8_t K, uint8_t L,
         QUICKDouble * const YVerticalTemp, QUICKDouble * const store,
         QUICKDouble Ptempx, QUICKDouble Ptempy, QUICKDouble Ptempz,
         QUICKDouble WPtempx, QUICKDouble WPtempy, QUICKDouble WPtempz,
@@ -4780,7 +4780,7 @@ __device__ static inline void vertical(int I, int J, int K, int L,
 }
 
 
-__device__ static inline void vertical2(int I, int J, int K, int L,
+__device__ static inline void vertical2(uint8_t I, uint8_t J, uint8_t K, uint8_t L,
         QUICKDouble * const YVerticalTemp, QUICKDouble * const store,
         QUICKDouble Ptempx, QUICKDouble Ptempy, QUICKDouble Ptempz,
         QUICKDouble WPtempx, QUICKDouble WPtempy, QUICKDouble WPtempz,

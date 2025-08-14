@@ -67,6 +67,8 @@ list(APPEND NO_OPT_FFLAGS "-O0")
 list(APPEND NO_OPT_CFLAGS "-O0")
 list(APPEND NO_OPT_CXXFLAGS "-O0")
 
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_CXX_STANDARD 11)
 
 # cache Apple ARM CPU model for subsequent compiler checks
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND ${CMAKE_HOST_SYSTEM_PROCESSOR} STREQUAL "arm64")

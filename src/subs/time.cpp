@@ -22,18 +22,19 @@
 // declare structs to store Epoch times
 static struct timeval refTime, endTime;
 
+
 // sets reference epoch time
-void init_ref_time_(){
+void init_ref_time_()
+{
     gettimeofday(&refTime, 0);
-    return;
 }
 
-// calculate and return time elapsed since reference
-void walltime_(double* t){
 
+// calculate and return time elapsed since reference
+void walltime_(double* t)
+{
     gettimeofday(&endTime, 0);    
     long seconds = endTime.tv_sec - refTime.tv_sec;
     long microseconds = endTime.tv_usec - refTime.tv_usec;
-    *t = seconds+microseconds*1e-6; 
-    return;
+    *t = seconds + microseconds * 1.0e-6; 
 }

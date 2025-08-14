@@ -21,7 +21,7 @@
 #define VY(a,b,c) LOCVY(YVerticalTemp, (a), (b), (c), VDIM1, VDIM2, VDIM3)
 
 
-__device__ static inline void ERint_grad_vertical_spdf_7_1(const int I, const int J, const int K, const int L,
+__device__ static inline void ERint_grad_vertical_spdf_7_1(uint8_t I, uint8_t J, uint8_t K, uint8_t L,
         const QUICKDouble Ptempx, const QUICKDouble Ptempy, const QUICKDouble Ptempz,
         const QUICKDouble WPtempx, const QUICKDouble WPtempy, const QUICKDouble WPtempz,
         const QUICKDouble Qtempx, const QUICKDouble Qtempy, const QUICKDouble Qtempz,

@@ -22,8 +22,7 @@ void _gpuGetDeviceCount(int * count, const char * const filename, int line)
 
     ret = cudaGetDeviceCount(count);
 
-    if (ret != cudaSuccess)
-    {
+    if (ret != cudaSuccess) {
 #if defined(MPIV_GPU)
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
@@ -64,8 +63,7 @@ void _gpuGetDeviceCount(int device, const char * const filename, int line)
 
     ret = cudaSetDevice(device);
 
-    if (ret != cudaSuccess)
-    {
+    if (ret != cudaSuccess) {
 #if defined(MPIV_GPU)
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
@@ -127,8 +125,7 @@ void _gpuMalloc(void **ptr, size_t size, const char * const filename,
 
     ret = cudaMalloc(ptr, size);
 
-    if (ret != cudaSuccess)
-    {
+    if (ret != cudaSuccess) {
 #if defined(MPIV_GPU)
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
@@ -196,8 +193,7 @@ void _gpuHostAlloc(void **ptr, size_t size, unsigned int flags, const char * con
 
     ret = cudaHostAlloc(ptr, size, flags);
 
-    if (ret != cudaSuccess)
-    {
+    if (ret != cudaSuccess) {
 #if defined(MPIV_GPU)
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
@@ -247,8 +243,7 @@ void _gpuFree(void *ptr, const char * const filename, int line)
 #endif
     cudaError_t ret;
 
-    if (ptr == NULL)
-    {
+    if (ptr == NULL) {
         fprintf(stderr, "[WARNING] trying to free the already NULL pointer\n");
         fprintf(stderr, "    [INFO] At line %d in file %.*s\n",
                 line, (int) strlen(filename), filename);
@@ -270,8 +265,7 @@ void _gpuFree(void *ptr, const char * const filename, int line)
 
     ret = cudaFree(ptr);
 
-    if (ret != cudaSuccess)
-    {
+    if (ret != cudaSuccess) {
 #if defined(MPIV_GPU)
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
@@ -308,8 +302,7 @@ void _gpuFreeHost(void * ptr, const char * const filename, int line)
 #endif
     cudaError_t ret;
 
-    if (ptr == NULL)
-    {
+    if (ptr == NULL) {
         fprintf(stderr, "[WARNING] trying to free the already NULL pointer\n");
         fprintf(stderr, "    [INFO] At line %d in file %.*s\n",
                 line, (int) strlen(filename), filename);
@@ -331,8 +324,7 @@ void _gpuFreeHost(void * ptr, const char * const filename, int line)
 
     ret = cudaFreeHost(ptr);
 
-    if (ret != cudaSuccess)
-    {
+    if (ret != cudaSuccess) {
 #if defined(MPIV_GPU)
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
@@ -374,8 +366,7 @@ void _gpuMemset(void *ptr, int data, size_t count,
 
     ret = cudaMemset(ptr, data, count);
 
-    if (ret != cudaSuccess)
-    {
+    if (ret != cudaSuccess) {
 #if defined(MPIV_GPU)
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
@@ -420,8 +411,7 @@ void _gpuMemsetAsync(void *ptr, int data, size_t count,
 
     ret = cudaMemsetAsync(ptr, data, count, s);
 
-    if (ret != cudaSuccess)
-    {
+    if (ret != cudaSuccess) {
 #if defined(MPIV_GPU)
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
@@ -462,8 +452,7 @@ void _gpuCheckMalloc(void **ptr, size_t *cur_size, size_t new_size,
 {
     assert(new_size > 0 || *cur_size > 0);
 
-    if (new_size > *cur_size)
-    {
+    if (new_size > *cur_size) {
 #if defined(DEBUG_FOCUS)
   #if defined(MPIV_GPU)
         int rank;
@@ -479,15 +468,14 @@ void _gpuCheckMalloc(void **ptr, size_t *cur_size, size_t new_size,
         fflush(stderr);
 #endif
 
-        if (*cur_size != 0)
-        {
+        if (*cur_size != 0) {
             _gpuFree(*ptr, filename, line);
         }
 
         //TODO: look into using aligned alloc's
         /* intentionally over-allocate by 20% to reduce the number of allocation operations,
          * and record the new allocation size */
-        *cur_size = (size_t) ceil(new_size * 1.2);
+        *cur_size = (size_t) ceil((double) new_size * 1.2);
         _gpuMalloc(ptr, *cur_size, filename, line);
     }
 }
@@ -512,8 +500,7 @@ void _gpuMemcpy(void * const dest, void const * const src, size_t count,
 
     ret = cudaMemcpy(dest, src, count, dir);
 
-    if (ret != cudaSuccess)
-    {
+    if (ret != cudaSuccess) {
 #if defined(MPIV_GPU)
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
@@ -559,8 +546,7 @@ void _gpuMemcpyAsync(void * const dest, void const * const src, size_t count,
 
     ret = cudaMemcpyAsync(dest, src, count, dir, s);
 
-    if (ret != cudaSuccess)
-    {
+    if (ret != cudaSuccess) {
 #if defined(MPIV_GPU)
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
@@ -604,8 +590,7 @@ void _gpuMemcpyToSymbol(void const * const symbol, void const * const src, size_
 
     ret = cudaMemcpyToSymbol(symbol, src, count);
 
-    if (ret != cudaSuccess)
-    {
+    if (ret != cudaSuccess) {
 #if defined(MPIV_GPU)
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
@@ -649,8 +634,7 @@ void _gpuHostGetDevicePointer(void ** pdev, void * const phost, unsigned int fla
 
     ret = cudaHostGetDevicePointer(pdev, phost, flags);
 
-    if (ret != cudaSuccess)
-    {
+    if (ret != cudaSuccess) {
 #if defined(MPIV_GPU)
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
@@ -689,13 +673,12 @@ void _gpuHostGetDevicePointer(void ** pdev, void * const phost, unsigned int fla
  * line: line of source file where function call originated
  * */
 void _gpuHostAllocCheck(void **ptr, size_t *cur_size, size_t new_size,
-        unsigned int flags, int over_alloc, double over_alloc_factor,
+        unsigned int flags, bool over_alloc, double over_alloc_factor,
         const char * const filename, int line)
 {
     assert(new_size > 0 || *cur_size > 0);
 
-    if (new_size > *cur_size)
-    {
+    if (new_size > *cur_size) {
 #if defined(DEBUG_FOCUS)
   #if defined(MPIV_GPU)
         int rank;
@@ -711,17 +694,13 @@ void _gpuHostAllocCheck(void **ptr, size_t *cur_size, size_t new_size,
         fflush(stderr);
 #endif
 
-        if (*cur_size != 0)
-        {
+        if (*cur_size != 0) {
             _gpuFreeHost(*ptr, filename, line);
         }
 
-        if (over_alloc == 1)
-        {
-            *cur_size = (int) ceil(new_size * over_alloc_factor);
-        }
-        else
-        {
+        if (over_alloc == true) {
+            *cur_size = (size_t) ceil((double) new_size * over_alloc_factor);
+        } else {
             *cur_size = new_size;
         }
 
@@ -744,7 +723,7 @@ void _gpuHostAllocCheck(void **ptr, size_t *cur_size, size_t new_size,
  * line: line of source file where function call originated
  * */
 void _gpuHostReallocCheck(void **ptr, size_t *cur_size, size_t new_size,
-        unsigned int flags, int over_alloc, double over_alloc_factor,
+        unsigned int flags, bool over_alloc, double over_alloc_factor,
         const char * const filename, int line)
 {
     void *old_ptr;
@@ -773,19 +752,15 @@ void _gpuHostReallocCheck(void **ptr, size_t *cur_size, size_t new_size,
         old_ptr_size = *cur_size;
         *ptr = NULL;
 
-        if (over_alloc == 1)
-        {
-            *cur_size = (int) ceil(new_size * over_alloc_factor);
-        }
-        else
-        {
+        if (over_alloc == true) {
+            *cur_size = (size_t) ceil((double) new_size * over_alloc_factor);
+        } else {
             *cur_size = new_size;
         }
 
         _gpuHostAlloc(ptr, *cur_size, flags, filename, line);
 
-        if (old_ptr_size != 0)
-        {
+        if (old_ptr_size != 0) {
             _gpuMemcpy(*ptr, old_ptr, old_ptr_size, cudaMemcpyHostToHost,
                     __FILE__, __LINE__);
 
@@ -810,8 +785,7 @@ void _gpuEventCreate(cudaEvent_t * event, const char * const filename, int line)
 
     ret = cudaEventCreate(event);
 
-    if (ret != cudaSuccess)
-    {
+    if (ret != cudaSuccess) {
 #if defined(MPIV_GPU)
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
@@ -852,8 +826,7 @@ void _gpuEventDestroy(cudaEvent_t event, const char * const filename, int line)
 
     ret = cudaEventDestroy(event);
 
-    if (ret != cudaSuccess)
-    {
+    if (ret != cudaSuccess) {
 #if defined(MPIV_GPU)
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
@@ -895,8 +868,7 @@ void _gpuEventElapsedTime(float * time, cudaEvent_t start, cudaEvent_t end, cons
 
     ret = cudaEventElapsedTime(time, start, end);
 
-    if (ret != cudaSuccess)
-    {
+    if (ret != cudaSuccess) {
 #if defined(MPIV_GPU)
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
@@ -938,8 +910,7 @@ void _gpuEventRecord(cudaEvent_t event, cudaStream_t stream, const char * const 
 
     ret = cudaEventRecord(event, stream);
 
-    if (ret != cudaSuccess)
-    {
+    if (ret != cudaSuccess) {
 #if defined(MPIV_GPU)
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
@@ -980,8 +951,7 @@ void _gpuEventSynchronize(cudaEvent_t event, const char * const filename, int li
 
     ret = cudaEventSynchronize(event);
 
-    if (ret != cudaSuccess)
-    {
+    if (ret != cudaSuccess) {
 #if defined(MPIV_GPU)
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
@@ -1021,8 +991,7 @@ void _gpuDeviceSynchronize(const char * const filename, int line)
 
     ret = cudaDeviceSynchronize();
 
-    if (ret != cudaSuccess)
-    {
+    if (ret != cudaSuccess) {
 #if defined(MPIV_GPU)
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif

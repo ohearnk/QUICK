@@ -85,25 +85,27 @@ static void wrapperError (const char *funcName, int error)
 }
 
 
-void CUDA_DIAG (double* o, const double* x,double* hold,
-        const double* E, const double* idegen,
-        const double* vec, const double* co,
-        const double* V2, const int* nbasis)
+void CUDA_DIAG (double * o, const double * x, double * hold,
+        const double * E, const double * idegen, const double * vec, const double * co,
+        const double * V2, const int * nbasis)
 {
-    int ka, kb;
+    int ka, kb, dim, lwork, *devPtr_devInfo;
+    const double h_one = 1.0, h_zero = 0.0;
+    double *devPtr_o, *devPtr_x, *devPtr_hold;
+    double* devPtr_E, *devPtr_work;
+    cublasHandle_t cublasH;
     cublasStatus_t stat1, stat2, stat3;
+    cublasStatus_t cublas_status;
+    cusolverEigMode_t jobz = CUSOLVER_EIG_MODE_VECTOR;
+    cublasFillMode_t uplo = CUBLAS_FILL_MODE_UPPER;
 
-    double* devPtr_o = NULL;
-    double* devPtr_x = NULL;
-    double* devPtr_hold = NULL;
+    if (* nbasis == 0) return;
 
-    if (nbasis == 0) return;
+    dim = * nbasis;
 
-    int dim = *nbasis;
-
-    stat1 = cudaMalloc((void**)&devPtr_o, sizeof(double) * imax(1, dim * dim));
-    stat2 = cudaMalloc((void**)&devPtr_x, sizeof(double) * imax(1, dim * dim));
-    stat3 = cudaMalloc((void**)&devPtr_hold, sizeof(double) * dim * dim);
+    stat1 = cudaMalloc((void **) &devPtr_o, sizeof(double) * imax(1, dim * dim));
+    stat2 = cudaMalloc((void **) &devPtr_x, sizeof(double) * imax(1, dim * dim));
+    stat3 = cudaMalloc((void **) &devPtr_hold, sizeof(double) * dim * dim);
 
     if ((stat1 != cudaSuccess)
             || (stat2 != cudaSuccess)
@@ -115,9 +117,9 @@ void CUDA_DIAG (double* o, const double* x,double* hold,
         return;
     }
 
-    stat1=cublasSetMatrix(dim,dim,sizeof(devPtr_o[0]),o,dim,devPtr_o,dim);
-    stat2=cublasSetMatrix(dim,dim,sizeof(devPtr_x[0]),x,dim,devPtr_x,dim);
-    stat3=cublasSetMatrix(dim,dim,sizeof(devPtr_hold[0]),hold,dim,devPtr_hold,dim);
+    stat1 = cublasSetMatrix(dim, dim, sizeof(double), o, dim, devPtr_o, dim);
+    stat2 = cublasSetMatrix(dim, dim, sizeof(double), x, dim, devPtr_x, dim);
+    stat3 = cublasSetMatrix(dim, dim, sizeof(double), hold, dim, devPtr_hold, dim);
 
     if ((stat1 != CUBLAS_STATUS_SUCCESS) ||
             (stat2 != CUBLAS_STATUS_SUCCESS) ||
@@ -129,13 +131,8 @@ void CUDA_DIAG (double* o, const double* x,double* hold,
         return;
     }
 
-    cublasHandle_t cublasH = NULL;
-    cublasStatus_t cublas_status = CUBLAS_STATUS_SUCCESS;
     cublas_status = cublasCreate_v2(&cublasH);
     assert(CUBLAS_STATUS_SUCCESS == cublas_status);
-
-    const double h_one = 1;
-    const double h_zero = 0;
 
     // hold = o * x
     cublasDgemm_v2(cublasH, CUBLAS_OP_N, CUBLAS_OP_N, dim, dim, dim, &h_one, devPtr_o, dim,
@@ -161,29 +158,22 @@ void CUDA_DIAG (double* o, const double* x,double* hold,
     assert(CUSOLVER_STATUS_SUCCESS == cusolver_status);
 
     //Step 2: Copy arrays to device
-    double* devPtr_E = NULL;
-    cudaStat1 = cudaMalloc((void**)&devPtr_E, sizeof(double) * dim);
+    cudaStat1 = cudaMalloc((void **) &devPtr_E, sizeof(double) * dim);
     assert(cudaSuccess == cudaStat1);
 
-    int* devPtr_devInfo = NULL;
-    cudaStat2 = cudaMalloc((void**)&devPtr_devInfo, sizeof(double));
+    cudaStat2 = cudaMalloc((void**) &devPtr_devInfo, sizeof(double));
     assert(cudaSuccess == cudaStat2);
-
-    cusolverEigMode_t jobz = CUSOLVER_EIG_MODE_VECTOR;
-    cublasFillMode_t uplo = CUBLAS_FILL_MODE_UPPER;
-
-    int lwork = 0;
 
     // Query the workspace for work buffer size
     cusolver_status = cusolverDnDsyevd_bufferSize(cusolverH, jobz,
             uplo, dim, devPtr_o, dim, devPtr_E, &lwork);
     assert(cusolver_status == CUSOLVER_STATUS_SUCCESS);
 
-    double* devPtr_work = NULL;
-
     // Allocate work space
-    cudaStat3 = cudaMalloc((void**)&devPtr_work, sizeof(double)*lwork);
+    cudaStat3 = cudaMalloc((void **) &devPtr_work, sizeof(double) * lwork);
     assert(cudaSuccess == cudaStat3);
+
+    cudaMemset(devPtr_work, 0, sizeof(double) * lwork);
 
     // Compute Spectrum
     cusolver_status = cusolverDnDsyevd(cusolverH, jobz,

@@ -10,6 +10,7 @@
 #if !defined(__QUICK_GPU_COMMON_H_)
 #define __QUICK_GPU_COMMON_H_
 
+#include <stdint.h>
 #include <stdio.h>
 
 #include "../octree/gpack_common.h"
@@ -229,8 +230,8 @@ enum QUICK_METHOD
 };
 
 struct ERI_entry {
-    int IJ;
-    int KL;
+    uint8_t IJ;
+    uint8_t KL;
     QUICKDouble value;
 };
 

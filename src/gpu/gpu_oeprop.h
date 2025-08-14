@@ -22,26 +22,26 @@
 #include "gpu_fmt.h"
 
 
-__device__ static inline void addint_oeprop(unsigned int I, unsigned int J, unsigned int II, unsigned int JJ,
-        unsigned int ipoint, QUICKDouble * const store2)
+__device__ static inline void addint_oeprop(uint8_t I, uint8_t J, uint32_t II, uint32_t JJ,
+        uint32_t ipoint, QUICKDouble * const store2)
 {
     // obtain the start and final basis function indices for given shells II and JJ for
     // contribution into correct location in Fock matrix.
-    int III1 = LOC2(devSim.Qsbasis, II, I, devSim.nshell, 4);
-    int III2 = LOC2(devSim.Qfbasis, II, I, devSim.nshell, 4);
-    int JJJ1 = LOC2(devSim.Qsbasis, JJ, J, devSim.nshell, 4);
-    int JJJ2 = LOC2(devSim.Qfbasis, JJ, J, devSim.nshell, 4);
+    uint32_t III1 = LOC2(devSim.Qsbasis, II, I, devSim.nshell, 4);
+    uint32_t III2 = LOC2(devSim.Qfbasis, II, I, devSim.nshell, 4);
+    uint32_t JJJ1 = LOC2(devSim.Qsbasis, JJ, J, devSim.nshell, 4);
+    uint32_t JJJ2 = LOC2(devSim.Qfbasis, JJ, J, devSim.nshell, 4);
 
-    for (int III = III1; III <= III2; III++) {
-        for (int JJJ = MAX(III,JJJ1); JJJ <= JJJ2; JJJ++) {
+    for (uint32_t III = III1; III <= III2; III++) {
+        for (uint32_t JJJ = MAX(III,JJJ1); JJJ <= JJJ2; JJJ++) {
             // devTrans maps a basis function with certain angular momentum to store2 array. Get the correct indices now.
-            int i = (int) LOC3(devTrans,
+            uint8_t i = LOC3(devTrans,
                     LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
                     LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
                     LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
                     TRANSDIM, TRANSDIM, TRANSDIM);
 
-            int j = (int) LOC3(devTrans, 
+            uint8_t j = LOC3(devTrans, 
                     LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
                     LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
                     LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
@@ -59,7 +59,7 @@ __device__ static inline void addint_oeprop(unsigned int I, unsigned int J, unsi
                 DENSEJI = DENSEJI + (QUICKDouble) LOC2(devSim.denseb, JJJ, III, devSim.nbasis, devSim.nbasis);
             }
             QUICKDouble Y = dense_sym_factor * DENSEJI * devSim.cons[III] * devSim.cons[JJJ]
-                * LOCSTORE(store2, i - 1, j - 1, STOREDIM, STOREDIM);
+                * LOCSTORE(store2, i, j, STOREDIM, STOREDIM);
 
 #if defined(USE_LEGACY_ATOMICS)
             GPUATOMICADD(&devSim.esp_electronicULL[ipoint], Y, OSCALE);
@@ -71,8 +71,8 @@ __device__ static inline void addint_oeprop(unsigned int I, unsigned int J, unsi
 }
 
 
-__device__ static inline void iclass_oeprop(unsigned int I, unsigned int J, unsigned int II, unsigned int JJ,
-        unsigned int ipoint, unsigned int totalpoint, unsigned int totalatom,
+__device__ static inline void iclass_oeprop(uint8_t I, uint8_t J, uint32_t II, uint32_t JJ,
+        uint32_t ipoint, uint32_t totalpoint, uint32_t totalatom,
         QUICKDouble * const YVerticalTemp, QUICKDouble * const store, QUICKDouble * const store2)
 {
     /*
@@ -95,28 +95,28 @@ __device__ static inline void iclass_oeprop(unsigned int I, unsigned int J, unsi
        kStartI, J indicates the starting guassian function for shell II, JJ.
        We retrieve from global memory and save them to register to avoid multiple retrieve.
    */
-    int kPrimI = devSim.kprim[II];
-    int kPrimJ = devSim.kprim[JJ];
+    uint32_t kPrimI = devSim.kprim[II];
+    uint32_t kPrimJ = devSim.kprim[JJ];
 
-    int kStartI = devSim.kstart[II];
-    int kStartJ = devSim.kstart[JJ];
+    uint32_t kStartI = devSim.kstart[II];
+    uint32_t kStartJ = devSim.kstart[JJ];
 
     /*
        Store array holds contracted integral values computed using VRR algorithm.
        See J. Chem. Phys. 1986, 84, 3963−3974 for theoretical details.
     */
     // initialize store2 array
-    for (int i = Sumindex[J]; i < Sumindex[J + 2]; ++i) {
-        for (int j = Sumindex[I]; j < Sumindex[I + 2]; ++j) {
+    for (uint8_t i = Sumindex[J]; i < Sumindex[J + 2]; ++i) {
+        for (uint8_t j = Sumindex[I]; j < Sumindex[I + 2]; ++j) {
             if (i < STOREDIM && j < STOREDIM) {
                 LOCSTORE(store2, j, i, STOREDIM, STOREDIM) = 0.0;
             }
         }
     }
 
-    for (int i = 0; i < kPrimI * kPrimJ ; ++i) {
-        int JJJ = (int) i / kPrimI;
-        int III = (int) i - kPrimI * JJJ;
+    for (uint32_t i = 0; i < kPrimI * kPrimJ ; ++i) {
+        uint32_t JJJ = (uint32_t) i / kPrimI;
+        uint32_t III = (uint32_t) i - kPrimI * JJJ;
 
         /*
            In the following comments, we have I, J, K, L denote the primitive gaussian function we use, and
@@ -130,8 +130,8 @@ __device__ static inline void iclass_oeprop(unsigned int I, unsigned int J, unsi
            Those two are pre-calculated in CPU stage.
 
         */
-        int ii_start = devSim.prim_start[II];
-        int jj_start = devSim.prim_start[JJ];
+        uint32_t ii_start = devSim.prim_start[II];
+        uint32_t jj_start = devSim.prim_start[JJ];
 
         QUICKDouble Zeta = LOC2(devSim.expoSum, ii_start + III, jj_start + JJJ,
                 devSim.prim_total, devSim.prim_total);
@@ -154,7 +154,7 @@ __device__ static inline void iclass_oeprop(unsigned int I, unsigned int J, unsi
             FmT(I + J, Zeta * (SQR(Px - Cx) + SQR(Py - Cy) + SQR(Pz - Cz)), YVerticalTemp);
 
             // compute all auxilary integrals and store
-            for (int n = 0; n <= I + J; n++) {
+            for (uint32_t n = 0; n <= I + J; n++) {
                 VY(0, 0, n) *= -1.0 * Xcoeff_oei;
             }
 
@@ -169,8 +169,8 @@ __device__ static inline void iclass_oeprop(unsigned int I, unsigned int J, unsi
                     1.0 / (2.0 * Zeta), store, YVerticalTemp);
 
             // sum up primitive integral contributions
-            for (int i = Sumindex[J]; i < Sumindex[J + 2]; ++i) {
-                for (int j = Sumindex[I]; j < Sumindex[I + 2]; ++j) {
+            for (uint8_t i = Sumindex[J]; i < Sumindex[J + 2]; ++i) {
+                for (uint8_t j = Sumindex[I]; j < Sumindex[I + 2]; ++j) {
                     if (i < STOREDIM && j < STOREDIM) {
                         LOCSTORE(store2, j, i, STOREDIM, STOREDIM) +=  LOCSTORE(store, j, i, STOREDIM, STOREDIM);
                     }
@@ -188,8 +188,8 @@ __global__ void getOEPROP_kernel()
 {
     unsigned int offset = blockIdx.x * blockDim.x + threadIdx.x;
     unsigned int totalThreads = blockDim.x * gridDim.x;
-    unsigned int jshell = devSim.Qshell;
-    unsigned int totalatom = devSim.natom + devSim.nextatom;
+    uint32_t jshell = devSim.Qshell;
+    uint32_t totalatom = devSim.natom + devSim.nextatom;
     QUICKULL totalpoint = devSim.nextpoint;
     QUICKULL ncalcs = (QUICKULL) (jshell * jshell * totalpoint);
 
@@ -199,25 +199,25 @@ __global__ void getOEPROP_kernel()
         // shell number (ii and jj) and quantum numbers (iii, jjj).
         // For each shell pair, we are going over all the external points before
         // moving to the next shell pair.
-        unsigned int idx = (unsigned int) (i / totalpoint);
+        uint32_t idx = (uint32_t) (i / totalpoint);
 
 #if defined(MPIV_GPU)
         if (devSim.mpi_boeicompute[idx] > 0) {
 #endif
-            unsigned int ipoint = (unsigned int) (i - idx * totalpoint);
+            uint32_t ipoint = (uint32_t) (i - idx * totalpoint);
 
             int II = devSim.sorted_OEICutoffIJ[idx].x;
             int JJ = devSim.sorted_OEICutoffIJ[idx].y;
 
             // get the shell numbers of selected shell pair
-            int ii = devSim.sorted_Q[II];
-            int jj = devSim.sorted_Q[JJ];
+            uint32_t ii = devSim.sorted_Q[II];
+            uint32_t jj = devSim.sorted_Q[JJ];
 
             // Only choose the unique shell pairs
             if (jj >= ii) {
                 // get the quantum number (or angular momentum of shells, s=0, p=1 and so on.)
-                int iii = devSim.sorted_Qnumber[II];
-                int jjj = devSim.sorted_Qnumber[JJ];
+                uint8_t iii = devSim.sorted_Qnumber[II];
+                uint8_t jjj = devSim.sorted_Qnumber[JJ];
 
                 // compute coulomb attraction for the selected shell pair.
                 iclass_oeprop(iii, jjj, ii, jj, ipoint, totalpoint, totalatom, devSim.YVerticalTemp + offset,

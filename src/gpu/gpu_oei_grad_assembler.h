@@ -11,14 +11,14 @@
    !_____________________________________________________________________!
    */
 
-__device__ static inline void oei_grad_vertical(int I, int J,
+__device__ static inline void oei_grad_vertical(uint8_t I, uint8_t J,
 #if defined(DEBUG_OEI)
-        int II, int JJ,
+        uint32_t II, uint32_t JJ,
 #endif
         QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
         QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz,
         QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz,
-        QUICKDouble TwoZetaInv, QUICKDouble* store, QUICKDouble* YVerticalTemp)
+        QUICKDouble TwoZetaInv, QUICKDouble * const store, QUICKDouble * const YVerticalTemp)
 {
     /* SS integral gradient, m=0 */
     if (I == 0 && J == 0) {

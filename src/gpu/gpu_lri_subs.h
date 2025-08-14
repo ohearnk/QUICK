@@ -42,8 +42,8 @@ __device__ static inline void iclass_lri
 #elif(defined int_spdf2)
 __device__ static inline void iclass_lri_spdf2
 #endif
-(int I, int J, unsigned int II, unsigned int JJ, int iatom,
- unsigned int totalatom, QUICKDouble* YVerticalTemp, QUICKDouble* store)
+(uint8_t I, uint8_t J, uint32_t II, uint32_t JJ, uint32_t iatom,
+ uint32_t totalatom, QUICKDouble * const YVerticalTemp, QUICKDouble * const store)
 {
     /*
        kAtom A, B, C ,D is the coresponding atom for shell ii, jj, kk, ll
@@ -68,11 +68,11 @@ __device__ static inline void iclass_lri_spdf2
        kStartI, J, K, and L indicates the starting guassian function for shell I, J, K, and L.
        We retrieve from global memory and save them to register to avoid multiple retrieve.
        */
-    int kPrimI = devSim.kprim[II];
-    int kPrimJ = devSim.kprim[JJ];
+    uint32_t kPrimI = devSim.kprim[II];
+    uint32_t kPrimJ = devSim.kprim[JJ];
 
-    int kStartI = devSim.kstart[II];
-    int kStartJ = devSim.kstart[JJ];
+    uint32_t kStartI = devSim.kstart[II];
+    uint32_t kStartJ = devSim.kstart[JJ];
 
     /*
        store saves temp contracted integral as [as|bs] type. the dimension should be allocatable but because
@@ -84,16 +84,16 @@ __device__ static inline void iclass_lri_spdf2
        Initial the neccessary element for
     */
 #if defined(int_spd)
-    for (int i = Sumindex[1] + 1; i <= Sumindex[2]; i++) {
-        for (int j = Sumindex[I + 1] + 1; j <= Sumindex[I + J + 2]; j++) {
+    for (uint8_t i = Sumindex[1] + 1; i <= Sumindex[2]; i++) {
+        for (uint8_t j = Sumindex[I + 1] + 1; j <= Sumindex[I + J + 2]; j++) {
             if (i <= STOREDIM && j <= STOREDIM) {
                 LOCSTORE(store, j - 1, i - 1, STOREDIM, STOREDIM) = 0.0;
             }
         }
     }
 #elif(defined int_spdf2)
-    for (int i = Sumindex[1] + 1; i <= Sumindex[2]; i++) {
-        for (int j = Sumindex[I + 1] + 1; j <= Sumindex[I + J + 2]; j++) {
+    for (uint8_t i = Sumindex[1] + 1; i <= Sumindex[2]; i++) {
+        for (uint8_t j = Sumindex[I + 1] + 1; j <= Sumindex[I + J + 2]; j++) {
             if (i <= STOREDIM && j <= STOREDIM) {
                 LOCSTORE(store, j - 1, i - 1, STOREDIM, STOREDIM) = 0.0;
             }
@@ -101,9 +101,9 @@ __device__ static inline void iclass_lri_spdf2
     }
 #endif
 
-    for (int i = 0; i < kPrimI * kPrimJ; i++) {
-        int JJJ = (int) i / kPrimI;
-        int III = (int) i - kPrimI * JJJ;
+    for (uint32_t i = 0; i < kPrimI * kPrimJ; i++) {
+        uint32_t JJJ = (uint32_t) i / kPrimI;
+        uint32_t III = (uint32_t) i - kPrimI * JJJ;
         /*
            In the following comments, we have I, J, K, L denote the primitive gaussian function we use, and
            for example, expo(III, ksumtype(II)) stands for the expo for the IIIth primitive guassian function for II shell,
@@ -116,8 +116,8 @@ __device__ static inline void iclass_lri_spdf2
            Those two are pre-calculated in CPU stage.
 
         */
-        int ii_start = devSim.prim_start[II];
-        int jj_start = devSim.prim_start[JJ];
+        uint32_t ii_start = devSim.prim_start[II];
+        uint32_t jj_start = devSim.prim_start[JJ];
 
         QUICKDouble AB = LOC2(devSim.expoSum, ii_start+III, jj_start+JJJ, devSim.prim_total, devSim.prim_total);
         QUICKDouble Px = LOC2(devSim.weightedCenterX, ii_start+III, jj_start+JJJ, devSim.prim_total, devSim.prim_total);
@@ -167,7 +167,7 @@ __device__ static inline void iclass_lri_spdf2
 
         FmT(I + J, AB * CD * ABCD * (SQR(Px - Qx) + SQR(Py - Qy) + SQR(Pz - Qz)), YVerticalTemp);
 
-        for (int i = 0; i <= I + J; i++) {
+        for (uint32_t i = 0; i <= I + J; i++) {
             VY(0, 0, i) *= X2;
         }
 
@@ -190,10 +190,10 @@ __device__ static inline void iclass_lri_spdf2
     RBy = LOC2(devSim.xyz, 1, devSim.katom[JJ], 3, devSim.natom);
     RBz = LOC2(devSim.xyz, 2, devSim.katom[JJ], 3, devSim.natom);
 
-    int III1 = LOC2(devSim.Qsbasis, II, I, devSim.nshell, 4);
-    int III2 = LOC2(devSim.Qfbasis, II, I, devSim.nshell, 4);
-    int JJJ1 = LOC2(devSim.Qsbasis, JJ, J, devSim.nshell, 4);
-    int JJJ2 = LOC2(devSim.Qfbasis, JJ, J, devSim.nshell, 4);
+    uint32_t III1 = LOC2(devSim.Qsbasis, II, I, devSim.nshell, 4);
+    uint32_t III2 = LOC2(devSim.Qfbasis, II, I, devSim.nshell, 4);
+    uint32_t JJJ1 = LOC2(devSim.Qsbasis, JJ, J, devSim.nshell, 4);
+    uint32_t JJJ2 = LOC2(devSim.Qfbasis, JJ, J, devSim.nshell, 4);
 
     /*QUICKDouble hybrid_coeff = 0.0;
       if (devSim.method == HF){
@@ -206,8 +206,8 @@ __device__ static inline void iclass_lri_spdf2
       hybrid_coeff = devSim.hyb_coeff;
       }*/
 
-    for (int III = III1; III <= III2; III++) {
-        for (int JJJ = MAX(III, JJJ1); JJJ <= JJJ2; JJJ++) {
+    for (uint32_t III = III1; III <= III2; III++) {
+        for (uint32_t JJJ = MAX(III, JJJ1); JJJ <= JJJ2; JJJ++) {
 #if defined(int_spd)
             QUICKDouble Y = (QUICKDouble) hrrwhole_lri
 #elif(defined int_spdf2)
@@ -303,7 +303,7 @@ __global__ void
 __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) get_lri_kernel_spdf2()
 #endif
 {
-    unsigned int offside = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned int offset = blockIdx.x * blockDim.x + threadIdx.x;
     int totalThreads = blockDim.x * gridDim.x;
 
     // jshell and jshell2 defines the regions in i+j and k+l axes respectively.
@@ -328,9 +328,9 @@ __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) get_lri_kernel_spdf2()
     QUICKULL jshell = (QUICKULL) devSim.sqrQshell;
 #endif
 
-    unsigned int totalatom = devSim.natom + devSim.nextatom;
+    uint32_t totalatom = devSim.natom + devSim.nextatom;
 
-    for (QUICKULL i = offside; i < jshell * totalatom; i+= totalThreads) {
+    for (QUICKULL i = offset; i < jshell * totalatom; i+= totalThreads) {
 #if defined(int_spd)
         // Zone 0
         QUICKULL iatom = (QUICKULL) i / jshell;
@@ -348,20 +348,22 @@ __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) get_lri_kernel_spdf2()
             int II = devSim.sorted_YCutoffIJ[b].x;
             int JJ = devSim.sorted_YCutoffIJ[b].y;
 
-            int ii = devSim.sorted_Q[II];
-            int jj = devSim.sorted_Q[JJ];
+            uint32_t ii = devSim.sorted_Q[II];
+            uint32_t jj = devSim.sorted_Q[JJ];
 
 //            printf("b II JJ ii jj %lu %lu %d %d %d %d \n", jshell, b, II, JJ, ii, jj);
 
-            int iii = devSim.sorted_Qnumber[II];
-            int jjj = devSim.sorted_Qnumber[JJ];
+            uint8_t iii = devSim.sorted_Qnumber[II];
+            uint8_t jjj = devSim.sorted_Qnumber[JJ];
 
             // assign values to dummy variables, to be cleaned up eventually
 #if defined(int_spd)
-            iclass_lri(iii, jjj, ii, jj, iatom, totalatom, devSim.YVerticalTemp+offside, devSim.store+offside);
+            iclass_lri(iii, jjj, ii, jj, iatom, totalatom,
+                    devSim.YVerticalTemp + offset, devSim.store + offset);
 #elif defined(int_spdf2)
-            if ( (iii + jjj) > 4 && (iii + jjj) <= 6 ) {
-                iclass_lri_spdf2(iii, jjj, ii, jj, iatom, totalatom, devSim.YVerticalTemp+offside, devSim.store+offside);
+            if (iii + jjj > 4 && iii + jjj <= 6) {
+                iclass_lri_spdf2(iii, jjj, ii, jj, iatom, totalatom,
+                        devSim.YVerticalTemp + offset, devSim.store + offset);
             }
 #endif
 #if defined(MPIV_GPU)

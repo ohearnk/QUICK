@@ -27,8 +27,8 @@
 #define VY(a,b,c) LOCVY(&devSim.YVerticalTemp[blockIdx.x * blockDim.x + threadIdx.x], (a), (b), (c), VDIM1, VDIM2, VDIM3)
 
 
-__device__ static inline void iclass_oei(unsigned int I, unsigned int J, unsigned int II, unsigned int JJ,
-        unsigned int iatom) {
+__device__ static inline void iclass_oei(uint8_t I, uint8_t J, uint32_t II, uint32_t JJ,
+        uint32_t iatom) {
     /*
        kAtom A, B  is the coresponding atom for shell II, JJ
        and be careful with the index difference between Fortran and C++,
@@ -48,17 +48,17 @@ __device__ static inline void iclass_oei(unsigned int I, unsigned int J, unsigne
        kStartI, J indicates the starting guassian function for shell II, JJ.
        We retrieve from global memory and save them to register to avoid multiple retrieve.
     */
-    const int kPrimI = devSim.kprim[II];
-    const int kPrimJ = devSim.kprim[JJ];
-    const int kStartI = devSim.kstart[II];
-    const int kStartJ = devSim.kstart[JJ];
+    const uint32_t kPrimI = devSim.kprim[II];
+    const uint32_t kPrimJ = devSim.kprim[JJ];
+    const uint32_t kStartI = devSim.kstart[II];
+    const uint32_t kStartJ = devSim.kstart[JJ];
 
     /*
        Store array holds contracted integral values computed using VRR algorithm.
        See J. Chem. Phys. 1986, 84, 3963−3974 for theoretical details.
     */
-    for (int i = Sumindex[J]; i < Sumindex[J + 2]; ++i) {
-        for (int j = Sumindex[I]; j < Sumindex[I + 2]; ++j) {
+    for (uint8_t i = Sumindex[J]; i < Sumindex[J + 2]; ++i) {
+        for (uint8_t j = Sumindex[I]; j < Sumindex[I + 2]; ++j) {
             if (i < STOREDIM && j < STOREDIM) {
                 LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
                         j, i, STOREDIM, STOREDIM) = 0.0;
@@ -66,8 +66,8 @@ __device__ static inline void iclass_oei(unsigned int I, unsigned int J, unsigne
         }
     }
 
-    for (int i = Sumindex[J]; i < Sumindex[J + 2]; ++i) {
-        for (int j = Sumindex[I]; j < Sumindex[I + 2]; ++j) {
+    for (uint8_t i = Sumindex[J]; i < Sumindex[J + 2]; ++i) {
+        for (uint8_t j = Sumindex[I]; j < Sumindex[I + 2]; ++j) {
             if (i < STOREDIM && j < STOREDIM) {
                 LOCSTORE(&devSim.store2[blockIdx.x * blockDim.x + threadIdx.x],
                         j, i, STOREDIM, STOREDIM) = 0.0;
@@ -75,12 +75,12 @@ __device__ static inline void iclass_oei(unsigned int I, unsigned int J, unsigne
         }
     }
 
-    const int ii_start = devSim.prim_start[II];
-    const int jj_start = devSim.prim_start[JJ];
+    const uint32_t ii_start = devSim.prim_start[II];
+    const uint32_t jj_start = devSim.prim_start[JJ];
 
-    for (int i = 0; i < kPrimI * kPrimJ; ++i) {
-        const int JJJ = (int) i / kPrimI;
-        const int III = (int) i - kPrimI * JJJ;
+    for (uint32_t i = 0; i < kPrimI * kPrimJ; ++i) {
+        const uint32_t JJJ = (uint32_t) i / kPrimI;
+        const uint32_t III = (uint32_t) i - kPrimI * JJJ;
 
         /*
            In the following comments, we have I, J, K, L denote the primitive gaussian function we use, and
@@ -113,7 +113,7 @@ __device__ static inline void iclass_oei(unsigned int I, unsigned int J, unsigne
                     &devSim.YVerticalTemp[blockIdx.x * blockDim.x + threadIdx.x]);
 
             // compute all auxilary integrals and store
-            for (int n = 0; n <= I + J; n++) {
+            for (uint32_t n = 0; n <= I + J; n++) {
                 VY(0, 0, n) *= Xcoeff_oei * chg;
                 //printf("aux: %d %f \n", i, VY(0, 0, i));
             }
@@ -130,8 +130,8 @@ __device__ static inline void iclass_oei(unsigned int I, unsigned int J, unsigne
                     &devSim.YVerticalTemp[blockIdx.x * blockDim.x + threadIdx.x]);
 
             // sum up primitive integral contributions
-            for (int i = Sumindex[J]; i < Sumindex[J + 2]; ++i) {
-                for (int j = Sumindex[I]; j < Sumindex[I + 2]; ++j) {
+            for (uint8_t i = Sumindex[J]; i < Sumindex[J + 2]; ++i) {
+                for (uint8_t j = Sumindex[I]; j < Sumindex[I + 2]; ++j) {
                     if (i < STOREDIM && j < STOREDIM) {
                         LOCSTORE(&devSim.store2[blockIdx.x * blockDim.x + threadIdx.x], j, i, STOREDIM, STOREDIM)
                             += LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x], j, i, STOREDIM, STOREDIM);
@@ -145,22 +145,22 @@ __device__ static inline void iclass_oei(unsigned int I, unsigned int J, unsigne
     
     // obtain the start and final basis function indices for given shells II and JJ. They will help us to save the integral
     // contribution into correct location in Fock matrix.
-    const int III1 = LOC2(devSim.Qsbasis, II, I, devSim.nshell, 4);
-    const int III2 = LOC2(devSim.Qfbasis, II, I, devSim.nshell, 4);
-    const int JJJ1 = LOC2(devSim.Qsbasis, JJ, J, devSim.nshell, 4);
-    const int JJJ2 = LOC2(devSim.Qfbasis, JJ, J, devSim.nshell, 4);
+    const uint32_t III1 = LOC2(devSim.Qsbasis, II, I, devSim.nshell, 4);
+    const uint32_t III2 = LOC2(devSim.Qfbasis, II, I, devSim.nshell, 4);
+    const uint32_t JJJ1 = LOC2(devSim.Qsbasis, JJ, J, devSim.nshell, 4);
+    const uint32_t JJJ2 = LOC2(devSim.Qfbasis, JJ, J, devSim.nshell, 4);
 
-    for (int III = III1; III <= III2; III++) {
+    for (uint32_t III = III1; III <= III2; III++) {
         // devTrans maps a basis function with certain angular momentum to store2 array. Get the correct indices now.
-        const int i = (int) LOC3(devTrans,
+        const uint8_t i = LOC3(devTrans,
                 LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
                 LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
                 LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
                 TRANSDIM, TRANSDIM, TRANSDIM);
 
-        for (int JJJ = MAX(III, JJJ1); JJJ <= JJJ2; JJJ++) {
+        for (uint32_t JJJ = MAX(III, JJJ1); JJJ <= JJJ2; JJJ++) {
             // devTrans maps a basis function with certain angular momentum to store2 array. Get the correct indices now.
-            const int j = (int) LOC3(devTrans,
+            const uint8_t j = LOC3(devTrans,
                     LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
                     LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
                     LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
@@ -168,13 +168,13 @@ __device__ static inline void iclass_oei(unsigned int I, unsigned int J, unsigne
 
             // multiply the integral value by normalization constants.
             const QUICKDouble Y = devSim.cons[III] * devSim.cons[JJJ]
-                * LOCSTORE(&devSim.store2[blockIdx.x * blockDim.x + threadIdx.x], i - 1, j - 1, STOREDIM, STOREDIM);
+                * LOCSTORE(&devSim.store2[blockIdx.x * blockDim.x + threadIdx.x], i, j, STOREDIM, STOREDIM);
 
 //            if (III == 10 && JJJ == 50) {
 //                printf("OEI debug: III JJJ I J iatm i j c1 c2 store2 Y %d %d %d %d %d %d %d %f %f %f %f\n",
-//                        III, JJJ, I, J, iatom, i - 1,
-//                        j - 1, devSim.cons[III], devSim.cons[JJJ],
-//                        LOCSTORE(&devSim.store2[blockIdx.x * blockDim.x + threadIdx.x], i - 1, j - 1, STOREDIM, STOREDIM), Y);
+//                        III, JJJ, I, J, iatom, i,
+//                        j, devSim.cons[III], devSim.cons[JJJ],
+//                        LOCSTORE(&devSim.store2[blockIdx.x * blockDim.x + threadIdx.x], i, j, STOREDIM, STOREDIM), Y);
 //                printf("OEI debug: dt1 dt2 dt3 dt4 dt5 dt6:  %d %d %d %d %d %d \n",
 //                        LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
 //                        LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
@@ -192,21 +192,21 @@ __device__ static inline void iclass_oei(unsigned int I, unsigned int J, unsigne
 #endif
 
 //            printf("addint_oei: %d %d %f %f %f \n", III, JJJ, devSim.cons[III], devSim.cons[JJJ],
-//                    LOCSTORE(&devSim.store2[blockIdx.x * blockDim.x + threadIdx.x], i - 1, j - 1, STOREDIM, STOREDIM));
+//                    LOCSTORE(&devSim.store2[blockIdx.x * blockDim.x + threadIdx.x], i, j, STOREDIM, STOREDIM));
         }
     }
 }
 
 
 __global__ void k_oei() {
-    const unsigned int jshell = devSim.Qshell;
+    const QUICKULL jshell = (QUICKULL) devSim.Qshell;
 
     for (QUICKULL i = blockIdx.x * blockDim.x + threadIdx.x;
             i < jshell * jshell * (devSim.natom + devSim.nextatom); i += blockDim.x * gridDim.x) {
         // use the global index to obtain shell pair. Note that here we obtain a couple of indices that helps us to obtain
         // shell number (ii and jj) and quantum numbers (iii, jjj).
-        const unsigned int iatom = (int) i / (jshell * jshell);
-        const unsigned int idx = i - iatom * jshell * jshell;
+        const uint32_t iatom = i / (jshell * jshell);
+        const uint32_t idx = i - iatom * jshell * jshell;
 
 #if defined(MPIV_GPU)
         if (devSim.mpi_boeicompute[idx] > 0) {
@@ -215,14 +215,12 @@ __global__ void k_oei() {
         const int JJ = devSim.sorted_OEICutoffIJ[idx].y;
 
         // get the shell numbers of selected shell pair
-        const int ii = devSim.sorted_Q[II];
-        const int jj = devSim.sorted_Q[JJ];
+        const uint32_t ii = devSim.sorted_Q[II];
+        const uint32_t jj = devSim.sorted_Q[JJ];
 
         // get the quantum number (or angular momentum of shells, s=0, p=1 and so on.)
-        const int iii = devSim.sorted_Qnumber[II];
-        const int jjj = devSim.sorted_Qnumber[JJ];
-
-        //printf(" tid: %d II JJ ii jj iii jjj %d  %d  %d  %d  %d  %d \n", (int) i, II, JJ, ii, jj, iii, jjj);
+        const uint8_t iii = devSim.sorted_Qnumber[II];
+        const uint8_t jjj = devSim.sorted_Qnumber[JJ];
 
         // compute coulomb attraction for the selected shell pair.
         iclass_oei(iii, jjj, ii, jj, iatom);

@@ -21,13 +21,13 @@
 #define VY(a,b,c) LOCVY(YVerticalTemp, (a), (b), (c), VDIM1, VDIM2, VDIM3)
 
 
-__device__ static inline void ERint_vertical_spdf_1(const int I, const int J, const int K, const int L,
-        const QUICKDouble Ptempx, const QUICKDouble Ptempy, const QUICKDouble Ptempz,
-        const QUICKDouble WPtempx, const QUICKDouble WPtempy, const QUICKDouble WPtempz,
-        const QUICKDouble Qtempx, const QUICKDouble Qtempy, const QUICKDouble Qtempz,
-        const QUICKDouble WQtempx, const QUICKDouble WQtempy, const QUICKDouble WQtempz,
-        const QUICKDouble ABCDtemp, const QUICKDouble ABtemp, const QUICKDouble CDtemp,
-        const QUICKDouble ABcom, const QUICKDouble CDcom,
+__device__ static inline void ERint_vertical_spdf_1(uint8_t I, uint8_t J, uint8_t K, uint8_t L,
+        QUICKDouble Ptempx, QUICKDouble Ptempy, QUICKDouble Ptempz,
+        QUICKDouble WPtempx, QUICKDouble WPtempy, QUICKDouble WPtempz,
+        QUICKDouble Qtempx, QUICKDouble Qtempy, QUICKDouble Qtempz,
+        QUICKDouble WQtempx, QUICKDouble WQtempy, QUICKDouble WQtempz,
+        QUICKDouble ABCDtemp, QUICKDouble ABtemp, QUICKDouble CDtemp,
+        QUICKDouble ABcom, QUICKDouble CDcom,
         QUICKDouble * const store, QUICKDouble * const YVerticalTemp)
 {
     if ((I + J) >= 0 && (K + L) >= 5) {
