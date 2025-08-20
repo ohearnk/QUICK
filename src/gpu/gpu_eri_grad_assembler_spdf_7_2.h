@@ -12,13 +12,11 @@
    */
 
 #undef STOREDIM
-#undef VDIM3
 #undef VY
 #undef LOCSTORE
 #define STOREDIM STOREDIM_XL
-#define VDIM3 VDIM3_L
 #define LOCSTORE(A,i1,i2,d1,d2) (A[((i2) * (d1) + (i1)) * gridDim.x * blockDim.x])
-#define VY(a,b,c) LOCVY(YVerticalTemp, (a), (b), (c), VDIM1, VDIM2, VDIM3)
+#define VY(a,b,c) (YVerticalTemp[(c)])
 
 
 __device__ static inline void ERint_grad_vertical_spdf_7_2(uint8_t I, uint8_t J, uint8_t K, uint8_t L, uint8_t II,
@@ -30,7 +28,7 @@ __device__ static inline void ERint_grad_vertical_spdf_7_2(uint8_t I, uint8_t J,
         const QUICKDouble ABcom, const QUICKDouble CDcom,
         QUICKDouble * const store, QUICKDouble * const YVerticalTemp)
 {
-    if ((I + J) >= 7 && (K + L) >= 7) {
+    if (I + J >= 7 && K + L >= 7) {
 #include "iclass_ksks_p2.h"
     }
 }

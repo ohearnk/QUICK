@@ -19,19 +19,24 @@
 #include "gpu_common.h"
 
 #undef STOREDIM
-#undef VDIM3
 #undef VY
 #if defined(int_spd)
   #define STOREDIM STOREDIM_S
 #else
   #define STOREDIM STOREDIM_L
 #endif
-#define VDIM3 VDIM3_L
-#define VY(a,b,c) LOCVY(YVerticalTemp, a, b, c, VDIM1, VDIM2, VDIM3)
+#define VY(a,b,c) (YVerticalTemp[(c)])
 
 #undef FMT_NAME
 #define FMT_NAME FmT
 #include "gpu_fmt.h"
+
+#undef PRIM_INT_LRI_LEN
+#if defined(int_spd)
+  #define PRIM_INT_LRI_LEN (5)
+#elif defined(int_spdf2)
+  #define PRIM_INT_LRI_LEN (7)
+#endif
 
 
 /*
@@ -39,11 +44,11 @@
 */
 #if defined(int_spd)
 __device__ static inline void iclass_lri
-#elif(defined int_spdf2)
+#elif defined(int_spdf2)
 __device__ static inline void iclass_lri_spdf2
 #endif
 (uint8_t I, uint8_t J, uint32_t II, uint32_t JJ, uint32_t iatom,
- uint32_t totalatom, QUICKDouble * const YVerticalTemp, QUICKDouble * const store)
+ uint32_t totalatom, QUICKDouble * const store)
 {
     /*
        kAtom A, B, C ,D is the coresponding atom for shell ii, jj, kk, ll
@@ -165,21 +170,26 @@ __device__ static inline void iclass_lri_spdf2
         QUICKDouble Qy = RCy;
         QUICKDouble Qz = RCz;
 
+        double YVerticalTemp[PRIM_INT_LRI_LEN];
         FmT(I + J, AB * CD * ABCD * (SQR(Px - Qx) + SQR(Py - Qy) + SQR(Pz - Qz)), YVerticalTemp);
 
         for (uint32_t i = 0; i <= I + J; i++) {
-            VY(0, 0, i) *= X2;
+            YVerticalTemp[i] *= X2;
         }
 
 #if defined(int_spd)
         lri::vertical(I, J, 0, 0, YVerticalTemp, store,
-                Px - RAx, Py - RAy, Pz - RAz, (Px*AB+Qx*CD)*ABCD - Px, (Py*AB+Qy*CD)*ABCD - Py, (Pz*AB+Qz*CD)*ABCD - Pz,
-                Qx - RCx, Qy - RCy, Qz - RCz, (Px*AB+Qx*CD)*ABCD - Qx, (Py*AB+Qy*CD)*ABCD - Qy, (Pz*AB+Qz*CD)*ABCD - Qz,
+                Px - RAx, Py - RAy, Pz - RAz,
+                (Px * AB + Qx * CD) * ABCD - Px, (Py * AB + Qy * CD) * ABCD - Py, (Pz * AB + Qz * CD) * ABCD - Pz,
+                Qx - RCx, Qy - RCy, Qz - RCz,
+                (Px * AB + Qx * CD) * ABCD - Qx, (Py * AB + Qy * CD) * ABCD - Qy, (Pz * AB + Qz * CD) * ABCD - Qz,
                 0.5 * ABCD, 0.5 / AB, 0.5 / CD, AB * ABCD, CD * ABCD);
 #elif(defined int_spdf2)
         lri::vertical_spdf2(I, J, 0, 0, YVerticalTemp, store,
-                Px - RAx, Py - RAy, Pz - RAz, (Px*AB+Qx*CD)*ABCD - Px, (Py*AB+Qy*CD)*ABCD - Py, (Pz*AB+Qz*CD)*ABCD - Pz,
-                Qx - RCx, Qy - RCy, Qz - RCz, (Px*AB+Qx*CD)*ABCD - Qx, (Py*AB+Qy*CD)*ABCD - Qy, (Pz*AB+Qz*CD)*ABCD - Qz,
+                Px - RAx, Py - RAy, Pz - RAz,
+                (Px * AB + Qx * CD) * ABCD - Px, (Py * AB + Qy * CD) * ABCD - Py, (Pz * AB + Qz * CD) * ABCD - Pz,
+                Qx - RCx, Qy - RCy, Qz - RCz,
+                (Px * AB + Qx * CD) * ABCD - Qx, (Py * AB + Qy * CD) * ABCD - Qy, (Pz * AB + Qz * CD) * ABCD - Qz,
                 0.5 * ABCD, 0.5 / AB, 0.5 / CD, AB * ABCD, CD * ABCD);
 #endif
     }
@@ -359,11 +369,11 @@ __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) get_lri_kernel_spdf2()
             // assign values to dummy variables, to be cleaned up eventually
 #if defined(int_spd)
             iclass_lri(iii, jjj, ii, jj, iatom, totalatom,
-                    devSim.YVerticalTemp + offset, devSim.store + offset);
+                    devSim.store + offset);
 #elif defined(int_spdf2)
             if (iii + jjj > 4 && iii + jjj <= 6) {
                 iclass_lri_spdf2(iii, jjj, ii, jj, iatom, totalatom,
-                        devSim.YVerticalTemp + offset, devSim.store + offset);
+                        devSim.store + offset);
             }
 #endif
 #if defined(MPIV_GPU)

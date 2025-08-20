@@ -9,25 +9,32 @@
 #include "gpu_common.h"
 
 #undef STOREDIM
-#undef VDIM3
 #undef VY
 #undef LOCSTORE
 #if defined(int_sp)
   #define STOREDIM STOREDIM_T
-  #define VDIM3 VDIM3_T
 #elif defined(int_spd)
   #define STOREDIM STOREDIM_S
-  #define VDIM3 VDIM3_S
 #else
   #define STOREDIM STOREDIM_L
-  #define VDIM3 VDIM3_L
 #endif
 #define LOCSTORE(A,i1,i2,d1,d2) ((A)[((i2) * (d1) + (i1)) * gridDim.x * blockDim.x])
-#define VY(a,b,c) LOCVY(&devSim.YVerticalTemp[blockIdx.x * blockDim.x + threadIdx.x], (a), (b), (c), VDIM1, VDIM2, VDIM3)
+#define VY(a,b,c) (YVerticalTemp[(c)])
 
 #undef FMT_NAME
 #define FMT_NAME FmT
 #include "gpu_fmt.h"
+
+#undef PRIM_INT_ERI_LEN
+#if defined(int_sp)
+  #define PRIM_INT_ERI_LEN (5)
+#elif defined(int_spd)
+  #define PRIM_INT_ERI_LEN (9)
+#elif defined(int_spdf) || defined(int_spdf2) || defined(int_spdf3) || defined(int_spdf4) \
+    || defined(int_spdf5) || defined(int_spdf6) || defined(int_spdf7) || defined(int_spdf8) \
+    || defined(int_spdf9) || defined(int_spdf10)
+  #define PRIM_INT_ERI_LEN (13)
+#endif
 
 
 #if !defined(__gpu_get2e_subs_h_)
@@ -263,11 +270,12 @@ __device__ static inline void iclass_cshell_spdf10
                 const QUICKDouble Qy = LOC2(devSim.weightedCenterY, kk_start + KKK, ll_start + LLL, devSim.prim_total, devSim.prim_total);
                 const QUICKDouble Qz = LOC2(devSim.weightedCenterZ, kk_start + KKK, ll_start + LLL, devSim.prim_total, devSim.prim_total);
                 
+                double YVerticalTemp[PRIM_INT_ERI_LEN];
                 FmT(I + J + K + L, AB * CD * ABCD * (SQR(Px - Qx) + SQR(Py - Qy) + SQR(Pz - Qz)),
-                        &devSim.YVerticalTemp[blockIdx.x * blockDim.x + threadIdx.x]);
+                        YVerticalTemp);
 
                 for (uint32_t i = 0; i <= I + J + K + L; i++) {
-                    VY(0, 0, i) *= X2;
+                    YVerticalTemp[i] *= X2;
                 }
 
 #if defined(int_sp)
@@ -302,7 +310,7 @@ __device__ static inline void iclass_cshell_spdf10
                      (Py * AB + Qy * CD) * ABCD - Qy, (Pz * AB + Qz * CD) * ABCD - Qz,
                      0.5 * ABCD, 0.5 / AB, 0.5 / CD, AB * ABCD, CD * ABCD,
                      &devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
-                     &devSim.YVerticalTemp[blockIdx.x * blockDim.x + threadIdx.x]);
+                     YVerticalTemp);
             }
         }
     }
@@ -1081,56 +1089,56 @@ __global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) getAOInt_kernel
                 const uint8_t lll = devSim.sorted_Qnumber[LL];
     #if defined(int_spd)
                 iclass_AOInt(iii, jjj, kkk, lll, ii, jj, kk, ll, 1.0, aoint_buffer, streamID,
-                        devSim.YVerticalTemp + offside, devSim.store + offside);
+                        devSim.store + offside);
     #elif defined(int_spdf)
                 if ((iii + jjj) > 4 || (kkk + lll) > 4) {
                     iclass_AOInt_spdf(iii, jjj, kkk, lll, ii, jj, kk, ll, 1.0, aoint_buffer, streamID,
-                            devSim.YVerticalTemp + offside, devSim.store + offside);
+                            devSim.store + offside);
                 }
     #elif defined(int_spdf2)
                 if ((iii + jjj) > 4 || (kkk + lll) > 4) {
                     iclass_AOInt_spdf2(iii, jjj, kkk, lll, ii, jj, kk, ll, 1.0, aoint_buffer, streamID,
-                            devSim.YVerticalTemp + offside, devSim.store + offside);
+                            devSim.store + offside);
                 }
     #elif defined(int_spdf3)
                 if ((iii + jjj) > 4 || (kkk + lll) > 4) {
                     iclass_AOInt_spdf3(iii, jjj, kkk, lll, ii, jj, kk, ll, 1.0, aoint_buffer, streamID,
-                            devSim.YVerticalTemp + offside, devSim.store + offside);
+                            devSim.store + offside);
                 }
     #elif defined(int_spdf4)
                 if ((iii + jjj) > 4 || (kkk + lll) > 4) {
                     iclass_AOInt_spdf4(iii, jjj, kkk, lll, ii, jj, kk, ll, 1.0, aoint_buffer, streamID,
-                            devSim.YVerticalTemp + offside, devSim.store + offside);
+                            devSim.store + offside);
                 }
     #elif defined(int_spdf5)
                 if ((iii + jjj) > 4 || (kkk + lll) > 4) {
                     iclass_AOInt_spdf5(iii, jjj, kkk, lll, ii, jj, kk, ll, 1.0, aoint_buffer, streamID,
-                            devSim.YVerticalTemp + offside, devSim.store + offside);
+                            devSim.store + offside);
                 }
     #elif defined(int_spdf6)
                 if ((iii + jjj) > 4 || (kkk + lll) > 4) {
                     iclass_AOInt_spdf6(iii, jjj, kkk, lll, ii, jj, kk, ll, 1.0, aoint_buffer, streamID,
-                            devSim.YVerticalTemp + offside, devSim.store + offside);
+                            devSim.store + offside);
                 }
     #elif defined(int_spdf7)
                 if ((iii + jjj) > 4 || (kkk + lll) > 4) {
                     iclass_AOInt_spdf7(iii, jjj, kkk, lll, ii, jj, kk, ll, 1.0, aoint_buffer, streamID,
-                            devSim.YVerticalTemp + offside, devSim.store + offside);
+                            devSim.store + offside);
                 }
     #elif defined(int_spdf8)
                 if ((iii + jjj) > 4 || (kkk + lll) > 4) {
                     iclass_AOInt_spdf8(iii, jjj, kkk, lll, ii, jj, kk, ll, 1.0, aoint_buffer, streamID,
-                            devSim.YVerticalTemp + offside, devSim.store + offside);
+                            devSim.store + offside);
                 }
     #elif defined(int_spdf9)
                 if ((iii + jjj) > 4 || (kkk + lll) > 4) {
                     iclass_AOInt_spdf9(iii, jjj, kkk, lll, ii, jj, kk, ll, 1.0, aoint_buffer, streamID,
-                            devSim.YVerticalTemp + offside, devSim.store + offside);
+                            devSim.store + offside);
                 }
     #elif defined(int_spdf10)
                 if ((iii + jjj) > 4 || (kkk + lll) > 4) {
                     iclass_AOInt_spdf10(iii, jjj, kkk, lll, ii, jj, kk, ll, 1.0, aoint_buffer, streamID,
-                            devSim.YVerticalTemp + offside, devSim.store + offside);
+                            devSim.store + offside);
                 }
     #endif
             }
@@ -1167,7 +1175,7 @@ __device__ static inline void iclass_AOInt_spdf9
 __device__ static inline void iclass_AOInt_spdf10
     #endif
     (uint8_t I, uint8_t J, uint8_t K, uint8_t L, uint32_t II, uint32_t JJ, uint32_t KK, uint32_t LL,
-     QUICKDouble DNMax, ERI_entry* aoint_buffer, int streamID, QUICKDouble* YVerticalTemp, QUICKDouble* store)
+     QUICKDouble DNMax, ERI_entry* aoint_buffer, int streamID, QUICKDouble* store)
 {
     /*
      kAtom A, B, C ,D is the coresponding atom for shell ii, jj, kk, ll
@@ -1303,11 +1311,12 @@ __device__ static inline void iclass_AOInt_spdf10
                 QUICKDouble Qy = LOC2(devSim.weightedCenterY, kk_start + KKK, ll_start + LLL, devSim.prim_total, devSim.prim_total);
                 QUICKDouble Qz = LOC2(devSim.weightedCenterZ, kk_start + KKK, ll_start + LLL, devSim.prim_total, devSim.prim_total);
                 
+                double YVerticalTemp[PRIM_INT_ERI_LEN];
                 FmT(I + J + K + L, AB * CD * ABCD * (SQR(Px - Qx) + SQR(Py - Qy) + SQR(Pz - Qz)),
                         YVerticalTemp);
 
                 for (uint32_t i = 0; i <= I + J + K + L; i++) {
-                    VY(0, 0, i) *= X2;
+                    YVerticalTemp[i] *= X2;
                 }
                 
     #if defined(int_spd)

@@ -12,13 +12,11 @@
    */
 
 #undef STOREDIM
-#undef VDIM3
 #undef VY
 #undef LOCSTORE
 #define STOREDIM STOREDIM_L
-#define VDIM3 VDIM3_L
 #define LOCSTORE(A,i1,i2,d1,d2) (A[((i2) * (d1) + (i1)) * gridDim.x * blockDim.x])
-#define VY(a,b,c) LOCVY(YVerticalTemp, (a), (b), (c), VDIM1, VDIM2, VDIM3)
+#define VY(a,b,c) (YVerticalTemp[c])
 
 
 __device__ static inline void ERint_vertical_spdf_4(uint8_t I, uint8_t J, uint8_t K, uint8_t L,
@@ -30,7 +28,7 @@ __device__ static inline void ERint_vertical_spdf_4(uint8_t I, uint8_t J, uint8_
         QUICKDouble ABcom, QUICKDouble CDcom,
         QUICKDouble * const store, QUICKDouble * const YVerticalTemp)
 {
-    if ((I + J) >= 6 && (K + L) >= 5) {
+    if (I + J >= 6 && K + L >= 5) {
 #include "iclass_ishs.h"
     }
 }

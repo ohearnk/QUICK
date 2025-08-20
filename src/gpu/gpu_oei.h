@@ -24,7 +24,10 @@
 #include "gpu_fmt.h"
 
 #undef VY
-#define VY(a,b,c) LOCVY(&devSim.YVerticalTemp[blockIdx.x * blockDim.x + threadIdx.x], (a), (b), (c), VDIM1, VDIM2, VDIM3)
+#define VY(a,b,c) (YVerticalTemp[(c)])
+
+// support up to d functions (refactor if OEI f func support added and/or specialized for sp, spd, spdf, etc.)
+#define PRIM_INT_OEI_LEN (5)
 
 
 __device__ static inline void iclass_oei(uint8_t I, uint8_t J, uint32_t II, uint32_t JJ,
@@ -109,12 +112,13 @@ __device__ static inline void iclass_oei(uint8_t I, uint8_t J, uint32_t II, uint
             const QUICKDouble chg = -1.0 * devSim.allchg[iatom];
 
             // compute boys function values, the third term of OS A20
+            double YVerticalTemp[PRIM_INT_OEI_LEN];
             FmT(I + J, Zeta * (SQR(Px - Cx) + SQR(Py - Cy) + SQR(Pz - Cz)),
-                    &devSim.YVerticalTemp[blockIdx.x * blockDim.x + threadIdx.x]);
+                    YVerticalTemp);
 
             // compute all auxilary integrals and store
             for (uint32_t n = 0; n <= I + J; n++) {
-                VY(0, 0, n) *= Xcoeff_oei * chg;
+                YVerticalTemp[n] *= Xcoeff_oei * chg;
                 //printf("aux: %d %f \n", i, VY(0, 0, i));
             }
 
@@ -127,7 +131,7 @@ __device__ static inline void iclass_oei(uint8_t I, uint8_t J, uint32_t II, uint
                     Px - Bx, Py - By, Pz - Bz,
                     Px - Cx, Py - Cy, Pz - Cz,
                     1.0 / (2.0 * Zeta), &devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
-                    &devSim.YVerticalTemp[blockIdx.x * blockDim.x + threadIdx.x]);
+                    YVerticalTemp);
 
             // sum up primitive integral contributions
             for (uint8_t i = Sumindex[J]; i < Sumindex[J + 2]; ++i) {

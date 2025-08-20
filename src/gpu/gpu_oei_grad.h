@@ -20,7 +20,10 @@
 #define __QUICK_GPU_OEI_GRAD_H_
 
 #undef VY
-#define VY(a,b,c) LOCVY(&devSim.YVerticalTemp[blockIdx.x * blockDim.x + threadIdx.x], (a), (b), (c), VDIM1, VDIM2, VDIM3)
+#define VY(a,b,c) (YVerticalTemp[(c)])
+
+// support up to d functions (refactor if OEI f func support added and/or specialized for sp, spd, spdf, etc.)
+#define PRIM_INT_OEI_GRAD_LEN (7)
 
 
 __device__ static inline void iclass_oei_grad(uint8_t I, uint8_t J, uint32_t II, uint32_t JJ,
@@ -125,8 +128,9 @@ __device__ static inline void iclass_oei_grad(uint8_t I, uint8_t J, uint32_t II,
             const QUICKDouble chg = -1.0 * devSim.allchg[iatom];
 
             // compute boys function values, the third term of OS A20
+            double YVerticalTemp[PRIM_INT_OEI_GRAD_LEN];
             FmT(I + J + 2, Zeta * (SQR(Px - Cx) + SQR(Py - Cy) + SQR(Pz - Cz)),
-                    &devSim.YVerticalTemp[blockIdx.x * blockDim.x + threadIdx.x]);
+                    YVerticalTemp);
 
             // compute all auxilary integrals and store
             for (uint32_t n = 0; n <= I + J + 2; n++) {
@@ -144,7 +148,7 @@ __device__ static inline void iclass_oei_grad(uint8_t I, uint8_t J, uint32_t II,
                     Px - Cx, Py - Cy, Pz - Cz,
                     1.0 / (2.0 * Zeta),
                     &devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
-                    &devSim.YVerticalTemp[blockIdx.x * blockDim.x + threadIdx.x]);
+                    YVerticalTemp);
 
             // sum up primitive integral values into store array
             for (uint8_t i = Sumindex[J]; i < Sumindex[J + 2]; ++i) {

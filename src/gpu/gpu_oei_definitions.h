@@ -16,9 +16,9 @@
 __device__ __inline__ PSint_0::PSint_0(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
-  x_1_0 = PAx * VY(0, 0, 0) - PCx * VY(0, 0, 1);
-  x_2_0 = PAy * VY(0, 0, 0) - PCy * VY(0, 0, 1);
-  x_3_0 = PAz * VY(0, 0, 0) - PCz * VY(0, 0, 1);
+  x_1_0 = PAx * YVerticalTemp[0] - PCx * YVerticalTemp[1];
+  x_2_0 = PAy * YVerticalTemp[0] - PCy * YVerticalTemp[1];
+  x_3_0 = PAz * YVerticalTemp[0] - PCz * YVerticalTemp[1];
 } 
 
 
@@ -26,9 +26,9 @@ __device__ __inline__ PSint_0::PSint_0(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
 __device__ __inline__ PSint_1::PSint_1(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
-  x_1_0 = PAx * VY(0, 0, 1) - PCx * VY(0, 0, 2);
-  x_2_0 = PAy * VY(0, 0, 1) - PCy * VY(0, 0, 2);
-  x_3_0 = PAz * VY(0, 0, 1) - PCz * VY(0, 0, 2);
+  x_1_0 = PAx * YVerticalTemp[1] - PCx * YVerticalTemp[2];
+  x_2_0 = PAy * YVerticalTemp[1] - PCy * YVerticalTemp[2];
+  x_3_0 = PAz * YVerticalTemp[1] - PCz * YVerticalTemp[2];
 } 
 
 
@@ -36,9 +36,9 @@ __device__ __inline__ PSint_1::PSint_1(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
 __device__ __inline__ PSint_2::PSint_2(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
-  x_1_0 = PAx * VY(0, 0, 2) - PCx * VY(0, 0, 3);
-  x_2_0 = PAy * VY(0, 0, 2) - PCy * VY(0, 0, 3);
-  x_3_0 = PAz * VY(0, 0, 2) - PCz * VY(0, 0, 3);
+  x_1_0 = PAx * YVerticalTemp[2] - PCx * YVerticalTemp[3];
+  x_2_0 = PAy * YVerticalTemp[2] - PCy * YVerticalTemp[3];
+  x_3_0 = PAz * YVerticalTemp[2] - PCz * YVerticalTemp[3];
 } 
 
 
@@ -46,9 +46,9 @@ __device__ __inline__ PSint_2::PSint_2(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
 __device__ __inline__ PSint_3::PSint_3(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
-  x_1_0 = PAx * VY(0, 0, 3) - PCx * VY(0, 0, 4);
-  x_2_0 = PAy * VY(0, 0, 3) - PCy * VY(0, 0, 4);
-  x_3_0 = PAz * VY(0, 0, 3) - PCz * VY(0, 0, 4);
+  x_1_0 = PAx * YVerticalTemp[3] - PCx * YVerticalTemp[4];
+  x_2_0 = PAy * YVerticalTemp[3] - PCy * YVerticalTemp[4];
+  x_3_0 = PAz * YVerticalTemp[3] - PCz * YVerticalTemp[4];
 } 
 
 
@@ -56,9 +56,9 @@ __device__ __inline__ PSint_3::PSint_3(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
 __device__ __inline__ PSint_4::PSint_4(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
-  x_1_0 = PAx * VY(0, 0, 4) - PCx * VY(0, 0, 5);
-  x_2_0 = PAy * VY(0, 0, 4) - PCy * VY(0, 0, 5);
-  x_3_0 = PAz * VY(0, 0, 4) - PCz * VY(0, 0, 5);
+  x_1_0 = PAx * YVerticalTemp[4] - PCx * YVerticalTemp[5];
+  x_2_0 = PAy * YVerticalTemp[4] - PCy * YVerticalTemp[5];
+  x_3_0 = PAz * YVerticalTemp[4] - PCz * YVerticalTemp[5];
 } 
 
 
@@ -66,9 +66,9 @@ __device__ __inline__ PSint_4::PSint_4(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
 __device__ __inline__ PSint_5::PSint_5(QUICKDouble PAx, QUICKDouble PAy, QUICKDouble PAz,
                 QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
-  x_1_0 = PAx * VY(0, 0, 5) - PCx * VY(0, 0, 6);
-  x_2_0 = PAy * VY(0, 0, 5) - PCy * VY(0, 0, 6);
-  x_3_0 = PAz * VY(0, 0, 5) - PCz * VY(0, 0, 6);
+  x_1_0 = PAx * YVerticalTemp[5] - PCx * YVerticalTemp[6];
+  x_2_0 = PAy * YVerticalTemp[5] - PCy * YVerticalTemp[6];
+  x_3_0 = PAz * YVerticalTemp[5] - PCz * YVerticalTemp[6];
 } 
 
 
@@ -76,9 +76,9 @@ __device__ __inline__ PSint_5::PSint_5(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
 __device__ __inline__ SPint_0::SPint_0(QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz,
                 QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
-  x_0_1 = PBx * VY(0, 0, 0) - PCx * VY(0, 0, 1);
-  x_0_2 = PBy * VY(0, 0, 0) - PCy * VY(0, 0, 1);
-  x_0_3 = PBz * VY(0, 0, 0) - PCz * VY(0, 0, 1);
+  x_0_1 = PBx * YVerticalTemp[0] - PCx * YVerticalTemp[1];
+  x_0_2 = PBy * YVerticalTemp[0] - PCy * YVerticalTemp[1];
+  x_0_3 = PBz * YVerticalTemp[0] - PCz * YVerticalTemp[1];
 } 
 
 
@@ -86,9 +86,9 @@ __device__ __inline__ SPint_0::SPint_0(QUICKDouble PBx, QUICKDouble PBy, QUICKDo
 __device__ __inline__ SPint_1::SPint_1(QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz,
                 QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
-  x_0_1 = PBx * VY(0, 0, 1) - PCx * VY(0, 0, 2);
-  x_0_2 = PBy * VY(0, 0, 1) - PCy * VY(0, 0, 2);
-  x_0_3 = PBz * VY(0, 0, 1) - PCz * VY(0, 0, 2);
+  x_0_1 = PBx * YVerticalTemp[1] - PCx * YVerticalTemp[2];
+  x_0_2 = PBy * YVerticalTemp[1] - PCy * YVerticalTemp[2];
+  x_0_3 = PBz * YVerticalTemp[1] - PCz * YVerticalTemp[2];
 } 
 
 
@@ -96,9 +96,9 @@ __device__ __inline__ SPint_1::SPint_1(QUICKDouble PBx, QUICKDouble PBy, QUICKDo
 __device__ __inline__ SPint_2::SPint_2(QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz,
                 QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
-  x_0_1 = PBx * VY(0, 0, 2) - PCx * VY(0, 0, 3);
-  x_0_2 = PBy * VY(0, 0, 2) - PCy * VY(0, 0, 3);
-  x_0_3 = PBz * VY(0, 0, 2) - PCz * VY(0, 0, 3);
+  x_0_1 = PBx * YVerticalTemp[2] - PCx * YVerticalTemp[3];
+  x_0_2 = PBy * YVerticalTemp[2] - PCy * YVerticalTemp[3];
+  x_0_3 = PBz * YVerticalTemp[2] - PCz * YVerticalTemp[3];
 } 
 
 
@@ -106,9 +106,9 @@ __device__ __inline__ SPint_2::SPint_2(QUICKDouble PBx, QUICKDouble PBy, QUICKDo
 __device__ __inline__ SPint_3::SPint_3(QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz,
                 QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
-  x_0_1 = PBx * VY(0, 0, 3) - PCx * VY(0, 0, 4);
-  x_0_2 = PBy * VY(0, 0, 3) - PCy * VY(0, 0, 4);
-  x_0_3 = PBz * VY(0, 0, 3) - PCz * VY(0, 0, 4);
+  x_0_1 = PBx * YVerticalTemp[3] - PCx * YVerticalTemp[4];
+  x_0_2 = PBy * YVerticalTemp[3] - PCy * YVerticalTemp[4];
+  x_0_3 = PBz * YVerticalTemp[3] - PCz * YVerticalTemp[4];
 } 
 
 
@@ -116,9 +116,9 @@ __device__ __inline__ SPint_3::SPint_3(QUICKDouble PBx, QUICKDouble PBy, QUICKDo
 __device__ __inline__ SPint_4::SPint_4(QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz,
                 QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
-  x_0_1 = PBx * VY(0, 0, 4) - PCx * VY(0, 0, 5);
-  x_0_2 = PBy * VY(0, 0, 4) - PCy * VY(0, 0, 5);
-  x_0_3 = PBz * VY(0, 0, 4) - PCz * VY(0, 0, 5);
+  x_0_1 = PBx * YVerticalTemp[4] - PCx * YVerticalTemp[5];
+  x_0_2 = PBy * YVerticalTemp[4] - PCy * YVerticalTemp[5];
+  x_0_3 = PBz * YVerticalTemp[4] - PCz * YVerticalTemp[5];
 } 
 
 
@@ -126,9 +126,9 @@ __device__ __inline__ SPint_4::SPint_4(QUICKDouble PBx, QUICKDouble PBy, QUICKDo
 __device__ __inline__ SPint_5::SPint_5(QUICKDouble PBx, QUICKDouble PBy, QUICKDouble PBz,
                 QUICKDouble PCx, QUICKDouble PCy, QUICKDouble PCz, QUICKDouble * const store, QUICKDouble * const YVerticalTemp){ 
 
-  x_0_1 = PBx * VY(0, 0, 5) - PCx * VY(0, 0, 6);
-  x_0_2 = PBy * VY(0, 0, 5) - PCy * VY(0, 0, 6);
-  x_0_3 = PBz * VY(0, 0, 5) - PCz * VY(0, 0, 6);
+  x_0_1 = PBx * YVerticalTemp[5] - PCx * YVerticalTemp[6];
+  x_0_2 = PBy * YVerticalTemp[5] - PCy * YVerticalTemp[6];
+  x_0_3 = PBz * YVerticalTemp[5] - PCz * YVerticalTemp[6];
 } 
 
 
@@ -141,17 +141,17 @@ __device__ __inline__ PPint_0::PPint_0(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
   PSint_1 ps_1(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=1 
 
   x_1_1 = PBx * ps_0.x_1_0 - PCx * ps_1.x_1_0; 
-  x_1_1 += TwoZetaInv * (VY(0, 0, 0) - VY(0, 0, 1)); 
+  x_1_1 += TwoZetaInv * (YVerticalTemp[0] - YVerticalTemp[1]); 
   x_1_2 = PBy * ps_0.x_1_0 - PCy * ps_1.x_1_0; 
   x_1_3 = PBz * ps_0.x_1_0 - PCz * ps_1.x_1_0; 
   x_2_1 = PBx * ps_0.x_2_0 - PCx * ps_1.x_2_0; 
   x_2_2 = PBy * ps_0.x_2_0 - PCy * ps_1.x_2_0; 
-  x_2_2 += TwoZetaInv * (VY(0, 0, 0) - VY(0, 0, 1)); 
+  x_2_2 += TwoZetaInv * (YVerticalTemp[0] - YVerticalTemp[1]); 
   x_2_3 = PBz * ps_0.x_2_0 - PCz * ps_1.x_2_0; 
   x_3_1 = PBx * ps_0.x_3_0 - PCx * ps_1.x_3_0; 
   x_3_2 = PBy * ps_0.x_3_0 - PCy * ps_1.x_3_0; 
   x_3_3 = PBz * ps_0.x_3_0 - PCz * ps_1.x_3_0; 
-  x_3_3 += TwoZetaInv * (VY(0, 0, 0) - VY(0, 0, 1)); 
+  x_3_3 += TwoZetaInv * (YVerticalTemp[0] - YVerticalTemp[1]); 
 
  } 
 
@@ -164,17 +164,17 @@ __device__ __inline__ PPint_1::PPint_1(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
   PSint_2 ps_2(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=2 
 
   x_1_1 = PBx * ps_1.x_1_0 - PCx * ps_2.x_1_0; 
-  x_1_1 += TwoZetaInv * (VY(0, 0, 1) - VY(0, 0, 2)); 
+  x_1_1 += TwoZetaInv * (YVerticalTemp[1] - YVerticalTemp[2]); 
   x_1_2 = PBy * ps_1.x_1_0 - PCy * ps_2.x_1_0; 
   x_1_3 = PBz * ps_1.x_1_0 - PCz * ps_2.x_1_0; 
   x_2_1 = PBx * ps_1.x_2_0 - PCx * ps_2.x_2_0; 
   x_2_2 = PBy * ps_1.x_2_0 - PCy * ps_2.x_2_0; 
-  x_2_2 += TwoZetaInv * (VY(0, 0, 1) - VY(0, 0, 2)); 
+  x_2_2 += TwoZetaInv * (YVerticalTemp[1] - YVerticalTemp[2]); 
   x_2_3 = PBz * ps_1.x_2_0 - PCz * ps_2.x_2_0; 
   x_3_1 = PBx * ps_1.x_3_0 - PCx * ps_2.x_3_0; 
   x_3_2 = PBy * ps_1.x_3_0 - PCy * ps_2.x_3_0; 
   x_3_3 = PBz * ps_1.x_3_0 - PCz * ps_2.x_3_0; 
-  x_3_3 += TwoZetaInv * (VY(0, 0, 1) - VY(0, 0, 2)); 
+  x_3_3 += TwoZetaInv * (YVerticalTemp[1] - YVerticalTemp[2]); 
 
  } 
 
@@ -187,17 +187,17 @@ __device__ __inline__ PPint_2::PPint_2(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
   PSint_3 ps_3(PAx, PAy, PAz, PCx, PCy, PCz, store, YVerticalTemp); // construct [p|s] for m=3 
 
   x_1_1 = PBx * ps_2.x_1_0 - PCx * ps_3.x_1_0; 
-  x_1_1 += TwoZetaInv * (VY(0, 0, 2) - VY(0, 0, 3)); 
+  x_1_1 += TwoZetaInv * (YVerticalTemp[2] - YVerticalTemp[3]); 
   x_1_2 = PBy * ps_2.x_1_0 - PCy * ps_3.x_1_0; 
   x_1_3 = PBz * ps_2.x_1_0 - PCz * ps_3.x_1_0; 
   x_2_1 = PBx * ps_2.x_2_0 - PCx * ps_3.x_2_0; 
   x_2_2 = PBy * ps_2.x_2_0 - PCy * ps_3.x_2_0; 
-  x_2_2 += TwoZetaInv * (VY(0, 0, 2) - VY(0, 0, 3)); 
+  x_2_2 += TwoZetaInv * (YVerticalTemp[2] - YVerticalTemp[3]); 
   x_2_3 = PBz * ps_2.x_2_0 - PCz * ps_3.x_2_0; 
   x_3_1 = PBx * ps_2.x_3_0 - PCx * ps_3.x_3_0; 
   x_3_2 = PBy * ps_2.x_3_0 - PCy * ps_3.x_3_0; 
   x_3_3 = PBz * ps_2.x_3_0 - PCz * ps_3.x_3_0; 
-  x_3_3 += TwoZetaInv * (VY(0, 0, 2) - VY(0, 0, 3)); 
+  x_3_3 += TwoZetaInv * (YVerticalTemp[2] - YVerticalTemp[3]); 
 
  } 
 
@@ -212,11 +212,11 @@ __device__ __inline__ DSint_0::DSint_0(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
   x_5_0 = PAy * ps_0.x_3_0 - PCy * ps_1.x_3_0; 
   x_6_0 = PAx * ps_0.x_3_0 - PCx * ps_1.x_3_0; 
   x_7_0 = PAx * ps_0.x_1_0 - PCx * ps_1.x_1_0; 
-  x_7_0 += TwoZetaInv * (VY(0, 0, 0) - VY(0, 0, 1)); 
+  x_7_0 += TwoZetaInv * (YVerticalTemp[0] - YVerticalTemp[1]); 
   x_8_0 = PAy * ps_0.x_2_0 - PCy * ps_1.x_2_0; 
-  x_8_0 += TwoZetaInv * (VY(0, 0, 0) - VY(0, 0, 1)); 
+  x_8_0 += TwoZetaInv * (YVerticalTemp[0] - YVerticalTemp[1]); 
   x_9_0 = PAz * ps_0.x_3_0 - PCz * ps_1.x_3_0; 
-  x_9_0 += TwoZetaInv * (VY(0, 0, 0) - VY(0, 0, 1)); 
+  x_9_0 += TwoZetaInv * (YVerticalTemp[0] - YVerticalTemp[1]); 
 
  } 
 
@@ -231,11 +231,11 @@ __device__ __inline__ DSint_1::DSint_1(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
   x_5_0 = PAy * ps_1.x_3_0 - PCy * ps_2.x_3_0; 
   x_6_0 = PAx * ps_1.x_3_0 - PCx * ps_2.x_3_0; 
   x_7_0 = PAx * ps_1.x_1_0 - PCx * ps_2.x_1_0; 
-  x_7_0 += TwoZetaInv * (VY(0, 0, 1) - VY(0, 0, 2)); 
+  x_7_0 += TwoZetaInv * (YVerticalTemp[1] - YVerticalTemp[2]); 
   x_8_0 = PAy * ps_1.x_2_0 - PCy * ps_2.x_2_0; 
-  x_8_0 += TwoZetaInv * (VY(0, 0, 1) - VY(0, 0, 2)); 
+  x_8_0 += TwoZetaInv * (YVerticalTemp[1] - YVerticalTemp[2]); 
   x_9_0 = PAz * ps_1.x_3_0 - PCz * ps_2.x_3_0; 
-  x_9_0 += TwoZetaInv * (VY(0, 0, 1) - VY(0, 0, 2)); 
+  x_9_0 += TwoZetaInv * (YVerticalTemp[1] - YVerticalTemp[2]); 
 
  } 
 
@@ -250,11 +250,11 @@ __device__ __inline__ DSint_2::DSint_2(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
   x_5_0 = PAy * ps_2.x_3_0 - PCy * ps_3.x_3_0; 
   x_6_0 = PAx * ps_2.x_3_0 - PCx * ps_3.x_3_0; 
   x_7_0 = PAx * ps_2.x_1_0 - PCx * ps_3.x_1_0; 
-  x_7_0 += TwoZetaInv * (VY(0, 0, 2) - VY(0, 0, 3)); 
+  x_7_0 += TwoZetaInv * (YVerticalTemp[2] - YVerticalTemp[3]); 
   x_8_0 = PAy * ps_2.x_2_0 - PCy * ps_3.x_2_0; 
-  x_8_0 += TwoZetaInv * (VY(0, 0, 2) - VY(0, 0, 3)); 
+  x_8_0 += TwoZetaInv * (YVerticalTemp[2] - YVerticalTemp[3]); 
   x_9_0 = PAz * ps_2.x_3_0 - PCz * ps_3.x_3_0; 
-  x_9_0 += TwoZetaInv * (VY(0, 0, 2) - VY(0, 0, 3)); 
+  x_9_0 += TwoZetaInv * (YVerticalTemp[2] - YVerticalTemp[3]); 
 
  } 
 
@@ -269,11 +269,11 @@ __device__ __inline__ DSint_3::DSint_3(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
   x_5_0 = PAy * ps_3.x_3_0 - PCy * ps_4.x_3_0; 
   x_6_0 = PAx * ps_3.x_3_0 - PCx * ps_4.x_3_0; 
   x_7_0 = PAx * ps_3.x_1_0 - PCx * ps_4.x_1_0; 
-  x_7_0 += TwoZetaInv * (VY(0, 0, 3) - VY(0, 0, 4)); 
+  x_7_0 += TwoZetaInv * (YVerticalTemp[3] - YVerticalTemp[4]); 
   x_8_0 = PAy * ps_3.x_2_0 - PCy * ps_4.x_2_0; 
-  x_8_0 += TwoZetaInv * (VY(0, 0, 3) - VY(0, 0, 4)); 
+  x_8_0 += TwoZetaInv * (YVerticalTemp[3] - YVerticalTemp[4]); 
   x_9_0 = PAz * ps_3.x_3_0 - PCz * ps_4.x_3_0; 
-  x_9_0 += TwoZetaInv * (VY(0, 0, 3) - VY(0, 0, 4)); 
+  x_9_0 += TwoZetaInv * (YVerticalTemp[3] - YVerticalTemp[4]); 
 
  } 
 
@@ -288,11 +288,11 @@ __device__ __inline__ DSint_4::DSint_4(QUICKDouble PAx, QUICKDouble PAy, QUICKDo
   x_5_0 = PAy * ps_4.x_3_0 - PCy * ps_5.x_3_0; 
   x_6_0 = PAx * ps_4.x_3_0 - PCx * ps_5.x_3_0; 
   x_7_0 = PAx * ps_4.x_1_0 - PCx * ps_5.x_1_0; 
-  x_7_0 += TwoZetaInv * (VY(0, 0, 4) - VY(0, 0, 5)); 
+  x_7_0 += TwoZetaInv * (YVerticalTemp[4] - YVerticalTemp[5]); 
   x_8_0 = PAy * ps_4.x_2_0 - PCy * ps_5.x_2_0; 
-  x_8_0 += TwoZetaInv * (VY(0, 0, 4) - VY(0, 0, 5)); 
+  x_8_0 += TwoZetaInv * (YVerticalTemp[4] - YVerticalTemp[5]); 
   x_9_0 = PAz * ps_4.x_3_0 - PCz * ps_5.x_3_0; 
-  x_9_0 += TwoZetaInv * (VY(0, 0, 4) - VY(0, 0, 5)); 
+  x_9_0 += TwoZetaInv * (YVerticalTemp[4] - YVerticalTemp[5]); 
 
  } 
 
@@ -307,11 +307,11 @@ __device__ __inline__ SDint_0::SDint_0(QUICKDouble PBx, QUICKDouble PBy, QUICKDo
   x_0_5 = PBy * sp_0.x_0_3 - PCy * sp_1.x_0_3; 
   x_0_6 = PBx * sp_0.x_0_3 - PCx * sp_1.x_0_3; 
   x_0_7 = PBx * sp_0.x_0_1 - PCx * sp_1.x_0_1; 
-  x_0_7 += TwoZetaInv * (VY(0, 0, 0) - VY(0, 0, 1)); 
+  x_0_7 += TwoZetaInv * (YVerticalTemp[0] - YVerticalTemp[1]); 
   x_0_8 = PBy * sp_0.x_0_2 - PCy * sp_1.x_0_2; 
-  x_0_8 += TwoZetaInv * (VY(0, 0, 0) - VY(0, 0, 1)); 
+  x_0_8 += TwoZetaInv * (YVerticalTemp[0] - YVerticalTemp[1]); 
   x_0_9 = PBz * sp_0.x_0_3 - PCz * sp_1.x_0_3; 
-  x_0_9 += TwoZetaInv * (VY(0, 0, 0) - VY(0, 0, 1)); 
+  x_0_9 += TwoZetaInv * (YVerticalTemp[0] - YVerticalTemp[1]); 
 
  } 
 
@@ -326,11 +326,11 @@ __device__ __inline__ SDint_1::SDint_1(QUICKDouble PBx, QUICKDouble PBy, QUICKDo
   x_0_5 = PBy * sp_1.x_0_3 - PCy * sp_2.x_0_3; 
   x_0_6 = PBx * sp_1.x_0_3 - PCx * sp_2.x_0_3; 
   x_0_7 = PBx * sp_1.x_0_1 - PCx * sp_2.x_0_1; 
-  x_0_7 += TwoZetaInv * (VY(0, 0, 1) - VY(0, 0, 2)); 
+  x_0_7 += TwoZetaInv * (YVerticalTemp[1] - YVerticalTemp[2]); 
   x_0_8 = PBy * sp_1.x_0_2 - PCy * sp_2.x_0_2; 
-  x_0_8 += TwoZetaInv * (VY(0, 0, 1) - VY(0, 0, 2)); 
+  x_0_8 += TwoZetaInv * (YVerticalTemp[1] - YVerticalTemp[2]); 
   x_0_9 = PBz * sp_1.x_0_3 - PCz * sp_2.x_0_3; 
-  x_0_9 += TwoZetaInv * (VY(0, 0, 1) - VY(0, 0, 2)); 
+  x_0_9 += TwoZetaInv * (YVerticalTemp[1] - YVerticalTemp[2]); 
 
  } 
 
@@ -345,11 +345,11 @@ __device__ __inline__ SDint_2::SDint_2(QUICKDouble PBx, QUICKDouble PBy, QUICKDo
   x_0_5 = PBy * sp_2.x_0_3 - PCy * sp_3.x_0_3; 
   x_0_6 = PBx * sp_2.x_0_3 - PCx * sp_3.x_0_3; 
   x_0_7 = PBx * sp_2.x_0_1 - PCx * sp_3.x_0_1; 
-  x_0_7 += TwoZetaInv * (VY(0, 0, 2) - VY(0, 0, 3)); 
+  x_0_7 += TwoZetaInv * (YVerticalTemp[2] - YVerticalTemp[3]); 
   x_0_8 = PBy * sp_2.x_0_2 - PCy * sp_3.x_0_2; 
-  x_0_8 += TwoZetaInv * (VY(0, 0, 2) - VY(0, 0, 3)); 
+  x_0_8 += TwoZetaInv * (YVerticalTemp[2] - YVerticalTemp[3]); 
   x_0_9 = PBz * sp_2.x_0_3 - PCz * sp_3.x_0_3; 
-  x_0_9 += TwoZetaInv * (VY(0, 0, 2) - VY(0, 0, 3)); 
+  x_0_9 += TwoZetaInv * (YVerticalTemp[2] - YVerticalTemp[3]); 
 
  } 
 
@@ -364,11 +364,11 @@ __device__ __inline__ SDint_3::SDint_3(QUICKDouble PBx, QUICKDouble PBy, QUICKDo
   x_0_5 = PBy * sp_3.x_0_3 - PCy * sp_4.x_0_3; 
   x_0_6 = PBx * sp_3.x_0_3 - PCx * sp_4.x_0_3; 
   x_0_7 = PBx * sp_3.x_0_1 - PCx * sp_4.x_0_1; 
-  x_0_7 += TwoZetaInv * (VY(0, 0, 3) - VY(0, 0, 4)); 
+  x_0_7 += TwoZetaInv * (YVerticalTemp[3] - YVerticalTemp[4]); 
   x_0_8 = PBy * sp_3.x_0_2 - PCy * sp_4.x_0_2; 
-  x_0_8 += TwoZetaInv * (VY(0, 0, 3) - VY(0, 0, 4)); 
+  x_0_8 += TwoZetaInv * (YVerticalTemp[3] - YVerticalTemp[4]); 
   x_0_9 = PBz * sp_3.x_0_3 - PCz * sp_4.x_0_3; 
-  x_0_9 += TwoZetaInv * (VY(0, 0, 3) - VY(0, 0, 4)); 
+  x_0_9 += TwoZetaInv * (YVerticalTemp[3] - YVerticalTemp[4]); 
 
  } 
 
@@ -383,11 +383,11 @@ __device__ __inline__ SDint_4::SDint_4(QUICKDouble PBx, QUICKDouble PBy, QUICKDo
   x_0_5 = PBy * sp_4.x_0_3 - PCy * sp_5.x_0_3; 
   x_0_6 = PBx * sp_4.x_0_3 - PCx * sp_5.x_0_3; 
   x_0_7 = PBx * sp_4.x_0_1 - PCx * sp_5.x_0_1; 
-  x_0_7 += TwoZetaInv * (VY(0, 0, 4) - VY(0, 0, 5)); 
+  x_0_7 += TwoZetaInv * (YVerticalTemp[4] - YVerticalTemp[5]); 
   x_0_8 = PBy * sp_4.x_0_2 - PCy * sp_5.x_0_2; 
-  x_0_8 += TwoZetaInv * (VY(0, 0, 4) - VY(0, 0, 5)); 
+  x_0_8 += TwoZetaInv * (YVerticalTemp[4] - YVerticalTemp[5]); 
   x_0_9 = PBz * sp_4.x_0_3 - PCz * sp_5.x_0_3; 
-  x_0_9 += TwoZetaInv * (VY(0, 0, 4) - VY(0, 0, 5)); 
+  x_0_9 += TwoZetaInv * (YVerticalTemp[4] - YVerticalTemp[5]); 
 
  } 
 

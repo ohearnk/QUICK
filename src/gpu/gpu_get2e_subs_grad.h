@@ -1224,34 +1224,30 @@ __device__ static inline void hrrwholegrad2_2(QUICKDouble * const Yaax, QUICKDou
 
 
 #undef STOREDIM
+#undef PRIM_INT_ERI_GRAD_LEN
 #if defined(int_sp)
-  #undef VDIM3
   #undef LOCSTORE
   #undef VY
   #define STOREDIM STOREDIM_GRAD_T
-  #define VDIM3 VDIM3_GRAD_T
   #define LOCSTORE(A,i1,i2,d1,d2) (A[((i2) * (d1) + (i1)) * gridDim.x * blockDim.x])
-  #define VY(a,b,c) LOCVY(YVerticalTemp, (a), (b), (c), VDIM1, VDIM2, VDIM3)
+  #define VY(a,b,c) (YVerticalTemp[(c)])
+  #define PRIM_INT_ERI_GRAD_LEN (6)
 #elif defined(int_spd)
-  #undef VDIM3
   #undef VY
   #undef LOCSTORE
   #define STOREDIM STOREDIM_S
-  #define VDIM3 VDIM3_S
   #define LOCSTORE(A,i1,i2,d1,d2) (A[((i2) * (d1) + (i1)) * gridDim.x * blockDim.x])
-  #define VY(a,b,c) LOCVY(YVerticalTemp, (a), (b), (c), VDIM1, VDIM2, VDIM3)
+  #define VY(a,b,c) (YVerticalTemp[(c)])
+  #define PRIM_INT_ERI_GRAD_LEN (10)
 #elif defined(int_spdf) || defined(int_spdf2)
-  #undef VDIM3
   #define STOREDIM STOREDIM_GRAD_S
-  #define VDIM3 VDIM3_L
+  #define PRIM_INT_ERI_GRAD_LEN (15)
 #elif defined(int_spdf3) || defined(int_spdf4)
-  #undef VDIM3
   #define STOREDIM STOREDIM_XL
-  #define VDIM3 VDIM3_L
+  #define PRIM_INT_ERI_GRAD_LEN (15)
 #else
-  #undef VDIM3
   #define STOREDIM STOREDIM_L
-  #define VDIM3 VDIM3_L
+  #define PRIM_INT_ERI_GRAD_LEN (15)
 #endif
 
 
@@ -1275,7 +1271,7 @@ __device__ static inline void iclass_grad_spd
 #if defined(int_sp) || defined(int_spd)
 (uint8_t I, uint8_t J, uint8_t K, uint8_t L,
  uint32_t II, uint32_t JJ, uint32_t KK, uint32_t LL, QUICKDouble DNMax,
- QUICKDouble* YVerticalTemp, QUICKDouble* store, QUICKDouble* store2,
+ QUICKDouble* store, QUICKDouble* store2,
  QUICKDouble* storeAA, QUICKDouble* storeBB, QUICKDouble* storeCC)
 {
     /*
@@ -1288,13 +1284,13 @@ __device__ static inline void iclass_grad_spd
        which means they are corrosponding coorinates for shell II, JJ, KK, and LL.
        And we don't need the coordinates now, so we will not retrieve the data now.
        */
-    QUICKDouble RAx = LOC2(devSim.xyz, 0 , devSim.katom[II], 3, devSim.natom);
-    QUICKDouble RAy = LOC2(devSim.xyz, 1 , devSim.katom[II], 3, devSim.natom);
-    QUICKDouble RAz = LOC2(devSim.xyz, 2 , devSim.katom[II], 3, devSim.natom);
+    QUICKDouble RAx = LOC2(devSim.xyz, 0, devSim.katom[II], 3, devSim.natom);
+    QUICKDouble RAy = LOC2(devSim.xyz, 1, devSim.katom[II], 3, devSim.natom);
+    QUICKDouble RAz = LOC2(devSim.xyz, 2, devSim.katom[II], 3, devSim.natom);
 
-    QUICKDouble RCx = LOC2(devSim.xyz, 0 , devSim.katom[KK], 3, devSim.natom);
-    QUICKDouble RCy = LOC2(devSim.xyz, 1 , devSim.katom[KK], 3, devSim.natom);
-    QUICKDouble RCz = LOC2(devSim.xyz, 2 , devSim.katom[KK], 3, devSim.natom);
+    QUICKDouble RCx = LOC2(devSim.xyz, 0, devSim.katom[KK], 3, devSim.natom);
+    QUICKDouble RCy = LOC2(devSim.xyz, 1, devSim.katom[KK], 3, devSim.natom);
+    QUICKDouble RCz = LOC2(devSim.xyz, 2, devSim.katom[KK], 3, devSim.natom);
 
     /*
        kPrimI, J, K and L indicates the primtive gaussian function number
@@ -1451,11 +1447,12 @@ __device__ static inline void iclass_grad_spd
                 QUICKDouble Qy = LOC2(devSim.weightedCenterY, kk_start+KKK, ll_start+LLL, devSim.prim_total, devSim.prim_total);
                 QUICKDouble Qz = LOC2(devSim.weightedCenterZ, kk_start+KKK, ll_start+LLL, devSim.prim_total, devSim.prim_total);
 
+                double YVerticalTemp[PRIM_INT_ERI_GRAD_LEN];
                 FmT(I + J + K + L + 1, AB * CD * ABCD * (SQR(Px - Qx) + SQR(Py - Qy) + SQR(Pz - Qz)),
                         YVerticalTemp);
 
                 for (uint32_t i = 0; i <= I + J + K + L + 1; i++) {
-                    VY(0, 0, i) *= X2;
+                    YVerticalTemp[i] *= X2;
                 }
 
 #if defined(int_sp)
@@ -1768,7 +1765,7 @@ __device__ static inline void iclass_grad_spdf8
 #endif
 (uint8_t I, uint8_t J, uint8_t K, uint8_t L,
  uint32_t II, uint32_t JJ, uint32_t KK, uint32_t LL, QUICKDouble DNMax,
- QUICKDouble* YVerticalTemp, QUICKDouble* store, QUICKDouble* store2,
+ QUICKDouble* store, QUICKDouble* store2,
  QUICKDouble* storeAA, QUICKDouble* storeBB, QUICKDouble* storeCC)
 {
     /*
@@ -1935,11 +1932,12 @@ __device__ static inline void iclass_grad_spdf8
                 QUICKDouble Qy = LOC2(devSim.weightedCenterY, kk_start + KKK, ll_start + LLL, devSim.prim_total, devSim.prim_total);
                 QUICKDouble Qz = LOC2(devSim.weightedCenterZ, kk_start + KKK, ll_start + LLL, devSim.prim_total, devSim.prim_total);
 
+                double YVerticalTemp[PRIM_INT_ERI_GRAD_LEN];
                 FmT(I + J + K + L + 2, AB * CD * ABCD * (SQR(Px - Qx) + SQR(Py - Qy) + SQR(Pz - Qz)),
                         YVerticalTemp);
 
                 for (uint32_t i = 0; i <= I + J + K + L + 2; i++) {
-                    VY(0, 0, i) *= X2;
+                    YVerticalTemp[i] *= X2;
                 }
 
 #if defined(int_spdf)
@@ -2578,7 +2576,6 @@ __launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) getGrad_kernel_spdf8()
   #if defined(int_sp)
                         iclass_oshell_grad_sp(iii, jjj, kkk, lll, ii,
                                 jj, kk, ll, DNMax,
-                                devSim.YVerticalTemp + offset,
                                 devSim.store + offset,
                                 devSim.store2 + offset,
                                 devSim.storeAA + offset,
@@ -2587,7 +2584,6 @@ __launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) getGrad_kernel_spdf8()
   #elif defined(int_spd)
                         iclass_oshell_grad_spd(iii, jjj, kkk, lll, ii,
                                 jj, kk, ll, DNMax,
-                                devSim.YVerticalTemp + offset,
                                 devSim.store + offset,
                                 devSim.store2 + offset,
                                 devSim.storeAA + offset,
@@ -2597,7 +2593,6 @@ __launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) getGrad_kernel_spdf8()
                         if (kkk + lll >= 4) {
                             iclass_oshell_grad_spdf(iii, jjj, kkk, lll,
                                     ii, jj, kk, ll, DNMax,
-                                    devSim.YVerticalTemp + offset,
                                     devSim.store + offset,
                                     devSim.store2 + offset,
                                     devSim.storeAA + offset,
@@ -2608,7 +2603,6 @@ __launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) getGrad_kernel_spdf8()
                         if (iii + jjj >= 4) {
                             iclass_oshell_grad_spdf2(iii, jjj, kkk,
                                     lll, ii, jj, kk, ll, DNMax,
-                                    devSim.YVerticalTemp + offset,
                                     devSim.store + offset,
                                     devSim.store2 + offset,
                                     devSim.storeAA + offset,
@@ -2617,14 +2611,13 @@ __launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) getGrad_kernel_spdf8()
                         }
   #elif defined(int_spdf3)
 //                        iclass_oshell_grad_spdf3(iii, jjj, kkk, lll, ii, jj,
-//                                kk, ll, DNMax, devSim.YVerticalTemp + offset,
+//                                kk, ll, DNMax,
 //                                devSim.store + offset, devSim.store2 + offset,
 //                                devSim.storeAA + offset, devSim.storeBB + offset,
 //                                devSim.storeCC + offset);
   #elif defined(int_spdf4)
                         iclass_oshell_grad_spdf4(iii, jjj, kkk, lll,
                                 ii, jj, kk, ll, DNMax,
-                                devSim.YVerticalTemp + offset,
                                 devSim.store + offset,
                                 devSim.store2 + offset,
                                 devSim.storeAA + offset,
@@ -2633,7 +2626,6 @@ __launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) getGrad_kernel_spdf8()
   #elif defined(int_spdf5)
                         iclass_oshell_grad_spdf5(iii, jjj, kkk, lll,
                                 ii, jj, kk, ll, DNMax,
-                                devSim.YVerticalTemp + offset,
                                 devSim.store + offset,
                                 devSim.store2 + offset,
                                 devSim.storeAA + offset,
@@ -2642,7 +2634,6 @@ __launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) getGrad_kernel_spdf8()
   #elif defined(int_spdf6)
                         iclass_oshell_grad_spdf6(iii, jjj, kkk, lll,
                                 ii, jj, kk, ll, DNMax,
-                                devSim.YVerticalTemp + offset,
                                 devSim.store + offset,
                                 devSim.store2 + offset,
                                 devSim.storeAA + offset,
@@ -2651,7 +2642,6 @@ __launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) getGrad_kernel_spdf8()
   #elif defined(int_spdf7)
                         iclass_oshell_grad_spdf7(iii, jjj, kkk, lll,
                                 ii, jj, kk, ll, DNMax,
-                                devSim.YVerticalTemp + offset,
                                 devSim.store + offset,
                                 devSim.store2 + offset,
                                 devSim.storeAA + offset,
@@ -2660,7 +2650,6 @@ __launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) getGrad_kernel_spdf8()
   #elif defined(int_spdf8)
                         iclass_oshell_grad_spdf8(iii, jjj, kkk, lll,
                                 ii, jj, kk, ll, DNMax,
-                                devSim.YVerticalTemp + offset,
                                 devSim.store + offset,
                                 devSim.store2 + offset,
                                 devSim.storeAA + offset,
@@ -2672,7 +2661,6 @@ __launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) getGrad_kernel_spdf8()
                         if (iii != 3 && jjj != 3 && kkk != 3 && lll != 3) {
                             iclass_grad_sp(iii, jjj, kkk, lll, ii, jj,
                                     kk, ll, DNMax,
-                                    devSim.YVerticalTemp + offset,
                                     devSim.store + offset,
                                     devSim.store2 + offset,
                                     devSim.storeAA + offset,
@@ -2683,7 +2671,6 @@ __launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) getGrad_kernel_spdf8()
                         if (iii != 3 && jjj != 3 && kkk != 3 && lll != 3) {
                             iclass_grad_spd(iii, jjj, kkk, lll, ii, jj,
                                     kk, ll, DNMax,
-                                    devSim.YVerticalTemp + offset,
                                     devSim.store + offset,
                                     devSim.store2 + offset,
                                     devSim.storeAA + offset,
@@ -2694,7 +2681,6 @@ __launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) getGrad_kernel_spdf8()
                         if (kkk + lll >= 4 && iii != 3 && jjj != 3 && kkk != 3 && lll != 3) {
                             iclass_grad_spdf(iii, jjj, kkk, lll, ii,
                                     jj, kk, ll, DNMax,
-                                    devSim.YVerticalTemp + offset,
                                     devSim.store + offset,
                                     devSim.store2 + offset,
                                     devSim.storeAA + offset,
@@ -2705,7 +2691,6 @@ __launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) getGrad_kernel_spdf8()
                         if (iii + jjj >= 4 && iii != 3 && jjj != 3 && kkk != 3 && lll != 3) {
                             iclass_grad_spdf2(iii, jjj, kkk, lll, ii,
                                     jj, kk, ll, DNMax,
-                                    devSim.YVerticalTemp + offset,
                                     devSim.store + offset,
                                     devSim.store2 + offset,
                                     devSim.storeAA + offset,
@@ -2717,7 +2702,6 @@ __launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) getGrad_kernel_spdf8()
                             if (iii != 3 || jjj != 3 || kkk != 3 || lll != 3) {
                                 iclass_grad_spdf3(iii, jjj, kkk, lll,
                                         ii, jj, kk, ll, DNMax,
-                                        devSim.YVerticalTemp + offset,
                                         devSim.store + offset,
                                         devSim.store2 + offset,
                                         devSim.storeAA + offset,
@@ -2729,7 +2713,6 @@ __launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) getGrad_kernel_spdf8()
                         if (iii == 3 && jjj == 3 && kkk == 3 && lll == 3) {
                             iclass_grad_spdf4(iii, jjj, kkk, lll, ii,
                                     jj, kk, ll, DNMax,
-                                    devSim.YVerticalTemp + offset,
                                     devSim.store + offset,
                                     devSim.store2 + offset,
                                     devSim.storeAA + offset,
@@ -2739,7 +2722,6 @@ __launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) getGrad_kernel_spdf8()
   #elif defined(int_spdf5)
                         iclass_grad_spdf5(iii, jjj, kkk, lll, ii, jj,
                                 kk, ll, DNMax,
-                                devSim.YVerticalTemp + offset,
                                 devSim.store + offset,
                                 devSim.store2 + offset,
                                 devSim.storeAA + offset,
@@ -2748,7 +2730,6 @@ __launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) getGrad_kernel_spdf8()
   #elif(defined int_spdf6)
                         iclass_grad_spdf6(iii, jjj, kkk, lll, ii, jj,
                                 kk, ll, DNMax,
-                                devSim.YVerticalTemp + offset,
                                 devSim.store + offset,
                                 devSim.store2 + offset,
                                 devSim.storeAA + offset,
@@ -2757,7 +2738,6 @@ __launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) getGrad_kernel_spdf8()
   #elif(defined int_spdf7)
                         iclass_grad_spdf7(iii, jjj, kkk, lll, ii, jj,
                                 kk, ll, DNMax,
-                                devSim.YVerticalTemp + offset,
                                 devSim.store + offset,
                                 devSim.store2 + offset,
                                 devSim.storeAA + offset,
@@ -2766,7 +2746,6 @@ __launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) getGrad_kernel_spdf8()
   #elif(defined int_spdf8)
                         iclass_grad_spdf8(iii, jjj, kkk, lll, ii, jj,
                                 kk, ll, DNMax,
-                                devSim.YVerticalTemp + offset,
                                 devSim.store + offset,
                                 devSim.store2 + offset,
                                 devSim.storeAA + offset,

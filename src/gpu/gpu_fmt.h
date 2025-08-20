@@ -59,14 +59,14 @@ __device__ static inline void FMT_NAME(uint32_t MaxM, const QUICKDouble X,
     }
 
     if (X > 1.0E-1 || (X > 1.0E-4 && MaxM < 4)) {
-        VY(0, 0, 0) = WW1;
+        YVerticalTemp[0] = WW1;
         for (uint32_t m = 1; m <= MaxM; m++) {
-	    VY(0, 0, m) = (((2.0 * m - 1.0) * VY(0, 0, m - 1)) - E) * 0.5 * XINV;
+	    YVerticalTemp[m] = (((2.0 * m - 1.0) * YVerticalTemp[m - 1]) - E) * 0.5 * XINV;
         }
     } else {
-        VY(0, 0, MaxM) = WW1;
+        YVerticalTemp[MaxM] = WW1;
         for (uint32_t m = MaxM - 1; m < MaxM; m--) {
-	    VY(0, 0, m) = (2.0 * X * VY(0, 0, m + 1) + E) / (m * 2.0 + 1.0);
+	    YVerticalTemp[m] = (2.0 * X * YVerticalTemp[m + 1] + E) / (m * 2.0 + 1.0);
         }
     }
 }

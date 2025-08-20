@@ -451,13 +451,8 @@ extern "C" void gpu_allocate_scratch_(bool* allocate_gradient_scratch)
     gpu->scratch->store2 = new gpu_buffer_type<QUICKDouble>(store_size);
     gpu->scratch->store2->DeleteCPU( );
 
-    gpu->scratch->YVerticalTemp = new gpu_buffer_type<QUICKDouble>(
-            gpu->blocks * gpu->twoEThreadsPerBlock * VDIM1 * VDIM2 * VDIM3);
-    gpu->scratch->YVerticalTemp->DeleteCPU( );
-
     gpu->gpu_sim.store = gpu->scratch->store->_devData;
     gpu->gpu_sim.store2 = gpu->scratch->store2->_devData;
-    gpu->gpu_sim.YVerticalTemp = gpu->scratch->YVerticalTemp->_devData;
 
     if (*allocate_gradient_scratch) {
         gpu->scratch->storeAA = new gpu_buffer_type<QUICKDouble>(store_size);
@@ -497,7 +492,6 @@ extern "C" void gpu_allocate_scratch_(bool* allocate_gradient_scratch)
 extern "C" void gpu_deallocate_scratch_(bool* deallocate_gradient_scratch)
 {
     SAFE_DELETE(gpu->scratch->store);
-    SAFE_DELETE(gpu->scratch->YVerticalTemp);
     SAFE_DELETE(gpu->scratch->store2);
 
     if (*deallocate_gradient_scratch) {

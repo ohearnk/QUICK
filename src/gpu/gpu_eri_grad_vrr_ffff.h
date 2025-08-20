@@ -12,14 +12,12 @@
    */
 
 #undef STOREDIM
-#undef VDIM3
 #undef VY
 #undef LOCSTORE
 #undef STORE_OPERATOR
 #define STOREDIM STOREDIM_XL
-#define VDIM3 VDIM3_L
 #define LOCSTORE(A,i1,i2,d1,d2) (A[((i2) * (d1) + (i1)) * gridDim.x * blockDim.x])
-#define VY(a,b,c) LOCVY(YVerticalTemp, (a), (b), (c), VDIM1, VDIM2, VDIM3)
+#define VY(a,b,c) (YVerticalTemp[(c)])
 #define STORE_OPERATOR =
 
 

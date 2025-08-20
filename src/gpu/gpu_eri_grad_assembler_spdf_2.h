@@ -12,14 +12,12 @@
    */
 
 #undef STOREDIM
-#undef VDIM3
 #undef VY
 #undef LOCSTORE
 #undef STORE_OPERATOR
 #define STOREDIM STOREDIM_XL
-#define VDIM3 VDIM3_L
 #define LOCSTORE(A,i1,i2,d1,d2) (A[((i2) * (d1) + (i1)) * gridDim.x * blockDim.x])
-#define VY(a,b,c) LOCVY(YVerticalTemp, (a), (b), (c), VDIM1, VDIM2, VDIM3)
+#define VY(a,b,c) (YVerticalTemp[(c)])
 #define STORE_OPERATOR =
 
 
@@ -32,20 +30,20 @@ __device__ static inline void ERint_grad_vertical_spdf_2(uint8_t I, uint8_t J, u
         const QUICKDouble ABcom, const QUICKDouble CDcom,
         QUICKDouble * const store, QUICKDouble * const YVerticalTemp)
 {
-    if ((I + J) >= 0 && (K + L) >= 7) {
+    if (I + J >= 0 && K + L >= 7) {
 #include "iclass_ssks.h"
-    }
-    if ((I + J) >= 1 && (K + L) >= 7) {
+        if (I + J >= 1) {
 #include "iclass_psks.h"
-    }
-    if ((I + J) >= 2 && (K + L) >= 7) {
+            if (I + J >= 2) {
 #include "iclass_dsks.h"
-    }
-    if ((I + J) >= 3 && (K + L) >= 7) {
+                if (I + J >= 3) {
 #include "iclass_fsks.h"
-    }
-    if ((I + J) >= 4 && (K + L) >= 7) {
+                    if (I + J >= 4) {
 #include "iclass_gsks.h"
+                    }
+                }
+            }
+        }
     }
 }
 

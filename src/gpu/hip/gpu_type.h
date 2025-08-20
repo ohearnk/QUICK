@@ -54,7 +54,6 @@ struct gpu_scratch {
     gpu_buffer_type<QUICKDouble>* storeAA;   // holds weighted temporary primitive integrals in OEI and ERI gradient algorithms
     gpu_buffer_type<QUICKDouble>* storeBB;   // holds weighted temporary primitive integrals in OEI and ERI gradient algorithms
     gpu_buffer_type<QUICKDouble>* storeCC;   // holds weighted temporary primitive integrals in OEI and ERI gradient algorithms
-    gpu_buffer_type<QUICKDouble>* YVerticalTemp;  // holds boys function values
 };
 
 struct gpu_timer_type {
@@ -374,7 +373,6 @@ struct gpu_simulation_type {
     QUICKDouble *storeAA;
     QUICKDouble *storeBB;
     QUICKDouble *storeCC;
-    QUICKDouble *YVerticalTemp;
 
     // for long range integrals
     QUICKDouble lri_zeta;

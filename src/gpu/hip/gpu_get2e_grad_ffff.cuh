@@ -12,8 +12,6 @@
 
 #undef STOREDIM
 #if defined int_spdf4
-  #undef VDIM3
-  #define VDIM3 VDIM3_L
   #define STOREDIM STOREDIM_XL
   #define STORE_INIT (4)
   #define STORE_DIM (80)
@@ -30,6 +28,9 @@
 
 #undef STOREDIM
 #define STOREDIM STOREDIM_XL
+
+// support up to f functions
+#define PRIM_INT_ERI_GRAD_FFFF_LEN (15)
 
 
 #if !defined(OSHELL)
@@ -992,7 +993,7 @@ __device__ static inline void iclass_grad_ffff
 #endif
 (uint8_t I, uint8_t J, uint8_t K, uint8_t L,
         uint32_t II, uint32_t JJ, uint32_t KK, uint32_t LL,
-        QUICKDouble DNMax, QUICKDouble * const YVerticalTemp,
+        QUICKDouble DNMax,
         QUICKDouble * const store, QUICKDouble * const store2,
         QUICKDouble * const storeAA, QUICKDouble * const storeBB, QUICKDouble * const storeCC,
         uint8_t ** const smem_uint8_ptr, uint32_t * const smem_uint32,
@@ -1176,11 +1177,12 @@ __device__ static inline void iclass_grad_ffff
                 const QUICKDouble Qz = LOC2(DEV_SIM_DBL_PTR_WEIGHTEDCENTERZ, kk_start + KKK, ll_start + LLL,
                         DEV_SIM_UINT32_PRIM_TOTAL, DEV_SIM_UINT32_PRIM_TOTAL);
 
+                double YVerticalTemp[PRIM_INT_ERI_GRAD_FFFF_LEN];
                 FmT(I + J + K + L + 2, AB * CD * ABCD
                         * (SQR(Px - Qx) + SQR(Py - Qy) + SQR(Pz - Qz)), YVerticalTemp);
 
                 for (uint32_t i = 0; i <= I + J + K + L + 2; i++) {
-                    VY(0, 0, i) = VY(0, 0, i) * X2;
+                    YVerticalTemp[i] *= X2;
                 }
 
 #if defined(int_spdf4)
@@ -1776,7 +1778,7 @@ __global__ void __launch_bounds__(ERI_GRAD_FFFF_TPB, ERI_GRAD_FFFF_BPSM) getGrad
   #if defined(int_spdf4)
                         if (iii == 3 && jjj == 3 && kkk == 3 && lll == 3) {
                             iclass_oshell_grad_ffff(iii, jjj, kkk, lll, ii, jj, kk, ll,
-                                    DNMax, DEV_SIM_DBL_PTR_YVERTICALTEMP + offset,
+                                    DNMax,
                                     DEV_SIM_DBL_PTR_STORE + offset, DEV_SIM_DBL_PTR_STORE2 + offset,
                                     DEV_SIM_DBL_PTR_STOREAA + offset, DEV_SIM_DBL_PTR_STOREBB + offset,
                                     DEV_SIM_DBL_PTR_STORECC + offset,
@@ -1788,7 +1790,7 @@ __global__ void __launch_bounds__(ERI_GRAD_FFFF_TPB, ERI_GRAD_FFFF_BPSM) getGrad
   #if defined(int_spdf4)
                         if (iii == 3 && jjj == 3 && kkk == 3 && lll == 3) {
                             iclass_grad_ffff(iii, jjj, kkk, lll, ii, jj, kk, ll,
-                                    DNMax, DEV_SIM_DBL_PTR_YVERTICALTEMP + offset,
+                                    DNMax,
                                     DEV_SIM_DBL_PTR_STORE + offset, DEV_SIM_DBL_PTR_STORE2 + offset,
                                     DEV_SIM_DBL_PTR_STOREAA + offset, DEV_SIM_DBL_PTR_STOREBB + offset,
                                     DEV_SIM_DBL_PTR_STORECC + offset,

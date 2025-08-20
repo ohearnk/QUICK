@@ -15,6 +15,9 @@
   #include "hip/gpu.h"
 #endif
 
+// support up to f functions (refactor if MP2 specialized for sp, spd, spdf, etc.)
+#define PRIM_INT_MP2_LEN (13)
+
 /*
    Constant Memory in GPU is fast but quite limited and hard to operate, usually not allocatable and
    readonly. So we put the following variables into constant memory:
@@ -89,16 +92,14 @@ __device__ static inline void FmT_MP2(uint32_t MaxM, QUICKDouble X, QUICKDouble 
         WW1 = (1.0 - X) / (QUICKDouble) (2.0 * MaxM+1);
     }
     if (X > 3.0E-7) {
-        LOC3(YVerticalTemp, 0, 0, 0, VDIM1, VDIM2, VDIM3) = WW1;
+        YVerticalTemp[0] = WW1;
         for (uint32_t m = 1; m <= MaxM; m++) {
-            LOC3(YVerticalTemp, 0, 0, m, VDIM1, VDIM2, VDIM3) = (((2 * m - 1)
-                        * LOC3(YVerticalTemp, 0, 0, m - 1, VDIM1, VDIM2, VDIM3)) - E) * 0.5 * XINV;
+            YVerticalTemp[m] = (((2 * m - 1) * YVerticalTemp[m - 1]) - E) * 0.5 * XINV;
         }
     } else {
-        LOC3(YVerticalTemp, 0, 0, MaxM, VDIM1, VDIM2, VDIM3) = WW1;
+        YVerticalTemp[MaxM] = WW1;
         for (uint32_t m = MaxM - 1; m >= 0; m--) {
-            LOC3(YVerticalTemp, 0, 0, m, VDIM1, VDIM2, VDIM3) = (2.0 * X
-                    * LOC3(YVerticalTemp, 0, 0, m + 1, VDIM1, VDIM2, VDIM3) + E) / (QUICKDouble) (m * 2 + 1);
+            YVerticalTemp[m] = (2.0 * X * YVerticalTemp[m + 1] + E) / (QUICKDouble) (m * 2 + 1);
         }
     }
 }
@@ -5630,13 +5631,13 @@ __device__ static inline void iclass_MP2(uint8_t I, uint8_t J, uint8_t K, uint8_
                         devSim_MP2.prim_total, devSim_MP2.prim_total);
                 QUICKDouble Qz = LOC2(devSim_MP2.weightedCenterZ, kk_start + KKK, ll_start + LLL,
                         devSim_MP2.prim_total, devSim_MP2.prim_total);
-                QUICKDouble YVerticalTemp[VDIM1 * VDIM2 * VDIM3];
 
+                QUICKDouble YVerticalTemp[PRIM_INT_MP2_LEN];
                 FmT_MP2(I + J + K + L, AB * CD * ABCD * (SQR(Px - Qx) + SQR(Py - Qy) + SQR(Pz - Qz)),
                         YVerticalTemp);
 
                 for (uint32_t i = 0; i <= I + J + K + L; i++) {
-                    VY(0, 0, i) *= X2;
+                    YVerticalTemp[i] *= X2;
                 }
 
                 vertical_MP2(I, J, K, L, YVerticalTemp, store,

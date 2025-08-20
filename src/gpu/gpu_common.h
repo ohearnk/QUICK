@@ -19,16 +19,6 @@
 static FILE *debugFile = NULL;
 #endif
 
-/* test code on host (CPU) */
-//#define TEST
-
-#define VDIM1 (1)
-#define VDIM2 (1)
-#define VDIM3_T (4)
-#define VDIM3_S (9)
-#define VDIM3_L (16)
-#define VDIM3 (16)
-#define VDIM3_GRAD_T (5)
 #define STOREDIM_T (10)
 #define STOREDIM_S (35)
 #define STOREDIM_GRAD_T (20)
@@ -56,7 +46,7 @@ static FILE *debugFile = NULL;
 // used in gpu_oei_definitions.h
 #define LOCSTOREFULL(A,i1,i2,d1,d2,m) ((A)[(((m) * (d2) + (i2)) * (d1) + (i1)) * gridDim.x * blockDim.x])
 // used in OEI and ERI code, auto-generated code
-#define VY(a,b,c) LOCVY(YVerticalTemp, (a), (b), (c), VDIM1, VDIM2, VDIM3)
+#define VY(a,b,c) (YVerticalTemp[(c)])
 
 #define SQR(x) ((x) * (x))
 #define CUBE(x) ((x) * (x) * (x))

@@ -21,6 +21,9 @@
 #define FMT_NAME FmT
 #include "gpu_fmt.h"
 
+// support up to d functions (refactor if OEI f func support added and/or specialized for sp, spd, spdf, etc.)
+#define PRIM_INT_OEPROP_LEN (5)
+
 
 __device__ static inline void addint_oeprop(uint8_t I, uint8_t J, uint32_t II, uint32_t JJ,
         uint32_t ipoint, QUICKDouble * const store2)
@@ -73,7 +76,7 @@ __device__ static inline void addint_oeprop(uint8_t I, uint8_t J, uint32_t II, u
 
 __device__ static inline void iclass_oeprop(uint8_t I, uint8_t J, uint32_t II, uint32_t JJ,
         uint32_t ipoint, uint32_t totalpoint, uint32_t totalatom,
-        QUICKDouble * const YVerticalTemp, QUICKDouble * const store, QUICKDouble * const store2)
+        QUICKDouble * const store, QUICKDouble * const store2)
 {
     /*
        kAtom A, B  is the coresponding atom for shell II, JJ
@@ -151,11 +154,12 @@ __device__ static inline void iclass_oeprop(uint8_t I, uint8_t J, uint32_t II, u
             QUICKDouble Cy = LOC2(devSim.extpointxyz, 1, ipoint, 3, totalpoint);
             QUICKDouble Cz = LOC2(devSim.extpointxyz, 2, ipoint, 3, totalpoint);
 
+            double YVerticalTemp[PRIM_INT_OEPROP_LEN];
             FmT(I + J, Zeta * (SQR(Px - Cx) + SQR(Py - Cy) + SQR(Pz - Cz)), YVerticalTemp);
 
             // compute all auxilary integrals and store
             for (uint32_t n = 0; n <= I + J; n++) {
-                VY(0, 0, n) *= -1.0 * Xcoeff_oei;
+                YVerticalTemp[n] *= -1.0 * Xcoeff_oei;
             }
 
             // decompose all attraction integrals to their auxilary integrals through VRR scheme.
@@ -220,7 +224,7 @@ __global__ void getOEPROP_kernel()
                 uint8_t jjj = devSim.sorted_Qnumber[JJ];
 
                 // compute coulomb attraction for the selected shell pair.
-                iclass_oeprop(iii, jjj, ii, jj, ipoint, totalpoint, totalatom, devSim.YVerticalTemp + offset,
+                iclass_oeprop(iii, jjj, ii, jj, ipoint, totalpoint, totalatom,
                         devSim.store + offset, devSim.store2 + offset);
             }
 #if defined(MPIV_GPU)

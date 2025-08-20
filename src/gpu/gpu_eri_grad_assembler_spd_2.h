@@ -12,14 +12,12 @@
    */
 
 #undef STOREDIM
-#undef VDIM3
 #undef VY
 #undef LOCSTORE
 #undef STORE_OPERATOR
 #define STOREDIM STOREDIM_XL
-#define VDIM3 VDIM3_L
 #define LOCSTORE(A,i1,i2,d1,d2) (A[((i2) * (d1) + (i1)) * gridDim.x * blockDim.x])
-#define VY(a,b,c) LOCVY(YVerticalTemp, (a), (b), (c), VDIM1, VDIM2, VDIM3)
+#define VY(a,b,c) (YVerticalTemp[(c)])
 #define STORE_OPERATOR =
 
 
@@ -37,9 +35,7 @@ __device__ static inline void ERint_grad_vertical_spd_2(uint8_t I, uint8_t J, ui
     LOCSTORE(store, 0, 0, STOREDIM, STOREDIM) STORE_OPERATOR VY_0;
     // [SS|SS] integral - End
 
-    if ((I+J) >=  0 && (K+L)>= 1)
-    {
-
+    if (I + J >= 0 && K + L >= 1) {
         // [SS|PS] integral - Start
         QUICKDouble VY_0 = VY(0, 0, 0);
         QUICKDouble VY_1 = VY(0, 0, 1);
@@ -48,9 +44,7 @@ __device__ static inline void ERint_grad_vertical_spd_2(uint8_t I, uint8_t J, ui
         LOCSTORE(store, 0, 3, STOREDIM, STOREDIM) STORE_OPERATOR Qtempz * VY_0 + WQtempz * VY_1;
         // [SS|PS] integral - End
 
-        if ((I+J) >=  0 && (K+L)>= 2)
-        {
-
+        if (K + L >= 2) {
             // [SS|DS] integral - Start
             QUICKDouble VY_0 = VY(0, 0, 0);
             QUICKDouble VY_1 = VY(0, 0, 1);
@@ -69,9 +63,7 @@ __device__ static inline void ERint_grad_vertical_spd_2(uint8_t I, uint8_t J, ui
             LOCSTORE(store, 0, 5, STOREDIM, STOREDIM) STORE_OPERATOR Qtempy * x_0_3_0 + WQtempy * x_0_3_1;
             // [SS|DS] integral - End
 
-            if ((I+J) >=  0 && (K+L)>= 3)
-            {
-
+            if (K + L >= 3) {
                 // [SS|FS] integral - Start
                 QUICKDouble VY_0 = VY(0, 0, 0);
                 QUICKDouble VY_1 = VY(0, 0, 1);
@@ -110,9 +102,7 @@ __device__ static inline void ERint_grad_vertical_spd_2(uint8_t I, uint8_t J, ui
                 LOCSTORE(store, 0, 14, STOREDIM, STOREDIM) STORE_OPERATOR Qtempx * x_0_9_0 + WQtempx * x_0_9_1;
                 // [SS|FS] integral - End
 
-                if ((I+J) >=  0 && (K+L)>= 4)
-                {
-
+                if (K + L >= 4) {
                     // [SS|GS] integral - Start
                     QUICKDouble VY_0 = VY(0, 0, 0);
                     QUICKDouble VY_1 = VY(0, 0, 1);
@@ -185,14 +175,11 @@ __device__ static inline void ERint_grad_vertical_spd_2(uint8_t I, uint8_t J, ui
                     LOCSTORE(store, 0, 31, STOREDIM, STOREDIM) STORE_OPERATOR Qtempy * x_0_19_0 + WQtempy * x_0_19_1;
                     LOCSTORE(store, 0, 27, STOREDIM, STOREDIM) STORE_OPERATOR Qtempx * x_0_19_0 + WQtempx * x_0_19_1;
                     // [SS|GS] integral - End
-
                 }
             }
         }
     }
-    if ((I+J) >=  1 && (K+L)>= 0)
-    {
-
+    if (I + J >= 1 && K + L >= 0) {
         // [PS|SS] integral - Start
         QUICKDouble VY_0 = VY(0, 0, 0);
         QUICKDouble VY_1 = VY(0, 0, 1);
@@ -201,9 +188,7 @@ __device__ static inline void ERint_grad_vertical_spd_2(uint8_t I, uint8_t J, ui
         LOCSTORE(store, 3, 0, STOREDIM, STOREDIM) STORE_OPERATOR Ptempz * VY_0 + WPtempz * VY_1;
         // [PS|SS] integral - End
 
-        if ((I+J) >=  1 && (K+L)>= 1)
-        {
-
+        if (K + L >= 1) {
             // [PS|PS] integral - Start
             QUICKDouble VY_0 = VY(0, 0, 0);
             QUICKDouble VY_1 = VY(0, 0, 1);
@@ -225,9 +210,7 @@ __device__ static inline void ERint_grad_vertical_spd_2(uint8_t I, uint8_t J, ui
             LOCSTORE(store, 1, 3, STOREDIM, STOREDIM) STORE_OPERATOR Ptempx * x_0_3_0 + WPtempx * x_0_3_1;
             // [PS|PS] integral - End
 
-            if ((I+J) >=  1 && (K+L)>= 2)
-            {
-
+            if (K + L >= 2) {
                 // [PS|DS] integral - Start
                 QUICKDouble VY_1 = VY(0, 0, 1);
                 QUICKDouble VY_2 = VY(0, 0, 2);
@@ -274,9 +257,7 @@ __device__ static inline void ERint_grad_vertical_spd_2(uint8_t I, uint8_t J, ui
                 LOCSTORE(store, 1, 9, STOREDIM, STOREDIM) STORE_OPERATOR Ptempx * x_0_9_0 + WPtempx * x_0_9_1;
                 // [PS|DS] integral - End
 
-                if ((I+J) >=  1 && (K+L)>= 3)
-                {
-
+                if (K + L >= 3) {
                     // [PS|FS] integral - Start
                     QUICKDouble VY_1 = VY(0, 0, 1);
                     QUICKDouble VY_2 = VY(0, 0, 2);
@@ -365,9 +346,7 @@ __device__ static inline void ERint_grad_vertical_spd_2(uint8_t I, uint8_t J, ui
                     LOCSTORE(store, 1, 19, STOREDIM, STOREDIM) STORE_OPERATOR Ptempx * x_0_19_0 + WPtempx * x_0_19_1;
                     // [PS|FS] integral - End
 
-                    if ((I+J) >=  1 && (K+L)>= 4)
-                    {
-
+                    if (K + L >= 4) {
                         // [PS|GS] integral - Start
                         QUICKDouble VY_1 = VY(0, 0, 1);
                         QUICKDouble VY_2 = VY(0, 0, 2);
@@ -520,13 +499,10 @@ __device__ static inline void ERint_grad_vertical_spd_2(uint8_t I, uint8_t J, ui
                         LOCSTORE(store, 2, 34, STOREDIM, STOREDIM) STORE_OPERATOR Ptempy * x_0_34_0 + WPtempy * x_0_34_1;
                         LOCSTORE(store, 1, 34, STOREDIM, STOREDIM) STORE_OPERATOR Ptempx * x_0_34_0 + WPtempx * x_0_34_1;
                         // [PS|GS] integral - End
-
                     }
                 }
             }
-            if ((I+J) >=  2 && (K+L)>= 1)
-            {
-
+            if (I + J >= 2) {
                 // [DS|PS] integral - Start
                 QUICKDouble VY_1 = VY(0, 0, 1);
                 QUICKDouble VY_2 = VY(0, 0, 2);
@@ -573,9 +549,7 @@ __device__ static inline void ERint_grad_vertical_spd_2(uint8_t I, uint8_t J, ui
                 LOCSTORE(store, 9, 1, STOREDIM, STOREDIM) STORE_OPERATOR Qtempx * x_9_0_0 + WQtempx * x_9_0_1;
                 // [DS|PS] integral - End
 
-                if ((I+J) >=  2 && (K+L)>= 2)
-                {
-
+                if (K + L >= 2) {
                     // [DS|DS] integral - Start
                     QUICKDouble VY_0 = VY(0, 0, 0);
                     QUICKDouble VY_1 = VY(0, 0, 1);
@@ -695,9 +669,7 @@ __device__ static inline void ERint_grad_vertical_spd_2(uint8_t I, uint8_t J, ui
                     LOCSTORE(store, 5, 5, STOREDIM, STOREDIM) STORE_OPERATOR Ptempy * x_3_5_0 + WPtempy * x_3_5_1 + ABCDtemp * x_3_3_1;
                     // [DS|DS] integral - End
 
-                    if ((I+J) >=  2 && (K+L)>= 3)
-                    {
-
+                    if (K + L >= 3) {
                         // [DS|FS] integral - Start
                         QUICKDouble VY_0 = VY(0, 0, 0);
                         QUICKDouble VY_1 = VY(0, 0, 1);
@@ -914,9 +886,7 @@ __device__ static inline void ERint_grad_vertical_spd_2(uint8_t I, uint8_t J, ui
                         LOCSTORE(store, 6, 14, STOREDIM, STOREDIM) STORE_OPERATOR Ptempx * x_3_14_0 + WPtempx * x_3_14_1 + ABCDtemp * x_3_9_1;
                         // [DS|FS] integral - End
 
-                        if ((I+J) >=  2 && (K+L)>= 4)
-                        {
-
+                        if (K + L >= 4) {
                             // [DS|GS] integral - Start
                             QUICKDouble VY_0 = VY(0, 0, 0);
                             QUICKDouble VY_1 = VY(0, 0, 1);
@@ -1269,12 +1239,9 @@ __device__ static inline void ERint_grad_vertical_spd_2(uint8_t I, uint8_t J, ui
                             LOCSTORE(store, 5, 31, STOREDIM, STOREDIM) STORE_OPERATOR Ptempy * x_3_31_0 + WPtempy * x_3_31_1 + ABCDtemp * x_3_19_1;
                             LOCSTORE(store, 6, 27, STOREDIM, STOREDIM) STORE_OPERATOR Ptempx * x_3_27_0 + WPtempx * x_3_27_1 + ABCDtemp * x_3_19_1;
                             // [DS|GS] integral - End
-
                         }
                     }
-                    if ((I+J) >=  3 && (K+L)>= 2)
-                    {
-
+                    if (I + J >= 3) {
                         // [FS|DS] integral - Start
                         QUICKDouble VY_2 = VY(0, 0, 2);
                         QUICKDouble VY_3 = VY(0, 0, 3);
@@ -1491,9 +1458,7 @@ __device__ static inline void ERint_grad_vertical_spd_2(uint8_t I, uint8_t J, ui
                         LOCSTORE(store, 19, 5, STOREDIM, STOREDIM) STORE_OPERATOR Qtempy * x_19_3_0 + WQtempy * x_19_3_1;
                         // [FS|DS] integral - End
 
-                        if ((I+J) >=  3 && (K+L)>= 3 && (I+J+K+L)>6)
-                        {
-
+                        if (K + L >= 3 && I + J + K + L > 6) {
                             // [FS|FS] integral - Start
                             QUICKDouble VY_1 = VY(0, 0, 1);
                             QUICKDouble VY_2 = VY(0, 0, 2);
@@ -2049,9 +2014,7 @@ __device__ static inline void ERint_grad_vertical_spd_2(uint8_t I, uint8_t J, ui
                             LOCSTORE(store, 19, 14, STOREDIM, STOREDIM) STORE_OPERATOR Qtempx * x_19_9_0 + WQtempx * x_19_9_1;
                             // [FS|FS] integral - End
 
-                            if ((I+J) >=  3 && (K+L)>= 4)
-                            {
-
+                            if (K + L >= 4) {
                                 // [FS|GS] integral - Start
                                 QUICKDouble VY_1 = VY(0, 0, 1);
                                 QUICKDouble VY_2 = VY(0, 0, 2);
@@ -2832,11 +2795,8 @@ __device__ static inline void ERint_grad_vertical_spd_2(uint8_t I, uint8_t J, ui
                                 LOCSTORE(store, 16, 34, STOREDIM, STOREDIM) STORE_OPERATOR Ptempy * x_9_34_0 + WPtempy * x_9_34_1;
                                 LOCSTORE(store, 14, 34, STOREDIM, STOREDIM) STORE_OPERATOR Ptempx * x_9_34_0 + WPtempx * x_9_34_1;
                                 // [FS|GS] integral - End
-
                             }
-                            if ((I+J) >=  4 && (K+L)>= 3)
-                            {
-
+                            if (I + J >= 4) {
                                 // [GS|FS] integral - Start
                                 QUICKDouble VY_3 = VY(0, 0, 3);
                                 QUICKDouble VY_4 = VY(0, 0, 4);
@@ -3618,9 +3578,7 @@ __device__ static inline void ERint_grad_vertical_spd_2(uint8_t I, uint8_t J, ui
                                 LOCSTORE(store, 34, 14, STOREDIM, STOREDIM) STORE_OPERATOR Qtempx * x_34_9_0 + WQtempx * x_34_9_1;
                                 // [GS|FS] integral - End
 
-                                if ((I+J) >=  4 && (K+L)>= 4)
-                                {
-
+                                if (K + L >= 4) {
                                     // [GS|GS] integral - Start
                                     QUICKDouble VY_2 = VY(0, 0, 2);
                                     QUICKDouble VY_3 = VY(0, 0, 3);
@@ -5265,13 +5223,10 @@ __device__ static inline void ERint_grad_vertical_spd_2(uint8_t I, uint8_t J, ui
                                     LOCSTORE(store, 34, 31, STOREDIM, STOREDIM) STORE_OPERATOR Qtempy * x_34_19_0 + WQtempy * x_34_19_1;
                                     LOCSTORE(store, 34, 27, STOREDIM, STOREDIM) STORE_OPERATOR Qtempx * x_34_19_0 + WQtempx * x_34_19_1;
                                     // [GS|GS] integral - End
-
                                 }
                             }
                         }
-                        if ((I+J) >=  4 && (K+L)>= 2)
-                        {
-
+                        if (I + J >= 4) {
                             // [GS|DS] integral - Start
                             QUICKDouble VY_2 = VY(0, 0, 2);
                             QUICKDouble VY_3 = VY(0, 0, 3);
@@ -5624,13 +5579,10 @@ __device__ static inline void ERint_grad_vertical_spd_2(uint8_t I, uint8_t J, ui
                             LOCSTORE(store, 34, 6, STOREDIM, STOREDIM) STORE_OPERATOR Qtempx * x_34_3_0 + WQtempx * x_34_3_1;
                             LOCSTORE(store, 34, 5, STOREDIM, STOREDIM) STORE_OPERATOR Qtempy * x_34_3_0 + WQtempy * x_34_3_1;
                             // [GS|DS] integral - End
-
                         }
                     }
                 }
-                if ((I+J) >=  3 && (K+L)>= 1)
-                {
-
+                if (I + J >= 3) {
                     // [FS|PS] integral - Start
                     QUICKDouble VY_1 = VY(0, 0, 1);
                     QUICKDouble VY_2 = VY(0, 0, 2);
@@ -5719,9 +5671,7 @@ __device__ static inline void ERint_grad_vertical_spd_2(uint8_t I, uint8_t J, ui
                     LOCSTORE(store, 19, 1, STOREDIM, STOREDIM) STORE_OPERATOR Qtempx * x_19_0_0 + WQtempx * x_19_0_1;
                     // [FS|PS] integral - End
 
-                    if ((I+J) >=  4 && (K+L)>= 1)
-                    {
-
+                    if (I + J >= 4) {
                         // [GS|PS] integral - Start
                         QUICKDouble VY_1 = VY(0, 0, 1);
                         QUICKDouble VY_2 = VY(0, 0, 2);
@@ -5874,14 +5824,11 @@ __device__ static inline void ERint_grad_vertical_spd_2(uint8_t I, uint8_t J, ui
                         LOCSTORE(store, 34, 2, STOREDIM, STOREDIM) STORE_OPERATOR Qtempy * x_34_0_0 + WQtempy * x_34_0_1;
                         LOCSTORE(store, 34, 1, STOREDIM, STOREDIM) STORE_OPERATOR Qtempx * x_34_0_0 + WQtempx * x_34_0_1;
                         // [GS|PS] integral - End
-
                     }
                 }
             }
         }
-        if ((I+J) >=  2 && (K+L)>= 0)
-        {
-
+        if (I + J >= 2) {
             // [DS|SS] integral - Start
             QUICKDouble VY_0 = VY(0, 0, 0);
             QUICKDouble VY_1 = VY(0, 0, 1);
@@ -5900,9 +5847,7 @@ __device__ static inline void ERint_grad_vertical_spd_2(uint8_t I, uint8_t J, ui
             LOCSTORE(store, 5, 0, STOREDIM, STOREDIM) STORE_OPERATOR Ptempy * x_3_0_0 + WPtempy * x_3_0_1;
             // [DS|SS] integral - End
 
-            if ((I+J) >=  3 && (K+L)>= 0)
-            {
-
+            if (I + J >= 3) {
                 // [FS|SS] integral - Start
                 QUICKDouble VY_0 = VY(0, 0, 0);
                 QUICKDouble VY_1 = VY(0, 0, 1);
@@ -5941,9 +5886,7 @@ __device__ static inline void ERint_grad_vertical_spd_2(uint8_t I, uint8_t J, ui
                 LOCSTORE(store, 14, 0, STOREDIM, STOREDIM) STORE_OPERATOR Ptempx * x_9_0_0 + WPtempx * x_9_0_1;
                 // [FS|SS] integral - End
 
-                if ((I+J) >=  4 && (K+L)>= 0)
-                {
-
+                if (I + J >= 4) {
                     // [GS|SS] integral - Start
                     QUICKDouble VY_0 = VY(0, 0, 0);
                     QUICKDouble VY_1 = VY(0, 0, 1);

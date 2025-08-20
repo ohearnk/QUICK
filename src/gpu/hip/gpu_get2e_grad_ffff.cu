@@ -62,7 +62,7 @@ static __constant__ uint8_t devTrans[TRANSDIM * TRANSDIM * TRANSDIM];
 #define ERI_GRAD_FFFF_SMEM_UINT32_SIZE (5)
 #define ERI_GRAD_FFFF_SMEM_UINT32_PTR_SIZE (9)
 #define ERI_GRAD_FFFF_SMEM_DBL_SIZE (3)
-#define ERI_GRAD_FFFF_SMEM_DBL_PTR_SIZE (19)
+#define ERI_GRAD_FFFF_SMEM_DBL_PTR_SIZE (18)
 #define ERI_GRAD_FFFF_SMEM_CHAR_PTR_SIZE (1)
 #define ERI_GRAD_FFFF_SMEM_INT2_PTR_SIZE (1)
 
@@ -99,7 +99,6 @@ static __constant__ uint8_t devTrans[TRANSDIM * TRANSDIM * TRANSDIM];
 #define DEV_SIM_DBL_PTR_XCOEFF smem_dbl_ptr[ERI_GRAD_FFFF_TPB * 15 + threadIdx.x]
 #define DEV_SIM_DBL_PTR_XYZ smem_dbl_ptr[ERI_GRAD_FFFF_TPB * 16 + threadIdx.x]
 #define DEV_SIM_DBL_PTR_YCUTOFF smem_dbl_ptr[ERI_GRAD_FFFF_TPB * 17 + threadIdx.x]
-#define DEV_SIM_DBL_PTR_YVERTICALTEMP smem_dbl_ptr[ERI_GRAD_FFFF_TPB * 18 + threadIdx.x]
 #define DEV_SIM_DBL_PRIMLIMIT smem_dbl[threadIdx.x]
 #define DEV_SIM_DBL_GRADCUTOFF smem_dbl[ERI_GRAD_FFFF_TPB + threadIdx.x]
 #define DEV_SIM_DBL_HYB_COEFF smem_dbl[ERI_GRAD_FFFF_TPB * 2 + threadIdx.x]
@@ -302,7 +301,6 @@ void getGrad_ffff(_gpu_type gpu)
         dbl_ptr_buffer[ERI_GRAD_FFFF_TPB * 15 + i] = gpu->gpu_sim.Xcoeff;
         dbl_ptr_buffer[ERI_GRAD_FFFF_TPB * 16 + i] = gpu->gpu_sim.xyz;
         dbl_ptr_buffer[ERI_GRAD_FFFF_TPB * 17 + i] = gpu->gpu_sim.YCutoff;
-        dbl_ptr_buffer[ERI_GRAD_FFFF_TPB * 18 + i] = gpu->gpu_sim.YVerticalTemp;
     }
 
     for (uint32_t i = 0; i < ERI_GRAD_FFFF_TPB; i++) {

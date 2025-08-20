@@ -18,6 +18,13 @@
 
 #include "gpu_common.h"
 
+#undef PRIM_INT_LRI_GRAD_LEN
+#if defined(int_spd)
+  #define PRIM_INT_LRI_GRAD_LEN (6)
+#elif defined(int_spdf2)
+  #define PRIM_INT_LRI_GRAD_LEN (9)
+#endif
+
 
 #if !defined(__gpu_get2e_subs_grad_h_)
   #define __gpu_get2e_subs_grad_h_
@@ -625,7 +632,7 @@ __device__ static inline void iclass_oshell_lri_grad
 __device__ static inline void iclass_lri_grad
   #endif
 (uint8_t I, uint8_t J, uint32_t II, uint32_t JJ, uint32_t iatom, uint32_t totalatom,
- QUICKDouble * const YVerticalTemp, QUICKDouble * const store, QUICKDouble * const store2,
+ QUICKDouble * const store, QUICKDouble * const store2,
  QUICKDouble * const storeAA, QUICKDouble * const storeBB) {
     /*
        kAtom A, B, C ,D is the coresponding atom for shell ii, jj, kk, ll
@@ -765,10 +772,11 @@ __device__ static inline void iclass_lri_grad
         QUICKDouble Qy = RCy;
         QUICKDouble Qz = RCz;
 
+        double YVerticalTemp[PRIM_INT_LRI_GRAD_LEN];
         FmT(I + J + 1, AB * CD * ABCD * (SQR(Px - Qx) + SQR(Py - Qy) + SQR(Pz - Qz)), YVerticalTemp);
 
         for (uint32_t i = 0; i <= I + J + 1; i++) {
-            VY(0, 0, i) *= X2;
+            YVerticalTemp[i] *= X2;
         }
 
         lri::vertical2(I, J + 1, 0, 1, YVerticalTemp, store2,
@@ -918,7 +926,7 @@ __device__ static inline void iclass_lri_grad_spdf2
     #endif
   #endif
 (uint8_t I, uint8_t J, uint32_t II, uint32_t JJ, uint32_t iatom, uint32_t totalatom,
- QUICKDouble* YVerticalTemp, QUICKDouble* store, QUICKDouble* store2,
+ QUICKDouble* store, QUICKDouble* store2,
  QUICKDouble* storeAA, QUICKDouble* storeBB) {
     /*
        kAtom A, B, C ,D is the coresponding atom for shell ii, jj, kk, ll
@@ -1046,10 +1054,11 @@ __device__ static inline void iclass_lri_grad_spdf2
             QUICKDouble Qy = RCy;
             QUICKDouble Qz = RCz;
 
+            double YVerticalTemp[PRIM_INT_LRI_GRAD_LEN];
             FmT(I + J + 2, AB * CD * ABCD * (SQR(Px - Qx) + SQR(Py - Qy) + SQR(Pz - Qz)), YVerticalTemp);
 
             for (uint32_t i = 0; i <= I + J + 2; i++) {
-                VY(0, 0, i) *= X2;
+                YVerticalTemp[i] *= X2;
             }
 
             for (uint8_t i = Sumindex[0]; i < Sumindex[3]; i++) {
@@ -1205,13 +1214,13 @@ get_lri_grad_kernel_spdf2()
 
 #if defined(int_spd)
         iclass_lri_grad(iii, jjj, ii, jj, iatom, totalatom,
-                devSim.YVerticalTemp + offset, devSim.store + offset,
+                devSim.store + offset,
                 devSim.store2 + offset, devSim.storeAA + offset,
                 devSim.storeBB + offset);
 #elif defined(int_spdf2)
         if (iii + jjj >= 4) {
             iclass_lri_grad_spdf2(iii, jjj, ii, jj, iatom, totalatom,
-                    devSim.YVerticalTemp + offset, devSim.store + offset,
+                    devSim.store + offset,
                     devSim.store2 + offset, devSim.storeAA + offset,
                     devSim.storeBB + offset);
         }

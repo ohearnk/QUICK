@@ -12,13 +12,11 @@
    */
 
 #undef STOREDIM
-#undef VDIM3
 #undef VY
 #undef LOCSTORE
 #define STOREDIM STOREDIM_L
-#define VDIM3 VDIM3_L
 #define LOCSTORE(A,i1,i2,d1,d2) (A[((i2) * (d1) + (i1)) * gridDim.x * blockDim.x])
-#define VY(a,b,c) LOCVY(YVerticalTemp, (a), (b), (c), VDIM1, VDIM2, VDIM3)
+#define VY(a,b,c) (YVerticalTemp[c])
 
 
 __device__ static inline void ERint_vertical_spdf_2(uint8_t I, uint8_t J, uint8_t K, uint8_t L,
@@ -30,31 +28,31 @@ __device__ static inline void ERint_vertical_spdf_2(uint8_t I, uint8_t J, uint8_
         QUICKDouble ABcom, QUICKDouble CDcom,
         QUICKDouble * const store, QUICKDouble * const YVerticalTemp)
 {
-    if ((I + J) >= 5 && (K + L) >= 0) {
+    if (I + J >= 5 && K + L >= 0) {
 #include "iclass_hsss.h"
-    }
-    if ((I + J) >= 6 && (K + L) >= 0) {
+        if (I + J >= 6) {
 #include "iclass_isss.h"
-    }
-    if ((I + J) >= 5 && (K + L) >= 1) {
+        }
+        if (K + L >= 1) {
 #include "iclass_hsps.h"
-    }
-    if ((I + J) >= 6 && (K + L) >= 1) {
+            if (I + J >= 6) {
 #include "iclass_isps.h"
-    }
-    if ((I + J) >= 5 && (K + L) >= 2) {
+            }
+            if (K + L >= 2) {
 #include "iclass_hsds.h"
-    }
-    if ((I + J) >= 6 && (K + L) >= 2) {
+                if (I + J >= 6) {
 #include "iclass_isds.h"
-    }
-    if ((I + J) >= 5 && (K + L) >= 3) {
+                }
+                if (K + L >= 3) {
 #include "iclass_hsfs.h"
-    }
-    if ((I + J) >= 6 && (K + L) >= 3) {
+                    if (I + J >= 6) {
 #include "iclass_isfs.h"
-    }
-    if ((I + J) >= 5 && (K + L) >= 4) {
+                    }
+                    if (K + L >= 4) {
 #include "iclass_hsgs.h"
+                    }
+                }
+            }
+        }
     }
 }
