@@ -25,57 +25,24 @@
 #define PRIM_INT_OEPROP_LEN (5)
 
 
-__device__ static inline void addint_oeprop(uint8_t I, uint8_t J, uint32_t II, uint32_t JJ,
-        uint32_t ipoint, QUICKDouble * const store2)
-{
-    // obtain the start and final basis function indices for given shells II and JJ for
-    // contribution into correct location in Fock matrix.
-    uint32_t III1 = LOC2(devSim.Qsbasis, II, I, devSim.nshell, 4);
-    uint32_t III2 = LOC2(devSim.Qfbasis, II, I, devSim.nshell, 4);
-    uint32_t JJJ1 = LOC2(devSim.Qsbasis, JJ, J, devSim.nshell, 4);
-    uint32_t JJJ2 = LOC2(devSim.Qfbasis, JJ, J, devSim.nshell, 4);
-
-    for (uint32_t III = III1; III <= III2; III++) {
-        for (uint32_t JJJ = MAX(III,JJJ1); JJJ <= JJJ2; JJJ++) {
-            // devTrans maps a basis function with certain angular momentum to store2 array. Get the correct indices now.
-            uint8_t i = LOC3(devTrans,
-                    LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
-                    LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
-                    LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
-                    TRANSDIM, TRANSDIM, TRANSDIM);
-
-            uint8_t j = LOC3(devTrans, 
-                    LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-                    LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
-                    LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
-                    TRANSDIM, TRANSDIM, TRANSDIM);
-
-            // multiply the integral value by normalization constants.
-            QUICKDouble dense_sym_factor;
-            if (III != JJJ) {
-                dense_sym_factor = 2.0;
-            } else {
-                dense_sym_factor = 1.0;
-            }
-            QUICKDouble DENSEJI = (QUICKDouble) LOC2(devSim.dense, JJJ, III, devSim.nbasis, devSim.nbasis);
-            if (devSim.is_oshell) {
-                DENSEJI = DENSEJI + (QUICKDouble) LOC2(devSim.denseb, JJJ, III, devSim.nbasis, devSim.nbasis);
-            }
-            QUICKDouble Y = dense_sym_factor * DENSEJI * devSim.cons[III] * devSim.cons[JJJ]
-                * LOCSTORE(store2, i, j, STOREDIM, STOREDIM);
-
-#if defined(USE_LEGACY_ATOMICS)
-            GPUATOMICADD(&devSim.esp_electronicULL[ipoint], Y, OSCALE);
-#else
-            atomicAdd(&devSim.esp_electronic[ipoint], Y);
-#endif
-        }
-    }
-}
-
-
 __device__ static inline void iclass_oeprop(uint8_t I, uint8_t J, uint32_t II, uint32_t JJ,
-        uint32_t ipoint, uint32_t totalpoint, uint32_t totalatom,
+        uint32_t ipoint, uint32_t nextpoint, uint32_t totalatom, bool is_oshell, 
+        uint32_t nbasis, uint32_t nshell, uint32_t jbasis,
+        QUICKDouble const * const allxyz, QUICKDouble const * const extpointxyz,
+        uint32_t const * const kstart, uint32_t const * const katom,
+        uint32_t const * const kprim, uint32_t const * const Qstart,
+        uint32_t const * const Qsbasis, uint32_t const * const Qfbasis,
+        QUICKDouble const * const cons, uint8_t const * const KLMN,
+        uint32_t prim_total, uint32_t const * const prim_start,
+        QUICKDouble * const dense, QUICKDouble * const denseb,
+#if defined(USE_LEGACY_ATOMICS)
+        QUICKULL * const esp_electronicULL,
+#else
+        QUICKDouble * const esp_electronic,
+#endif
+        QUICKDouble const * const Xcoeff_oei, QUICKDouble const * const expoSum,
+        QUICKDouble const * const weightedCenterX, QUICKDouble const * const weightedCenterY,
+        QUICKDouble const * const weightedCenterZ, QUICKDouble coreIntegralCutoff,
         QUICKDouble * const store, QUICKDouble * const store2)
 {
     /*
@@ -85,24 +52,24 @@ __device__ static inline void iclass_oeprop(uint8_t I, uint8_t J, uint32_t II, u
        Ai, Bi, Ci are the coordinates for atom katomA, katomB, katomC,
        which means they are corrosponding coorinates for shell II, JJ and nuclei.
    */
-    QUICKDouble Ax = LOC2(devSim.allxyz, 0, devSim.katom[II], 3, totalatom);
-    QUICKDouble Ay = LOC2(devSim.allxyz, 1, devSim.katom[II], 3, totalatom);
-    QUICKDouble Az = LOC2(devSim.allxyz, 2, devSim.katom[II], 3, totalatom);
+    QUICKDouble Ax = LOC2(allxyz, 0, katom[II], 3, totalatom);
+    QUICKDouble Ay = LOC2(allxyz, 1, katom[II], 3, totalatom);
+    QUICKDouble Az = LOC2(allxyz, 2, katom[II], 3, totalatom);
 
-    QUICKDouble Bx = LOC2(devSim.allxyz, 0, devSim.katom[JJ], 3, totalatom);
-    QUICKDouble By = LOC2(devSim.allxyz, 1, devSim.katom[JJ], 3, totalatom);
-    QUICKDouble Bz = LOC2(devSim.allxyz, 2, devSim.katom[JJ], 3, totalatom);
+    QUICKDouble Bx = LOC2(allxyz, 0, katom[JJ], 3, totalatom);
+    QUICKDouble By = LOC2(allxyz, 1, katom[JJ], 3, totalatom);
+    QUICKDouble Bz = LOC2(allxyz, 2, katom[JJ], 3, totalatom);
 
     /*
        kPrimI and kPrimJ indicates the number of primitives in shell II and JJ.
        kStartI, J indicates the starting guassian function for shell II, JJ.
        We retrieve from global memory and save them to register to avoid multiple retrieve.
    */
-    uint32_t kPrimI = devSim.kprim[II];
-    uint32_t kPrimJ = devSim.kprim[JJ];
+    uint32_t kPrimI = kprim[II];
+    uint32_t kPrimJ = kprim[JJ];
 
-    uint32_t kStartI = devSim.kstart[II];
-    uint32_t kStartJ = devSim.kstart[JJ];
+    uint32_t kStartI = kstart[II];
+    uint32_t kStartJ = kstart[JJ];
 
     /*
        Store array holds contracted integral values computed using VRR algorithm.
@@ -133,33 +100,33 @@ __device__ static inline void iclass_oeprop(uint8_t I, uint8_t J, uint32_t II, u
            Those two are pre-calculated in CPU stage.
 
         */
-        uint32_t ii_start = devSim.prim_start[II];
-        uint32_t jj_start = devSim.prim_start[JJ];
+        uint32_t ii_start = prim_start[II];
+        uint32_t jj_start = prim_start[JJ];
 
-        QUICKDouble Zeta = LOC2(devSim.expoSum, ii_start + III, jj_start + JJJ,
-                devSim.prim_total, devSim.prim_total);
-        QUICKDouble Px = LOC2(devSim.weightedCenterX, ii_start + III, jj_start + JJJ,
-                devSim.prim_total, devSim.prim_total);
-        QUICKDouble Py = LOC2(devSim.weightedCenterY, ii_start + III, jj_start + JJJ,
-                devSim.prim_total, devSim.prim_total);
-        QUICKDouble Pz = LOC2(devSim.weightedCenterZ, ii_start + III, jj_start + JJJ,
-                devSim.prim_total, devSim.prim_total);
+        QUICKDouble Zeta = LOC2(expoSum, ii_start + III, jj_start + JJJ,
+                prim_total, prim_total);
+        QUICKDouble Px = LOC2(weightedCenterX, ii_start + III, jj_start + JJJ,
+                prim_total, prim_total);
+        QUICKDouble Py = LOC2(weightedCenterY, ii_start + III, jj_start + JJJ,
+                prim_total, prim_total);
+        QUICKDouble Pz = LOC2(weightedCenterZ, ii_start + III, jj_start + JJJ,
+                prim_total, prim_total);
 
         // get Xcoeff, which is a product of overlap prefactor and contraction coefficients
-        QUICKDouble Xcoeff_oei = LOC4(devSim.Xcoeff_oei, kStartI + III, kStartJ + JJJ,
-                I - devSim.Qstart[II], J - devSim.Qstart[JJ], devSim.jbasis, devSim.jbasis, 2, 2);
+        QUICKDouble Xcoeff = LOC4(Xcoeff_oei, kStartI + III, kStartJ + JJJ,
+                I - Qstart[II], J - Qstart[JJ], jbasis, jbasis, 2, 2);
 
-        if (abs(Xcoeff_oei) > devSim.coreIntegralCutoff) {
-            QUICKDouble Cx = LOC2(devSim.extpointxyz, 0, ipoint, 3, totalpoint);
-            QUICKDouble Cy = LOC2(devSim.extpointxyz, 1, ipoint, 3, totalpoint);
-            QUICKDouble Cz = LOC2(devSim.extpointxyz, 2, ipoint, 3, totalpoint);
+        if (abs(Xcoeff) > coreIntegralCutoff) {
+            QUICKDouble Cx = LOC2(extpointxyz, 0, ipoint, 3, nextpoint);
+            QUICKDouble Cy = LOC2(extpointxyz, 1, ipoint, 3, nextpoint);
+            QUICKDouble Cz = LOC2(extpointxyz, 2, ipoint, 3, nextpoint);
 
             double YVerticalTemp[PRIM_INT_OEPROP_LEN];
             FmT(I + J, Zeta * (SQR(Px - Cx) + SQR(Py - Cy) + SQR(Pz - Cz)), YVerticalTemp);
 
             // compute all auxilary integrals and store
             for (uint32_t n = 0; n <= I + J; n++) {
-                YVerticalTemp[n] *= -1.0 * Xcoeff_oei;
+                YVerticalTemp[n] *= -1.0 * Xcoeff;
             }
 
             // decompose all attraction integrals to their auxilary integrals through VRR scheme.
@@ -184,18 +151,80 @@ __device__ static inline void iclass_oeprop(uint8_t I, uint8_t J, uint32_t II, u
     }
 
     // retrive computed integral values from store array and update the Fock matrix
-    addint_oeprop(I, J, II, JJ, ipoint, store2);
+    //
+    // obtain the start and final basis function indices for given shells II and JJ for
+    // contribution into correct location in Fock matrix.
+    uint32_t III1 = LOC2(Qsbasis, II, I, nshell, 4);
+    uint32_t III2 = LOC2(Qfbasis, II, I, nshell, 4);
+    uint32_t JJJ1 = LOC2(Qsbasis, JJ, J, nshell, 4);
+    uint32_t JJJ2 = LOC2(Qfbasis, JJ, J, nshell, 4);
+
+    for (uint32_t III = III1; III <= III2; III++) {
+        for (uint32_t JJJ = MAX(III,JJJ1); JJJ <= JJJ2; JJJ++) {
+            // devTrans maps a basis function with certain angular momentum to store2 array. Get the correct indices now.
+            uint8_t i = LOC3(devTrans,
+                    LOC2(KLMN, 0, III, 3, nbasis),
+                    LOC2(KLMN, 1, III, 3, nbasis),
+                    LOC2(KLMN, 2, III, 3, nbasis),
+                    TRANSDIM, TRANSDIM, TRANSDIM);
+
+            uint8_t j = LOC3(devTrans, 
+                    LOC2(KLMN, 0, JJJ, 3, nbasis),
+                    LOC2(KLMN, 1, JJJ, 3, nbasis),
+                    LOC2(KLMN, 2, JJJ, 3, nbasis),
+                    TRANSDIM, TRANSDIM, TRANSDIM);
+
+            // multiply the integral value by normalization constants.
+            QUICKDouble dense_sym_factor;
+            if (III != JJJ) {
+                dense_sym_factor = 2.0;
+            } else {
+                dense_sym_factor = 1.0;
+            }
+            QUICKDouble DENSEJI = (QUICKDouble) LOC2(dense, JJJ, III, nbasis, nbasis);
+            if (is_oshell) {
+                DENSEJI = DENSEJI + (QUICKDouble) LOC2(denseb, JJJ, III, nbasis, nbasis);
+            }
+            QUICKDouble Y = dense_sym_factor * DENSEJI * cons[III] * cons[JJJ]
+                * LOCSTORE(store2, i, j, STOREDIM, STOREDIM);
+
+#if defined(USE_LEGACY_ATOMICS)
+            GPUATOMICADD(&esp_electronicULL[ipoint], Y, OSCALE);
+#else
+            atomicAdd(&esp_electronic[ipoint], Y);
+#endif
+        }
+    }
 }
 
 
-__global__ void getOEPROP_kernel()
+__global__ void k_get_oeprop(bool is_oshell, uint32_t natom, uint32_t nextatom,
+        uint32_t nextpoint, uint32_t nbasis, uint32_t nshell, uint32_t jbasis, uint32_t Qshell,
+        QUICKDouble const * const allxyz, QUICKDouble const * const extpointxyz,
+        uint32_t const * const kstart, uint32_t const * const katom,
+        uint32_t const * const kprim, uint32_t const * const Qstart,
+        uint32_t const * const Qsbasis, uint32_t const * const Qfbasis,
+        uint8_t const * const sorted_Qnumber, uint32_t const * const sorted_Q,
+        QUICKDouble const * const cons, uint8_t const * const KLMN,
+        uint32_t prim_total, uint32_t const * const prim_start,
+        QUICKDouble * const dense, QUICKDouble * const denseb,
+#if defined(USE_LEGACY_ATOMICS)
+        QUICKULL * const esp_electronicULL,
+#else
+        QUICKDouble * const esp_electronic,
+#endif
+        QUICKDouble const * const Xcoeff_oei, QUICKDouble const * const expoSum,
+        QUICKDouble const * const weightedCenterX, QUICKDouble const * const weightedCenterY,
+        QUICKDouble const * const weightedCenterZ, QUICKDouble coreIntegralCutoff,
+        int2 const * const sorted_OEICutoffIJ,
+#if defined(MPIV_GPU)
+        unsigned char const * const mpi_boeicompute,
+#endif
+        QUICKDouble * const store, QUICKDouble * const store2)
 {
     unsigned int offset = blockIdx.x * blockDim.x + threadIdx.x;
     unsigned int totalThreads = blockDim.x * gridDim.x;
-    uint32_t jshell = devSim.Qshell;
-    uint32_t totalatom = devSim.natom + devSim.nextatom;
-    QUICKULL totalpoint = devSim.nextpoint;
-    QUICKULL ncalcs = (QUICKULL) (jshell * jshell * totalpoint);
+    QUICKULL ncalcs = (QUICKULL) (Qshell * Qshell * nextpoint);
 
     for (QUICKULL i = offset; i < ncalcs; i += totalThreads) {
         // use the global index to obtain shell pair. Note that here we obtain
@@ -203,29 +232,39 @@ __global__ void getOEPROP_kernel()
         // shell number (ii and jj) and quantum numbers (iii, jjj).
         // For each shell pair, we are going over all the external points before
         // moving to the next shell pair.
-        uint32_t idx = (uint32_t) (i / totalpoint);
+        uint32_t idx = (uint32_t) (i / nextpoint);
 
 #if defined(MPIV_GPU)
-        if (devSim.mpi_boeicompute[idx] > 0) {
+        if (mpi_boeicompute[idx] > 0) {
 #endif
-            uint32_t ipoint = (uint32_t) (i - idx * totalpoint);
+            uint32_t ipoint = (uint32_t) (i - idx * nextpoint);
 
-            int II = devSim.sorted_OEICutoffIJ[idx].x;
-            int JJ = devSim.sorted_OEICutoffIJ[idx].y;
+            int II = sorted_OEICutoffIJ[idx].x;
+            int JJ = sorted_OEICutoffIJ[idx].y;
 
             // get the shell numbers of selected shell pair
-            uint32_t ii = devSim.sorted_Q[II];
-            uint32_t jj = devSim.sorted_Q[JJ];
+            uint32_t ii = sorted_Q[II];
+            uint32_t jj = sorted_Q[JJ];
 
             // Only choose the unique shell pairs
             if (jj >= ii) {
                 // get the quantum number (or angular momentum of shells, s=0, p=1 and so on.)
-                uint8_t iii = devSim.sorted_Qnumber[II];
-                uint8_t jjj = devSim.sorted_Qnumber[JJ];
+                uint8_t iii = sorted_Qnumber[II];
+                uint8_t jjj = sorted_Qnumber[JJ];
 
                 // compute coulomb attraction for the selected shell pair.
-                iclass_oeprop(iii, jjj, ii, jj, ipoint, totalpoint, totalatom,
-                        devSim.store + offset, devSim.store2 + offset);
+                iclass_oeprop(iii, jjj, ii, jj, ipoint, nextpoint, natom + nextatom,
+                        is_oshell, nbasis, nshell, jbasis,
+                        allxyz, extpointxyz, kstart, katom, kprim, Qstart, Qsbasis, Qfbasis,
+                        cons, KLMN, prim_total, prim_start, dense, denseb,
+#if defined(USE_LEGACY_ATOMICS)
+                        esp_electronicULL,
+#else
+                        esp_electronic,
+#endif
+                        Xcoeff_oei, expoSum, weightedCenterX, weightedCenterY, weightedCenterZ,
+                        coreIntegralCutoff,
+                        store + offset, store2 + offset);
             }
 #if defined(MPIV_GPU)
         }

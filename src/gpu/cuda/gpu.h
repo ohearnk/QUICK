@@ -50,13 +50,11 @@ extern "C" void gpu_delete_dft_grid_();
 extern "C" void gpu_get_oei_(QUICKDouble *);
 void getOEI(_gpu_type);
 void get_oei_grad(_gpu_type);
-void upload_sim_to_constant_oei(_gpu_type);
 void upload_para_to_const_oei();
 
 // c interface ESP
 extern "C" void gpu_get_oeprop_(QUICKDouble* esp_electronic);
 void getOEPROP(_gpu_type gpu);
-void upload_sim_to_constant_oeprop(_gpu_type gpu);
 void upload_para_to_const_oeprop();
 
 // c interface [gpu_get2e]
@@ -98,14 +96,7 @@ void getcew_quad(_gpu_type);
 void getcew_quad_grad(_gpu_type);
 #endif
 
-void upload_sim_to_constant(_gpu_type);
-void upload_sim_to_constant_dft(_gpu_type);
-void upload_sim_to_constant_lri(_gpu_type);
-
 void upload_para_to_const();
-
-void bind_eri_texture(_gpu_type);
-void unbind_eri_texture();
 
 
 #endif

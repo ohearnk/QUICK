@@ -41,18 +41,19 @@
   #define __gpu_get2e_subs_h_
   #if !defined(OSHELL)
 __device__ static inline bool check_iclass(uint8_t I, uint8_t J, uint8_t K, uint8_t L,
-        uint32_t II, uint32_t JJ, uint32_t KK, uint32_t LL)
+        uint32_t II, uint32_t JJ, uint32_t KK, uint32_t LL, uint32_t nshell,
+        uint32_t const * const Qsbasis, uint32_t const * const Qfbasis)
 {
     bool ret = false;
 
-    for (uint32_t III = LOC2(devSim.Qsbasis, II, I, devSim.nshell, 4);
-            III <= LOC2(devSim.Qfbasis, II, I, devSim.nshell, 4); III++) {
-        for (uint32_t JJJ = MAX(III, LOC2(devSim.Qsbasis, JJ, J, devSim.nshell, 4));
-                JJJ <= LOC2(devSim.Qfbasis, JJ, J, devSim.nshell, 4); JJJ++) {
-            for (uint32_t KKK = MAX(III, LOC2(devSim.Qsbasis, KK, K, devSim.nshell, 4));
-                    KKK <= LOC2(devSim.Qfbasis, KK, K, devSim.nshell, 4); KKK++) {
-                for (uint32_t LLL = MAX(KKK, LOC2(devSim.Qsbasis, LL, L, devSim.nshell, 4));
-                        LLL <= LOC2(devSim.Qfbasis, LL, L, devSim.nshell, 4); LLL++) {
+    for (uint32_t III = LOC2(Qsbasis, II, I, nshell, 4);
+            III <= LOC2(Qfbasis, II, I, nshell, 4); III++) {
+        for (uint32_t JJJ = MAX(III, LOC2(Qsbasis, JJ, J, nshell, 4));
+                JJJ <= LOC2(Qfbasis, JJ, J, nshell, 4); JJJ++) {
+            for (uint32_t KKK = MAX(III, LOC2(Qsbasis, KK, K, nshell, 4));
+                    KKK <= LOC2(Qfbasis, KK, K, nshell, 4); KKK++) {
+                for (uint32_t LLL = MAX(KKK, LOC2(Qsbasis, LL, L, nshell, 4));
+                        LLL <= LOC2(Qfbasis, LL, L, nshell, 4); LLL++) {
                     if ((III < JJJ && III < KKK && KKK < LLL)
                             || (III < KKK || JJJ <= LLL)) {
                        ret = true;
@@ -127,7 +128,32 @@ __device__ static inline void iclass_cshell_spdf10
   #endif
 #endif
       (uint8_t I, uint8_t J, uint8_t K, uint8_t L, uint32_t II, uint32_t JJ, uint32_t KK, uint32_t LL,
-       QUICKDouble DNMax)
+       QUICKDouble DNMax, QUICKDouble hyb_coeff, uint32_t natom, uint32_t nbasis,
+        uint32_t nshell, uint32_t jbasis, QUICKDouble const * const xyz,
+        uint32_t const * const kstart, uint32_t const * const katom,
+        uint32_t const * const kprim, uint32_t const * const Qstart,
+        uint32_t const * const Qsbasis, uint32_t const * const Qfbasis,
+        QUICKDouble const * const cons, uint8_t const * const KLMN,
+        uint32_t prim_total, uint32_t const * const prim_start,
+#if defined(USE_LEGACY_ATOMICS)
+        QUICKULL * const oULL,
+  #if defined(OSHELL)
+        QUICKULL * const obULL,
+  #endif
+#else
+        QUICKDouble * const o,
+  #if defined(OSHELL)
+        QUICKDouble * const ob,
+  #endif
+#endif
+        QUICKDouble * const dense,
+#if defined(OSHELL)
+        QUICKDouble * const denseb,
+#endif
+        QUICKDouble const * const Xcoeff, QUICKDouble const * const expoSum,
+        QUICKDouble const * const weightedCenterX, QUICKDouble const * const weightedCenterY,
+        QUICKDouble const * const weightedCenterZ, QUICKDouble const * const cutPrim,
+        QUICKDouble integralCutoff, QUICKDouble primLimit, QUICKDouble * const store)
 {
     QUICKDouble temp;
 #if defined(OSHELL)
@@ -143,27 +169,27 @@ __device__ static inline void iclass_cshell_spdf10
      which means they are corrosponding coorinates for shell II, JJ, KK, and LL.
      And we don't need the coordinates now, so we will not retrieve the data now.
      */
-    const QUICKDouble RAx = LOC2(devSim.xyz, 0, devSim.katom[II], 3, devSim.natom);
-    const QUICKDouble RAy = LOC2(devSim.xyz, 1, devSim.katom[II], 3, devSim.natom);
-    const QUICKDouble RAz = LOC2(devSim.xyz, 2, devSim.katom[II], 3, devSim.natom);
-    const QUICKDouble RCx = LOC2(devSim.xyz, 0, devSim.katom[KK], 3, devSim.natom);
-    const QUICKDouble RCy = LOC2(devSim.xyz, 1, devSim.katom[KK], 3, devSim.natom);
-    const QUICKDouble RCz = LOC2(devSim.xyz, 2, devSim.katom[KK], 3, devSim.natom);
+    const QUICKDouble RAx = LOC2(xyz, 0, katom[II], 3, natom);
+    const QUICKDouble RAy = LOC2(xyz, 1, katom[II], 3, natom);
+    const QUICKDouble RAz = LOC2(xyz, 2, katom[II], 3, natom);
+    const QUICKDouble RCx = LOC2(xyz, 0, katom[KK], 3, natom);
+    const QUICKDouble RCy = LOC2(xyz, 1, katom[KK], 3, natom);
+    const QUICKDouble RCz = LOC2(xyz, 2, katom[KK], 3, natom);
     
     /*
      kPrimI, J, K and L indicates the primtive gaussian function number
      kStartI, J, K, and L indicates the starting guassian function for shell I, J, K, and L.
      We retrieve from global memory and save them to register to avoid multiple retrieve.
      */
-    const uint32_t kPrimI = devSim.kprim[II];
-    const uint32_t kPrimJ = devSim.kprim[JJ];
-    const uint32_t kPrimK = devSim.kprim[KK];
-    const uint32_t kPrimL = devSim.kprim[LL];
+    const uint32_t kPrimI = kprim[II];
+    const uint32_t kPrimJ = kprim[JJ];
+    const uint32_t kPrimK = kprim[KK];
+    const uint32_t kPrimL = kprim[LL];
     
-    const uint32_t kStartI = devSim.kstart[II];
-    const uint32_t kStartJ = devSim.kstart[JJ];
-    const uint32_t kStartK = devSim.kstart[KK];
-    const uint32_t kStartL = devSim.kstart[LL];
+    const uint32_t kStartI = kstart[II];
+    const uint32_t kStartJ = kstart[JJ];
+    const uint32_t kStartK = kstart[KK];
+    const uint32_t kStartL = kstart[LL];
     
     /*
      store saves temp contracted integral as [as|bs] type. the dimension should be allocatable but because
@@ -174,7 +200,7 @@ __device__ static inline void iclass_cshell_spdf10
     for (uint8_t i = Sumindex[K + 1] + 1; i <= Sumindex[K + L + 2]; i++) {
         for (uint8_t j = Sumindex[I + 1] + 1; j <= Sumindex[I + J + 2]; j++) {
             if (i <= STOREDIM && j <= STOREDIM) {
-                LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
+                LOCSTORE(&store[blockIdx.x * blockDim.x + threadIdx.x],
                         j - 1, i - 1, STOREDIM, STOREDIM) = 0.0;
             }
         }
@@ -196,27 +222,27 @@ __device__ static inline void iclass_cshell_spdf10
          Those two are pre-calculated in CPU stage.
          
          */
-        const uint32_t ii_start = devSim.prim_start[II];
-        const uint32_t jj_start = devSim.prim_start[JJ];
+        const uint32_t ii_start = prim_start[II];
+        const uint32_t jj_start = prim_start[JJ];
         
-        const QUICKDouble AB = LOC2(devSim.expoSum, ii_start + III, jj_start + JJJ, devSim.prim_total, devSim.prim_total);
-        const QUICKDouble Px = LOC2(devSim.weightedCenterX, ii_start + III, jj_start + JJJ, devSim.prim_total, devSim.prim_total);
-        const QUICKDouble Py = LOC2(devSim.weightedCenterY, ii_start + III, jj_start + JJJ, devSim.prim_total, devSim.prim_total);
-        const QUICKDouble Pz = LOC2(devSim.weightedCenterZ, ii_start + III, jj_start + JJJ, devSim.prim_total, devSim.prim_total);
+        const QUICKDouble AB = LOC2(expoSum, ii_start + III, jj_start + JJJ, prim_total, prim_total);
+        const QUICKDouble Px = LOC2(weightedCenterX, ii_start + III, jj_start + JJJ, prim_total, prim_total);
+        const QUICKDouble Py = LOC2(weightedCenterY, ii_start + III, jj_start + JJJ, prim_total, prim_total);
+        const QUICKDouble Pz = LOC2(weightedCenterZ, ii_start + III, jj_start + JJJ, prim_total, prim_total);
         
         /*
          X1 is the contracted coeffecient, which is pre-calcuated in CPU stage as well.
          cutoffprim is used to cut too small prim gaussian function when bring density matrix into consideration.
          */
-        const QUICKDouble cutoffPrim = DNMax * LOC2(devSim.cutPrim, kStartI + III, kStartJ + JJJ, devSim.jbasis, devSim.jbasis);
-        const QUICKDouble X1 = LOC4(devSim.Xcoeff, kStartI + III, kStartJ + JJJ, I - devSim.Qstart[II], J - devSim.Qstart[JJ],
-                devSim.jbasis, devSim.jbasis, 2, 2);
+        const QUICKDouble cutoffPrim = DNMax * LOC2(cutPrim, kStartI + III, kStartJ + JJJ, jbasis, jbasis);
+        const QUICKDouble X1 = LOC4(Xcoeff, kStartI + III, kStartJ + JJJ, I - Qstart[II], J - Qstart[JJ],
+                jbasis, jbasis, 2, 2);
         
         for (uint32_t j = 0; j < kPrimK * kPrimL; j++) {
             const uint32_t LLL = j / kPrimK;
             const uint32_t KKK = j - kPrimK * LLL;
             
-            if (cutoffPrim * LOC2(devSim.cutPrim, kStartK + KKK, kStartL + LLL, devSim.jbasis, devSim.jbasis) > devSim.primLimit) {
+            if (cutoffPrim * LOC2(cutPrim, kStartK + KKK, kStartL + LLL, jbasis, jbasis) > primLimit) {
                 /*
                  CD = expo(L)+expo(K)
                  ABCD = 1/ (AB + CD) = 1 / (expo(I)+expo(J)+expo(K)+expo(L))
@@ -230,21 +256,21 @@ __device__ static inline void iclass_cshell_spdf10
                  
                  ABCDtemp = 1/2(expo(I)+expo(J)+expo(K)+expo(L))
                  */
-                const uint32_t kk_start = devSim.prim_start[KK];
-                const uint32_t ll_start = devSim.prim_start[LL];
-                const QUICKDouble CD = LOC2(devSim.expoSum, kk_start + KKK, ll_start + LLL, devSim.prim_total, devSim.prim_total);
+                const uint32_t kk_start = prim_start[KK];
+                const uint32_t ll_start = prim_start[LL];
+                const QUICKDouble CD = LOC2(expoSum, kk_start + KKK, ll_start + LLL, prim_total, prim_total);
                 const QUICKDouble ABCD = 1.0 / (AB + CD);
                 
                 /*
                  X2 is the multiplication of four indices normalized coeffecient
                  */
 #if defined(USE_TEXTURE) && defined(USE_TEXTURE_XCOEFF)
-                const int2 XcoeffInt2 = tex1Dfetch(tex_Xcoeff, L - devSim.Qstart[LL] +
-                        (K - devSim.Qstart[KK] + ((kStartL + LLL) + (kStartK + KKK) * devSim.jbasis) * 2) * 2);
+                const int2 XcoeffInt2 = tex1Dfetch(tex_Xcoeff, L - Qstart[LL] +
+                        (K - Qstart[KK] + ((kStartL + LLL) + (kStartK + KKK) * jbasis) * 2) * 2);
                 const QUICKDouble X2 = sqrt(ABCD) * X1 * __hiloint2double(XcoeffInt2.y, XcoeffInt2.x);
 #else
-                const QUICKDouble X2 = sqrt(ABCD) * X1 * LOC4(devSim.Xcoeff, kStartK + KKK, kStartL + LLL,
-                        K - devSim.Qstart[KK], L - devSim.Qstart[LL], devSim.jbasis, devSim.jbasis, 2, 2);
+                const QUICKDouble X2 = sqrt(ABCD) * X1 * LOC4(Xcoeff, kStartK + KKK, kStartL + LLL,
+                        K - Qstart[KK], L - Qstart[LL], jbasis, jbasis, 2, 2);
 #endif                
 
                 /*
@@ -266,9 +292,9 @@ __device__ static inline void iclass_cshell_spdf10
                  ->  -> 2
                  T = ROU * | P - Q|
                  */
-                const QUICKDouble Qx = LOC2(devSim.weightedCenterX, kk_start + KKK, ll_start + LLL, devSim.prim_total, devSim.prim_total);
-                const QUICKDouble Qy = LOC2(devSim.weightedCenterY, kk_start + KKK, ll_start + LLL, devSim.prim_total, devSim.prim_total);
-                const QUICKDouble Qz = LOC2(devSim.weightedCenterZ, kk_start + KKK, ll_start + LLL, devSim.prim_total, devSim.prim_total);
+                const QUICKDouble Qx = LOC2(weightedCenterX, kk_start + KKK, ll_start + LLL, prim_total, prim_total);
+                const QUICKDouble Qy = LOC2(weightedCenterY, kk_start + KKK, ll_start + LLL, prim_total, prim_total);
+                const QUICKDouble Qz = LOC2(weightedCenterZ, kk_start + KKK, ll_start + LLL, prim_total, prim_total);
                 
                 double YVerticalTemp[PRIM_INT_ERI_LEN];
                 FmT(I + J + K + L, AB * CD * ABCD * (SQR(Px - Qx) + SQR(Py - Qy) + SQR(Pz - Qz)),
@@ -309,37 +335,37 @@ __device__ static inline void iclass_cshell_spdf10
                      Qx - RCx, Qy - RCy, Qz - RCz, (Px * AB + Qx * CD) * ABCD - Qx,
                      (Py * AB + Qy * CD) * ABCD - Qy, (Pz * AB + Qz * CD) * ABCD - Qz,
                      0.5 * ABCD, 0.5 / AB, 0.5 / CD, AB * ABCD, CD * ABCD,
-                     &devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
+                     &store[blockIdx.x * blockDim.x + threadIdx.x],
                      YVerticalTemp);
             }
         }
     }
     
-    const QUICKDouble RBx = LOC2(devSim.xyz, 0, devSim.katom[JJ], 3, devSim.natom);
-    const QUICKDouble RBy = LOC2(devSim.xyz, 1, devSim.katom[JJ], 3, devSim.natom);
-    const QUICKDouble RBz = LOC2(devSim.xyz, 2, devSim.katom[JJ], 3, devSim.natom);
-    const QUICKDouble RDx = LOC2(devSim.xyz, 0, devSim.katom[LL], 3, devSim.natom);
-    const QUICKDouble RDy = LOC2(devSim.xyz, 1, devSim.katom[LL], 3, devSim.natom);
-    const QUICKDouble RDz = LOC2(devSim.xyz, 2, devSim.katom[LL], 3, devSim.natom);
+    const QUICKDouble RBx = LOC2(xyz, 0, katom[JJ], 3, natom);
+    const QUICKDouble RBy = LOC2(xyz, 1, katom[JJ], 3, natom);
+    const QUICKDouble RBz = LOC2(xyz, 2, katom[JJ], 3, natom);
+    const QUICKDouble RDx = LOC2(xyz, 0, katom[LL], 3, natom);
+    const QUICKDouble RDy = LOC2(xyz, 1, katom[LL], 3, natom);
+    const QUICKDouble RDz = LOC2(xyz, 2, katom[LL], 3, natom);
     
-    const uint32_t III1 = LOC2(devSim.Qsbasis, II, I, devSim.nshell, 4);
-    const uint32_t III2 = LOC2(devSim.Qfbasis, II, I, devSim.nshell, 4);
-    const uint32_t JJJ1 = LOC2(devSim.Qsbasis, JJ, J, devSim.nshell, 4);
-    const uint32_t JJJ2 = LOC2(devSim.Qfbasis, JJ, J, devSim.nshell, 4);
-    const uint32_t KKK1 = LOC2(devSim.Qsbasis, KK, K, devSim.nshell, 4);
-    const uint32_t KKK2 = LOC2(devSim.Qfbasis, KK, K, devSim.nshell, 4);
-    const uint32_t LLL1 = LOC2(devSim.Qsbasis, LL, L, devSim.nshell, 4);
-    const uint32_t LLL2 = LOC2(devSim.Qfbasis, LL, L, devSim.nshell, 4);
+    const uint32_t III1 = LOC2(Qsbasis, II, I, nshell, 4);
+    const uint32_t III2 = LOC2(Qfbasis, II, I, nshell, 4);
+    const uint32_t JJJ1 = LOC2(Qsbasis, JJ, J, nshell, 4);
+    const uint32_t JJJ2 = LOC2(Qfbasis, JJ, J, nshell, 4);
+    const uint32_t KKK1 = LOC2(Qsbasis, KK, K, nshell, 4);
+    const uint32_t KKK2 = LOC2(Qfbasis, KK, K, nshell, 4);
+    const uint32_t LLL1 = LOC2(Qsbasis, LL, L, nshell, 4);
+    const uint32_t LLL2 = LOC2(Qfbasis, LL, L, nshell, 4);
     
 //    QUICKDouble hybrid_coeff = 0.0;
-//    if (devSim.method == HF) {
+//    if (method == HF) {
 //        hybrid_coeff = 1.0;
-//    } else if (devSim.method == B3LYP) {
+//    } else if (method == B3LYP) {
 //        hybrid_coeff = 0.2;
-//    } else if (devSim.method == DFT) {
+//    } else if (method == DFT) {
 //        hybrid_coeff = 0.0;
-//    } else if (devSim.method == LIBXC) {
-//        hybrid_coeff = devSim.hyb_coeff;                        
+//    } else if (method == LIBXC) {
+//        hybrid_coeff = hyb_coeff;                        
 //    }
     
     for (uint32_t III = III1; III <= III2; III++) {
@@ -393,32 +419,33 @@ __device__ static inline void iclass_cshell_spdf10
 #endif
                            (I, J, K, L, III, JJJ, KKK, LLL,
                            RAx, RAy, RAz, RBx, RBy, RBz,
-                           RCx, RCy, RCz, RDx, RDy, RDz);
+                           RCx, RCy, RCz, RDx, RDy, RDz,
+                           nbasis, cons, KLMN, store);
 
-                        if (abs(Y) > devSim.integralCutoff)
+                        if (abs(Y) > integralCutoff)
                         {
 #if defined(OSHELL)
-                            QUICKDouble DENSELK = (QUICKDouble) (LOC2(devSim.dense, LLL, KKK, devSim.nbasis, devSim.nbasis)
-                                    + LOC2(devSim.denseb, LLL, KKK, devSim.nbasis, devSim.nbasis));
-                            QUICKDouble DENSEJI = (QUICKDouble) (LOC2(devSim.dense, JJJ, III, devSim.nbasis, devSim.nbasis)
-                                    + LOC2(devSim.denseb, JJJ, III, devSim.nbasis, devSim.nbasis));
+                            QUICKDouble DENSELK = (QUICKDouble) (LOC2(dense, LLL, KKK, nbasis, nbasis)
+                                    + LOC2(denseb, LLL, KKK, nbasis, nbasis));
+                            QUICKDouble DENSEJI = (QUICKDouble) (LOC2(dense, JJJ, III, nbasis, nbasis)
+                                    + LOC2(denseb, JJJ, III, nbasis, nbasis));
 
-                            QUICKDouble DENSEKIA = (QUICKDouble) LOC2(devSim.dense, KKK, III, devSim.nbasis, devSim.nbasis);
-                            QUICKDouble DENSEKJA = (QUICKDouble) LOC2(devSim.dense, KKK, JJJ, devSim.nbasis, devSim.nbasis);
-                            QUICKDouble DENSELJA = (QUICKDouble) LOC2(devSim.dense, LLL, JJJ, devSim.nbasis, devSim.nbasis);
-                            QUICKDouble DENSELIA = (QUICKDouble) LOC2(devSim.dense, LLL, III, devSim.nbasis, devSim.nbasis);
+                            QUICKDouble DENSEKIA = (QUICKDouble) LOC2(dense, KKK, III, nbasis, nbasis);
+                            QUICKDouble DENSEKJA = (QUICKDouble) LOC2(dense, KKK, JJJ, nbasis, nbasis);
+                            QUICKDouble DENSELJA = (QUICKDouble) LOC2(dense, LLL, JJJ, nbasis, nbasis);
+                            QUICKDouble DENSELIA = (QUICKDouble) LOC2(dense, LLL, III, nbasis, nbasis);
 
-                            QUICKDouble DENSEKIB = (QUICKDouble) LOC2(devSim.denseb, KKK, III, devSim.nbasis, devSim.nbasis);
-                            QUICKDouble DENSEKJB = (QUICKDouble) LOC2(devSim.denseb, KKK, JJJ, devSim.nbasis, devSim.nbasis);
-                            QUICKDouble DENSELJB = (QUICKDouble) LOC2(devSim.denseb, LLL, JJJ, devSim.nbasis, devSim.nbasis);
-                            QUICKDouble DENSELIB = (QUICKDouble) LOC2(devSim.denseb, LLL, III, devSim.nbasis, devSim.nbasis);
+                            QUICKDouble DENSEKIB = (QUICKDouble) LOC2(denseb, KKK, III, nbasis, nbasis);
+                            QUICKDouble DENSEKJB = (QUICKDouble) LOC2(denseb, KKK, JJJ, nbasis, nbasis);
+                            QUICKDouble DENSELJB = (QUICKDouble) LOC2(denseb, LLL, JJJ, nbasis, nbasis);
+                            QUICKDouble DENSELIB = (QUICKDouble) LOC2(denseb, LLL, III, nbasis, nbasis);
 #else
-                            QUICKDouble DENSEKI = (QUICKDouble) LOC2(devSim.dense, KKK, III, devSim.nbasis, devSim.nbasis);
-                            QUICKDouble DENSEKJ = (QUICKDouble) LOC2(devSim.dense, KKK, JJJ, devSim.nbasis, devSim.nbasis);
-                            QUICKDouble DENSELJ = (QUICKDouble) LOC2(devSim.dense, LLL, JJJ, devSim.nbasis, devSim.nbasis);
-                            QUICKDouble DENSELI = (QUICKDouble) LOC2(devSim.dense, LLL, III, devSim.nbasis, devSim.nbasis);
-                            QUICKDouble DENSELK = (QUICKDouble) LOC2(devSim.dense, LLL, KKK, devSim.nbasis, devSim.nbasis);
-                            QUICKDouble DENSEJI = (QUICKDouble) LOC2(devSim.dense, JJJ, III, devSim.nbasis, devSim.nbasis);
+                            QUICKDouble DENSEKI = (QUICKDouble) LOC2(dense, KKK, III, nbasis, nbasis);
+                            QUICKDouble DENSEKJ = (QUICKDouble) LOC2(dense, KKK, JJJ, nbasis, nbasis);
+                            QUICKDouble DENSELJ = (QUICKDouble) LOC2(dense, LLL, JJJ, nbasis, nbasis);
+                            QUICKDouble DENSELI = (QUICKDouble) LOC2(dense, LLL, III, nbasis, nbasis);
+                            QUICKDouble DENSELK = (QUICKDouble) LOC2(dense, LLL, KKK, nbasis, nbasis);
+                            QUICKDouble DENSEJI = (QUICKDouble) LOC2(dense, JJJ, III, nbasis, nbasis);
 #endif
 
                             // ATOMIC ADD VALUE 1
@@ -432,15 +459,15 @@ __device__ static inline void iclass_cshell_spdf10
                             if (LLL != JJJ || III != KKK) {
                                 temp = (III == JJJ) ? DENSEJI * Y : 2.0 * DENSEJI * Y;
 #  if defined(USE_LEGACY_ATOMICS)
-                                GPUATOMICADD(&LOC2(devSim.oULL, LLL, KKK, devSim.nbasis, devSim.nbasis), temp, OSCALE);
+                                GPUATOMICADD(&LOC2(oULL, LLL, KKK, nbasis, nbasis), temp, OSCALE);
 #  else
-                                atomicAdd(&LOC2(devSim.o, LLL, KKK, devSim.nbasis, devSim.nbasis), temp);
+                                atomicAdd(&LOC2(o, LLL, KKK, nbasis, nbasis), temp);
 #  endif
 #if defined(OSHELL)
 #  if defined(USE_LEGACY_ATOMICS)
-                                GPUATOMICADD(&LOC2(devSim.obULL, LLL, KKK, devSim.nbasis, devSim.nbasis), temp, OSCALE);
+                                GPUATOMICADD(&LOC2(obULL, LLL, KKK, nbasis, nbasis), temp, OSCALE);
 #  else
-                                atomicAdd(&LOC2(devSim.ob, LLL, KKK, devSim.nbasis, devSim.nbasis), temp);
+                                atomicAdd(&LOC2(ob, LLL, KKK, nbasis, nbasis), temp);
 #  endif
 #endif
                             }
@@ -448,45 +475,45 @@ __device__ static inline void iclass_cshell_spdf10
                             // ATOMIC ADD VALUE 3
 #if defined(OSHELL)
                             temp = (III == KKK && III < JJJ && JJJ < LLL)
-                                ? -2.0 * devSim.hyb_coeff * DENSELJA * Y : -(devSim.hyb_coeff * DENSELJA * Y);
+                                ? -2.0 * hyb_coeff * DENSELJA * Y : -(hyb_coeff * DENSELJA * Y);
                             temp2 = (III == KKK && III < JJJ && JJJ < LLL)
-                                ? -2.0 * devSim.hyb_coeff * DENSELJB * Y : -(devSim.hyb_coeff * DENSELJB * Y);
+                                ? -2.0 * hyb_coeff * DENSELJB * Y : -(hyb_coeff * DENSELJB * Y);
                             o_KI += temp;
                             ob_KI += temp2;
 #else
                             temp = (III == KKK && III < JJJ && JJJ < LLL)
-                                ? -(devSim.hyb_coeff * DENSELJ * Y) : -0.5 * devSim.hyb_coeff * DENSELJ * Y;
+                                ? -(hyb_coeff * DENSELJ * Y) : -0.5 * hyb_coeff * DENSELJ * Y;
                             o_KI += temp;
 #endif
 
                             // ATOMIC ADD VALUE 4
                             if (KKK != LLL) {
 #if defined(OSHELL)
-                                temp = -(devSim.hyb_coeff * DENSEKJA * Y);
-                                temp2 = -(devSim.hyb_coeff * DENSEKJB * Y);
+                                temp = -(hyb_coeff * DENSEKJA * Y);
+                                temp2 = -(hyb_coeff * DENSEKJB * Y);
 #  if defined(USE_LEGACY_ATOMICS)
-                                GPUATOMICADD(&LOC2(devSim.oULL, LLL, III, devSim.nbasis, devSim.nbasis), temp, OSCALE);
-                                GPUATOMICADD(&LOC2(devSim.obULL, LLL, III, devSim.nbasis, devSim.nbasis), temp2, OSCALE);
+                                GPUATOMICADD(&LOC2(oULL, LLL, III, nbasis, nbasis), temp, OSCALE);
+                                GPUATOMICADD(&LOC2(obULL, LLL, III, nbasis, nbasis), temp2, OSCALE);
 #  else
-                                atomicAdd(&LOC2(devSim.o, LLL, III, devSim.nbasis, devSim.nbasis), temp);
-                                atomicAdd(&LOC2(devSim.ob, LLL, III, devSim.nbasis, devSim.nbasis), temp2);
+                                atomicAdd(&LOC2(o, LLL, III, nbasis, nbasis), temp);
+                                atomicAdd(&LOC2(ob, LLL, III, nbasis, nbasis), temp2);
 #  endif
 #else
-                                temp = -0.5 * devSim.hyb_coeff * DENSEKJ * Y;
+                                temp = -0.5 * hyb_coeff * DENSEKJ * Y;
 #  if defined(USE_LEGACY_ATOMICS)
-                                GPUATOMICADD(&LOC2(devSim.oULL, LLL, III, devSim.nbasis, devSim.nbasis), temp, OSCALE);
+                                GPUATOMICADD(&LOC2(oULL, LLL, III, nbasis, nbasis), temp, OSCALE);
 #  else
-                                atomicAdd(&LOC2(devSim.o, LLL, III, devSim.nbasis, devSim.nbasis), temp);
+                                atomicAdd(&LOC2(o, LLL, III, nbasis, nbasis), temp);
 #  endif
 #endif
                             }
 
                             // ATOMIC ADD VALUE 5
 #if defined(OSHELL)
-                            temp = -(devSim.hyb_coeff * DENSELIA * Y);
-                            temp2 = -(devSim.hyb_coeff * DENSELIB * Y);
+                            temp = -(hyb_coeff * DENSELIA * Y);
+                            temp2 = -(hyb_coeff * DENSELIB * Y);
 #else
-                            temp = -0.5 * devSim.hyb_coeff * DENSELI * Y;
+                            temp = -0.5 * hyb_coeff * DENSELI * Y;
 #endif
                             if ((III != JJJ && III < KKK)
                                     || (III == JJJ && III == KKK && III < LLL)
@@ -508,36 +535,36 @@ __device__ static inline void iclass_cshell_spdf10
                             // ATOMIC ADD VALUE 6
                             if (III != JJJ && KKK != LLL) {
 #if defined(OSHELL)
-                                temp = -(devSim.hyb_coeff * DENSEKIA * Y);
-                                temp2 = -(devSim.hyb_coeff * DENSEKIB * Y);
+                                temp = -(hyb_coeff * DENSEKIA * Y);
+                                temp2 = -(hyb_coeff * DENSEKIB * Y);
 #else
-                                temp = -0.5 * devSim.hyb_coeff * DENSEKI * Y;
+                                temp = -0.5 * hyb_coeff * DENSEKI * Y;
 #endif
 #  if defined(USE_LEGACY_ATOMICS)
-                                GPUATOMICADD(&LOC2(devSim.oULL, MAX(JJJ, LLL), MIN(JJJ, LLL), devSim.nbasis, devSim.nbasis), temp, OSCALE);
+                                GPUATOMICADD(&LOC2(oULL, MAX(JJJ, LLL), MIN(JJJ, LLL), nbasis, nbasis), temp, OSCALE);
 #  else
-                                atomicAdd(&LOC2(devSim.o, MAX(JJJ, LLL), MIN(JJJ, LLL), devSim.nbasis, devSim.nbasis), temp);
+                                atomicAdd(&LOC2(o, MAX(JJJ, LLL), MIN(JJJ, LLL), nbasis, nbasis), temp);
 #  endif
 #if defined(OSHELL)
 #  if defined(USE_LEGACY_ATOMICS)
-                                GPUATOMICADD(&LOC2(devSim.obULL, MAX(JJJ, LLL), MIN(JJJ, LLL), devSim.nbasis, devSim.nbasis), temp2, OSCALE);
+                                GPUATOMICADD(&LOC2(obULL, MAX(JJJ, LLL), MIN(JJJ, LLL), nbasis, nbasis), temp2, OSCALE);
 #  else
-                                atomicAdd(&LOC2(devSim.ob, MAX(JJJ, LLL), MIN(JJJ, LLL), devSim.nbasis, devSim.nbasis), temp2);
+                                atomicAdd(&LOC2(ob, MAX(JJJ, LLL), MIN(JJJ, LLL), nbasis, nbasis), temp2);
 #  endif
 #endif
 
                                 // ATOMIC ADD VALUE 6 - 2
                                 if (JJJ == LLL && III != KKK) {
 #  if defined(USE_LEGACY_ATOMICS)
-                                    GPUATOMICADD(&LOC2(devSim.oULL, LLL, JJJ, devSim.nbasis, devSim.nbasis), temp, OSCALE);
+                                    GPUATOMICADD(&LOC2(oULL, LLL, JJJ, nbasis, nbasis), temp, OSCALE);
 #  else
-                                    atomicAdd(&LOC2(devSim.o, LLL, JJJ, devSim.nbasis, devSim.nbasis), temp);
+                                    atomicAdd(&LOC2(o, LLL, JJJ, nbasis, nbasis), temp);
 #  endif
 #if defined(OSHELL)
 #  if defined(USE_LEGACY_ATOMICS)
-                                    GPUATOMICADD(&LOC2(devSim.obULL, LLL, JJJ, devSim.nbasis, devSim.nbasis), temp2, OSCALE);
+                                    GPUATOMICADD(&LOC2(obULL, LLL, JJJ, nbasis, nbasis), temp2, OSCALE);
 #  else
-                                    atomicAdd(&LOC2(devSim.ob, LLL, JJJ, devSim.nbasis, devSim.nbasis), temp2);
+                                    atomicAdd(&LOC2(ob, LLL, JJJ, nbasis, nbasis), temp2);
 #  endif
 #endif
                                 }
@@ -547,37 +574,37 @@ __device__ static inline void iclass_cshell_spdf10
                 }
 
 #  if defined(USE_LEGACY_ATOMICS)
-                GPUATOMICADD(&LOC2(devSim.oULL, KKK, III, devSim.nbasis, devSim.nbasis), o_KI, OSCALE);
-                GPUATOMICADD(&LOC2(devSim.oULL, MAX(JJJ, KKK), MIN(JJJ, KKK), devSim.nbasis, devSim.nbasis), o_JK_MM, OSCALE);
-                GPUATOMICADD(&LOC2(devSim.oULL, JJJ, KKK, devSim.nbasis, devSim.nbasis), o_JK, OSCALE);
+                GPUATOMICADD(&LOC2(oULL, KKK, III, nbasis, nbasis), o_KI, OSCALE);
+                GPUATOMICADD(&LOC2(oULL, MAX(JJJ, KKK), MIN(JJJ, KKK), nbasis, nbasis), o_JK_MM, OSCALE);
+                GPUATOMICADD(&LOC2(oULL, JJJ, KKK, nbasis, nbasis), o_JK, OSCALE);
 #  else
-                atomicAdd(&LOC2(devSim.o, KKK, III, devSim.nbasis, devSim.nbasis), o_KI);
-                atomicAdd(&LOC2(devSim.o, MAX(JJJ, KKK), MIN(JJJ, KKK), devSim.nbasis, devSim.nbasis), o_JK_MM);
-                atomicAdd(&LOC2(devSim.o, JJJ, KKK, devSim.nbasis, devSim.nbasis), o_JK);
+                atomicAdd(&LOC2(o, KKK, III, nbasis, nbasis), o_KI);
+                atomicAdd(&LOC2(o, MAX(JJJ, KKK), MIN(JJJ, KKK), nbasis, nbasis), o_JK_MM);
+                atomicAdd(&LOC2(o, JJJ, KKK, nbasis, nbasis), o_JK);
 #  endif
 #if defined(OSHELL)
 #  if defined(USE_LEGACY_ATOMICS)
-                GPUATOMICADD(&LOC2(devSim.obULL, KKK, III, devSim.nbasis, devSim.nbasis), ob_KI, OSCALE);
-                GPUATOMICADD(&LOC2(devSim.obULL, MAX(JJJ, KKK), MIN(JJJ, KKK), devSim.nbasis, devSim.nbasis), ob_JK_MM, OSCALE);
-                GPUATOMICADD(&LOC2(devSim.obULL, JJJ, KKK, devSim.nbasis, devSim.nbasis), ob_JK, OSCALE);
+                GPUATOMICADD(&LOC2(obULL, KKK, III, nbasis, nbasis), ob_KI, OSCALE);
+                GPUATOMICADD(&LOC2(obULL, MAX(JJJ, KKK), MIN(JJJ, KKK), nbasis, nbasis), ob_JK_MM, OSCALE);
+                GPUATOMICADD(&LOC2(obULL, JJJ, KKK, nbasis, nbasis), ob_JK, OSCALE);
 #  else
-                atomicAdd(&LOC2(devSim.ob, KKK, III, devSim.nbasis, devSim.nbasis), ob_KI);
-                atomicAdd(&LOC2(devSim.ob, MAX(JJJ, KKK), MIN(JJJ, KKK), devSim.nbasis, devSim.nbasis), ob_JK_MM);
-                atomicAdd(&LOC2(devSim.ob, JJJ, KKK, devSim.nbasis, devSim.nbasis), ob_JK);
+                atomicAdd(&LOC2(ob, KKK, III, nbasis, nbasis), ob_KI);
+                atomicAdd(&LOC2(ob, MAX(JJJ, KKK), MIN(JJJ, KKK), nbasis, nbasis), ob_JK_MM);
+                atomicAdd(&LOC2(ob, JJJ, KKK, nbasis, nbasis), ob_JK);
 #  endif
 #endif
             }
 
 #  if defined(USE_LEGACY_ATOMICS)
-            GPUATOMICADD(&LOC2(devSim.oULL, JJJ, III, devSim.nbasis, devSim.nbasis), o_JI, OSCALE);
+            GPUATOMICADD(&LOC2(oULL, JJJ, III, nbasis, nbasis), o_JI, OSCALE);
 #  else
-            atomicAdd(&LOC2(devSim.o, JJJ, III, devSim.nbasis, devSim.nbasis), o_JI);
+            atomicAdd(&LOC2(o, JJJ, III, nbasis, nbasis), o_JI);
 #  endif
 #if defined(OSHELL)
 #  if defined(USE_LEGACY_ATOMICS)
-            GPUATOMICADD(&LOC2(devSim.obULL, JJJ, III, devSim.nbasis, devSim.nbasis), ob_JI, OSCALE);
+            GPUATOMICADD(&LOC2(obULL, JJJ, III, nbasis, nbasis), ob_JI, OSCALE);
 #  else
-            atomicAdd(&LOC2(devSim.ob, JJJ, III, devSim.nbasis, devSim.nbasis), ob_JI);
+            atomicAdd(&LOC2(ob, JJJ, III, nbasis, nbasis), ob_JI);
 #  endif
 #endif
         }
@@ -644,64 +671,97 @@ To understand the following comments better, please refer to Figure 2(b) and 2(d
  */
 #if defined(OSHELL)
   #if defined(int_sp)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_sp()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_sp
   #elif defined(int_spd)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_spd()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_spd
   #elif defined(int_spdf)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_spdf()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_spdf
   #elif defined(int_spdf2)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_spdf2()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_spdf2
   #elif defined(int_spdf3)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_spdf3()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_spdf3
   #elif defined(int_spdf4)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_spdf4()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_spdf4
   #elif defined(int_spdf5)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_spdf5()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_spdf5
   #elif defined(int_spdf6)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_spdf6()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_spdf6
   #elif defined(int_spdf7)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_spdf7()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_spdf7
   #elif defined(int_spdf8)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_spdf8()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_spdf8
   #elif defined(int_spdf9)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_spdf9()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_spdf9
   #elif defined(int_spdf10)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_spdf10()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_spdf10
   #endif
 #else
   #if defined(int_sp)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_sp()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_sp
   #elif defined(int_spd)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_spd()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_spd
   #elif defined(int_spdf)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_spdf()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_spdf
   #elif defined(int_spdf2)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_spdf2()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_spdf2
   #elif defined(int_spdf3)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_spdf3()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_spdf3
   #elif defined(int_spdf4)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_spdf4()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_spdf4
   #elif defined(int_spdf5)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_spdf5()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_spdf5
   #elif defined(int_spdf6)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_spdf6()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_spdf6
   #elif defined(int_spdf7)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_spdf7()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_spdf7
   #elif defined(int_spdf8)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_spdf8()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_spdf8
   #elif defined(int_spdf9)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_spdf9()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_spdf9
   #elif defined(int_spdf10)
-__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_spdf10()
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_spdf10
   #endif
 #endif
+    (QUICKDouble hyb_coeff, uint32_t natom, uint32_t nbasis,
+        uint32_t nshell, uint32_t jbasis, QUICKDouble const * const xyz, uint32_t fStart,
+        uint32_t ffStart, uint32_t const * const kstart, uint32_t const * const katom,
+        uint32_t const * const kprim, uint32_t const * const Qstart,
+        uint32_t const * const Qsbasis, uint32_t const * const Qfbasis,
+        uint8_t const * const sorted_Qnumber, uint32_t const * const sorted_Q,
+        QUICKDouble const * const cons, uint8_t const * const KLMN,
+        uint32_t prim_total, uint32_t const * const prim_start,
+#if defined(USE_LEGACY_ATOMICS)
+        QUICKULL * const oULL,
+  #if defined(OSHELL)
+        QUICKULL * const obULL,
+  #endif
+#else
+        QUICKDouble * const o,
+  #if defined(OSHELL)
+        QUICKDouble * const ob,
+  #endif
+#endif
+        QUICKDouble * const dense,
+#if defined(OSHELL)
+        QUICKDouble * const denseb,
+#endif
+        QUICKDouble const * const Xcoeff, QUICKDouble const * const expoSum,
+        QUICKDouble const * const weightedCenterX, QUICKDouble const * const weightedCenterY,
+        QUICKDouble const * const weightedCenterZ, uint32_t sqrQshell, int2 const * const sorted_YCutoffIJ,
+        QUICKDouble const * const cutMatrix, QUICKDouble const * const YCutoff,
+        QUICKDouble const * const cutPrim, QUICKDouble integralCutoff, QUICKDouble primLimit,
+        QUICKDouble maxIntegralCutoff, QUICKDouble leastIntegralCutoff,
+#if defined(MPIV_GPU)
+        unsigned char const * const mpi_bcompute,
+#endif
+        QUICKDouble * const store)
 {
     // jshell and jshell2 defines the regions in i+j and k+l axes respectively.    
     // sqrQshell= Qshell x Qshell; where Qshell is the number of sorted shells (see gpu_upload_basis_ in gpu.cu)
     // for details on sorting. 
 #if defined(int_sp)
-    const QUICKULL jshell = (QUICKULL) devSim.sqrQshell;
-    const QUICKULL jshell2 = (QUICKULL) devSim.sqrQshell;
+    const QUICKULL jshell = (QUICKULL) sqrQshell;
+    const QUICKULL jshell2 = (QUICKULL) sqrQshell;
 #elif defined(int_spd)
 /*
  Here we walk through full cutoff matrix.
@@ -716,8 +776,8 @@ __global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_sp
  |_____________|  |
 
 */
-    const QUICKULL jshell = (QUICKULL) devSim.sqrQshell;
-    const QUICKULL jshell2 = (QUICKULL) devSim.sqrQshell;
+    const QUICKULL jshell = (QUICKULL) sqrQshell;
+    const QUICKULL jshell2 = (QUICKULL) sqrQshell;
 #elif defined(int_spdf)
 /*  
  Here we walk through following region of the cutoff matrix.
@@ -732,46 +792,46 @@ __global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_sp
  |_____________|  |
 
 */
-    const QUICKULL jshell = (QUICKULL) devSim.sqrQshell;
-    const QUICKULL jshell2 = (QUICKULL) devSim.sqrQshell - devSim.fStart;
+    const QUICKULL jshell = (QUICKULL) sqrQshell;
+    const QUICKULL jshell2 = (QUICKULL) sqrQshell - fStart;
 #elif defined(int_spdf2)
-    const QUICKULL jshell = (QUICKULL) devSim.sqrQshell;
-    const QUICKULL jshell2 = (QUICKULL) devSim.sqrQshell - devSim.fStart;
+    const QUICKULL jshell = (QUICKULL) sqrQshell;
+    const QUICKULL jshell2 = (QUICKULL) sqrQshell - fStart;
 #elif defined(int_spdf3)
-    const QUICKULL jshell0 = (QUICKULL) devSim.fStart;
-    const QUICKULL jshell = (QUICKULL) devSim.sqrQshell - jshell0;
-    const QUICKULL jshell2 = (QUICKULL) devSim.sqrQshell - jshell0;
+    const QUICKULL jshell0 = (QUICKULL) fStart;
+    const QUICKULL jshell = (QUICKULL) sqrQshell - jshell0;
+    const QUICKULL jshell2 = (QUICKULL) sqrQshell - jshell0;
 #elif defined(int_spdf4)
-    const QUICKULL jshell0 = (QUICKULL) devSim.fStart;
-    const QUICKULL jshell00 = (QUICKULL) devSim.ffStart;
-    const QUICKULL jshell = (QUICKULL) devSim.sqrQshell - jshell00;
-    const QUICKULL jshell2 = (QUICKULL) devSim.sqrQshell - jshell0;
+    const QUICKULL jshell0 = (QUICKULL) fStart;
+    const QUICKULL jshell00 = (QUICKULL) ffStart;
+    const QUICKULL jshell = (QUICKULL) sqrQshell - jshell00;
+    const QUICKULL jshell2 = (QUICKULL) sqrQshell - jshell0;
 #elif defined(int_spdf5)
-    const QUICKULL jshell = (QUICKULL) devSim.sqrQshell;
-    const QUICKULL jshell2 = (QUICKULL) devSim.sqrQshell - devSim.ffStart;
+    const QUICKULL jshell = (QUICKULL) sqrQshell;
+    const QUICKULL jshell2 = (QUICKULL) sqrQshell - ffStart;
 #elif defined(int_spdf6)
-    const QUICKULL jshell = (QUICKULL) devSim.sqrQshell;
-    const QUICKULL jshell2 = (QUICKULL) devSim.sqrQshell - devSim.ffStart;
+    const QUICKULL jshell = (QUICKULL) sqrQshell;
+    const QUICKULL jshell2 = (QUICKULL) sqrQshell - ffStart;
 #elif defined(int_spdf7)
-    const QUICKULL jshell0 = (QUICKULL) devSim.fStart;
-    const QUICKULL jshell00 = (QUICKULL) devSim.ffStart;
-    const QUICKULL jshell = (QUICKULL) devSim.sqrQshell - jshell0;
-    const QUICKULL jshell2 = (QUICKULL) devSim.sqrQshell - jshell00;
+    const QUICKULL jshell0 = (QUICKULL) fStart;
+    const QUICKULL jshell00 = (QUICKULL) ffStart;
+    const QUICKULL jshell = (QUICKULL) sqrQshell - jshell0;
+    const QUICKULL jshell2 = (QUICKULL) sqrQshell - jshell00;
 #elif defined(int_spdf8)
-    const QUICKULL jshell0 = (QUICKULL) devSim.ffStart;
-    const QUICKULL jshell00 = (QUICKULL) devSim.ffStart;
-    const QUICKULL jshell = (QUICKULL) devSim.sqrQshell - jshell00;
-    const QUICKULL jshell2 = (QUICKULL) devSim.sqrQshell - jshell0;
+    const QUICKULL jshell0 = (QUICKULL) ffStart;
+    const QUICKULL jshell00 = (QUICKULL) ffStart;
+    const QUICKULL jshell = (QUICKULL) sqrQshell - jshell00;
+    const QUICKULL jshell2 = (QUICKULL) sqrQshell - jshell0;
 #elif defined(int_spdf9)
-    const QUICKULL jshell0 = (QUICKULL) devSim.ffStart;
-    const QUICKULL jshell00 = (QUICKULL) devSim.ffStart;
-    const QUICKULL jshell = (QUICKULL) devSim.sqrQshell - jshell00;
-    const QUICKULL jshell2 = (QUICKULL) devSim.sqrQshell - jshell0;
+    const QUICKULL jshell0 = (QUICKULL) ffStart;
+    const QUICKULL jshell00 = (QUICKULL) ffStart;
+    const QUICKULL jshell = (QUICKULL) sqrQshell - jshell00;
+    const QUICKULL jshell2 = (QUICKULL) sqrQshell - jshell0;
 #elif defined(int_spdf10)
-    const QUICKULL jshell0 = (QUICKULL) devSim.ffStart;
-    const QUICKULL jshell00 = (QUICKULL) devSim.ffStart;
-    const QUICKULL jshell = (QUICKULL) devSim.sqrQshell - jshell00;
-    const QUICKULL jshell2 = (QUICKULL) devSim.sqrQshell - jshell0;
+    const QUICKULL jshell0 = (QUICKULL) ffStart;
+    const QUICKULL jshell00 = (QUICKULL) ffStart;
+    const QUICKULL jshell = (QUICKULL) sqrQshell - jshell00;
+    const QUICKULL jshell2 = (QUICKULL) sqrQshell - jshell0;
 #endif
 
     for (QUICKULL i = blockIdx.x * blockDim.x + threadIdx.x; i < jshell * jshell2; i += blockDim.x * gridDim.x) {
@@ -783,12 +843,12 @@ __global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_sp
         // Zone 1
         QUICKULL b = i / jshell;
         const QUICKULL a = i - b * jshell;
-        b += (QUICKULL) devSim.fStart;
+        b += (QUICKULL) fStart;
 #elif defined(int_spdf2)
         // Zone 2
         QUICKULL a = i / jshell;
         const QUICKULL b = i - a * jshell;
-        a += (QUICKULL) devSim.fStart;
+        a += (QUICKULL) fStart;
 #elif defined(int_spdf3)
         // Zone 3
         QUICKULL a, b;
@@ -815,12 +875,12 @@ __global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_sp
         // Zone 5
         QUICKULL b = i / jshell;
         const QUICKULL a = i - b * jshell;
-        b += (QUICKULL) devSim.ffStart;
+        b += (QUICKULL) ffStart;
 #elif defined(int_spdf6)
         // Zone 2
         QUICKULL a = i / jshell;
         const QUICKULL b = i - a * jshell;
-        a += (QUICKULL) devSim.ffStart;
+        a += (QUICKULL) ffStart;
 #elif defined(int_spdf7)
         // Zone 3
         QUICKULL a, b;
@@ -846,21 +906,21 @@ __global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_sp
 #endif
 
 #if defined(MPIV_GPU)
-        if (devSim.mpi_bcompute[a] > 0) {
+        if (mpi_bcompute[a] > 0) {
 #endif 
-        const int II = devSim.sorted_YCutoffIJ[a].x;
-        const int KK = devSim.sorted_YCutoffIJ[b].x;        
-        const uint32_t ii = devSim.sorted_Q[II];
-        const uint32_t kk = devSim.sorted_Q[KK];
+        const int II = sorted_YCutoffIJ[a].x;
+        const int KK = sorted_YCutoffIJ[b].x;        
+        const uint32_t ii = sorted_Q[II];
+        const uint32_t kk = sorted_Q[KK];
         
         if (ii <= kk) {
-            const int JJ = devSim.sorted_YCutoffIJ[a].y;            
-            const int LL = devSim.sorted_YCutoffIJ[b].y;
+            const int JJ = sorted_YCutoffIJ[a].y;            
+            const int LL = sorted_YCutoffIJ[b].y;
 
-            const uint8_t iii = devSim.sorted_Qnumber[II];
-            const uint8_t jjj = devSim.sorted_Qnumber[JJ];
-            const uint8_t kkk = devSim.sorted_Qnumber[KK];
-            const uint8_t lll = devSim.sorted_Qnumber[LL];
+            const uint8_t iii = sorted_Qnumber[II];
+            const uint8_t jjj = sorted_Qnumber[JJ];
+            const uint8_t kkk = sorted_Qnumber[KK];
+            const uint8_t lll = sorted_Qnumber[LL];
 
 #if defined(int_sp)
             if (iii < 2 && jjj < 2 && kkk < 2 && lll < 2) {
@@ -868,9 +928,8 @@ __global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_sp
 #if defined(int_spd)
             if (!(iii < 2 && jjj < 2 && kkk < 2 && lll < 2)) {
 #endif
-            const uint32_t jj = devSim.sorted_Q[JJ];
-            const uint32_t ll = devSim.sorted_Q[LL];
-            const uint32_t nshell = devSim.nshell;
+            const uint32_t jj = sorted_Q[JJ];
+            const uint32_t ll = sorted_Q[LL];
 #if defined(USE_TEXTURE)
             int2 tmpInt2Val;
             QUICKDouble val_ii_jj;
@@ -899,9 +958,9 @@ __global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_sp
                     MAX(MAX(val_ii_ll, val_ii_kk), MAX(val_jj_kk, val_jj_ll)));
 #else
             const QUICKDouble DNMax = MAX(
-                    MAX(4.0 * LOC2(devSim.cutMatrix, ii, jj, nshell, nshell), 4.0 * LOC2(devSim.cutMatrix, kk, ll, nshell, nshell)),
-                    MAX(MAX(LOC2(devSim.cutMatrix, ii, ll, nshell, nshell), LOC2(devSim.cutMatrix, ii, kk, nshell, nshell)),
-                        MAX(LOC2(devSim.cutMatrix, jj, kk, nshell, nshell), LOC2(devSim.cutMatrix, jj, ll, nshell, nshell))));
+                    MAX(4.0 * LOC2(cutMatrix, ii, jj, nshell, nshell), 4.0 * LOC2(cutMatrix, kk, ll, nshell, nshell)),
+                    MAX(MAX(LOC2(cutMatrix, ii, ll, nshell, nshell), LOC2(cutMatrix, ii, kk, nshell, nshell)),
+                        MAX(LOC2(cutMatrix, jj, kk, nshell, nshell), LOC2(cutMatrix, jj, ll, nshell, nshell))));
 #endif
 
 #if defined(USE_TEXTURE) && defined(USE_TEXTURE_YCUTOFF)
@@ -911,110 +970,113 @@ __global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_sp
             tmpInt2Val = tex1Dfetch(tex_YCutoff, ii + jj * nshell);
             val_ii_jj = __hiloint2double(tmpInt2Val.y, tmpInt2Val.x);
 
-            if ((val_kk_ll * val_ii_jj) > devSim.integralCutoff
-                    && (val_kk_ll * val_ii_jj * DNMax) > devSim.integralCutoff) {
+            if ((val_kk_ll * val_ii_jj) > integralCutoff
+                    && (val_kk_ll * val_ii_jj * DNMax) > integralCutoff) {
 
 #else
-            if ((LOC2(devSim.YCutoff, kk, ll, nshell, nshell) * LOC2(devSim.YCutoff, ii, jj, nshell, nshell))
-                    > devSim.integralCutoff
-                && (LOC2(devSim.YCutoff, kk, ll, nshell, nshell) * LOC2(devSim.YCutoff, ii, jj, nshell, nshell) * DNMax)
-                    > devSim.integralCutoff) {
+            if ((LOC2(YCutoff, kk, ll, nshell, nshell) * LOC2(YCutoff, ii, jj, nshell, nshell))
+                    > integralCutoff
+                && (LOC2(YCutoff, kk, ll, nshell, nshell) * LOC2(YCutoff, ii, jj, nshell, nshell) * DNMax)
+                    > integralCutoff) {
 #endif                
 #if defined(OSHELL)
   #if defined(int_sp)
-                iclass_oshell_sp(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
+                {
+                    iclass_oshell_sp
   #elif defined(int_spd)
-                iclass_oshell_spd(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
+                {
+                    iclass_oshell_spd
   #elif defined(int_spdf)
                 if (kkk + lll <= 6 && kkk + lll > 4) {
-                    iclass_oshell_spdf(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
-                }
+                    iclass_oshell_spdf
   #elif defined(int_spdf2)
                 if (iii + jjj > 4 && iii + jjj <= 6 ) {
-                    iclass_oshell_spdf2(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
-                }
+                    iclass_oshell_spdf2
   #elif defined(int_spdf3)
                 if (iii + jjj >= 5 && iii + jjj <= 6 && kkk + lll <= 6 && kkk + lll >= 5) {
-                    iclass_oshell_spdf3(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
-                }
+                    iclass_oshell_spdf3
   #elif defined(int_spdf4)
                 if (iii + jjj == 6 && kkk + lll <= 6 && kkk + lll >= 5) {
-                    iclass_oshell_spdf4(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
-                }
+                    iclass_oshell_spdf4
   #elif defined(int_spdf5)
                 if (kkk + lll == 6 && iii + jjj >= 4 && iii + jjj <= 6) {
-                    iclass_oshell_spdf5(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
-                }
+                    iclass_oshell_spdf5
   #elif defined(int_spdf6)
                 if (iii + jjj == 6 && kkk + lll <= 6 && kkk + lll >= 4) {
-                    iclass_oshell_spdf6(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
-                }
+                    iclass_oshell_spdf6
   #elif defined(int_spdf7)
                 if (iii + jjj >= 5 && iii + jjj <= 6 && kkk + lll == 6) {
-                    iclass_oshell_spdf7(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
-                }
+                    iclass_oshell_spdf7
   #elif defined(int_spdf8)
                 if (iii + jjj == 6 && kkk + lll == 6) {
-                    iclass_oshell_spdf8(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
-                }
+                    iclass_oshell_spdf8
   #elif defined(int_spdf9)
                 if (iii + jjj == 6 && kkk + lll == 6) {
-                    iclass_oshell_spdf9(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
-                }
+                    iclass_oshell_spdf9
   #elif defined(int_spdf10)
                 if (iii + jjj == 6 && kkk + lll == 6) {
-                    iclass_oshell_spdf10(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
-                }
+                    iclass_oshell_spdf10
   #endif
 #else          
   #if defined(int_sp)
-                if (check_iclass(iii, jjj, kkk, lll, ii, jj, kk, ll) == true)
-                    iclass_cshell_sp(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
+                if (check_iclass(iii, jjj, kkk, lll, ii, jj, kk, ll, nshell, Qsbasis, Qfbasis) == true) {
+                    iclass_cshell_sp
   #elif defined(int_spd)
-                if (check_iclass(iii, jjj, kkk, lll, ii, jj, kk, ll) == true)
-                    iclass_cshell_spd(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
+                if (check_iclass(iii, jjj, kkk, lll, ii, jj, kk, ll, nshell, Qsbasis, Qfbasis) == true) {
+                    iclass_cshell_spd
   #elif defined(int_spdf)
                 if (kkk + lll <= 6 && kkk + lll > 4) {
-                    iclass_cshell_spdf(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
-                }
+                    iclass_cshell_spdf
   #elif defined(int_spdf2)
-                if (iii + jjj > 4 && iii + jjj <= 6 ) {
-                    iclass_cshell_spdf2(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
-                }
+                if (iii + jjj > 4 && iii + jjj <= 6) {
+                    iclass_cshell_spdf2
   #elif defined(int_spdf3)
                 if (iii + jjj >= 5 && iii + jjj <= 6 && kkk + lll <= 6 && kkk + lll >= 5) {
-                    iclass_cshell_spdf3(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
-                }
+                    iclass_cshell_spdf3
   #elif defined(int_spdf4)
                 if (iii + jjj == 6 && kkk + lll <= 6 && kkk + lll >= 5) {
-                    iclass_cshell_spdf4(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
-                }
+                    iclass_cshell_spdf4
   #elif defined(int_spdf5)
                 if (kkk + lll == 6 && iii + jjj >= 4 && iii + jjj <= 6) {
-                    iclass_cshell_spdf5(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
-                }
+                    iclass_cshell_spdf5
   #elif defined(int_spdf6)
                 if (iii + jjj == 6 && kkk + lll <= 6 && kkk + lll >= 4) {
-                    iclass_cshell_spdf6(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
-                }
+                    iclass_cshell_spdf6
   #elif defined(int_spdf7)
                 if (iii + jjj >= 5 && iii + jjj <= 6 && kkk + lll == 6) {
-                    iclass_cshell_spdf7(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
-                }
+                    iclass_cshell_spdf7
   #elif defined(int_spdf8)
                 if (iii + jjj == 6 && kkk + lll == 6) {
-                    iclass_cshell_spdf8(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
-                }
+                    iclass_cshell_spdf8
   #elif defined(int_spdf9)
                 if (iii + jjj == 6 && kkk + lll == 6) {
-                    iclass_cshell_spdf9(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
-                }
+                    iclass_cshell_spdf9
   #elif defined(int_spdf10)
                 if (iii + jjj == 6 && kkk + lll == 6) {
-                    iclass_cshell_spdf10(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
-                }
+                    iclass_cshell_spdf10
   #endif
 #endif
+                        (iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax, hyb_coeff, natom, nbasis,
+                        nshell, jbasis, xyz, kstart, katom, kprim, Qstart, Qsbasis, Qfbasis,
+                        cons, KLMN, prim_total, prim_start,
+#if defined(USE_LEGACY_ATOMICS)
+                        oULL,
+  #if defined(OSHELL)
+                        obULL,
+  #endif
+#else
+                        o,
+  #if defined(OSHELL)
+                        ob,
+  #endif
+#endif
+                        dense,
+#if defined(OSHELL)
+                        denseb,
+#endif
+                        Xcoeff, expoSum, weightedCenterX, weightedCenterY,
+                        weightedCenterZ, cutPrim, integralCutoff, primLimit, store);
+                }
             }
 #if defined(int_sp) || defined(int_spd)
         }
@@ -1057,7 +1119,7 @@ __global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) getAOInt_kernel
     unsigned int offside = blockIdx.x * blockDim.x + threadIdx.x;
     int totalThreads = blockDim.x * gridDim.x;
     
-    QUICKULL jshell = (QUICKULL) devSim.sqrQshell;
+    QUICKULL jshell = (QUICKULL) sqrQshell;
     QUICKULL myInt = (QUICKULL) ((intEnd - intStart + 1) / totalThreads);
     
     if (intEnd - intStart + 1 - myInt * totalThreads > offside)
@@ -1068,77 +1130,77 @@ __global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) getAOInt_kernel
         QUICKULL a = currentInt / jshell;
         QUICKULL b = currentInt - a * jshell;
         
-        int II = devSim.sorted_YCutoffIJ[a].x;
-        int JJ = devSim.sorted_YCutoffIJ[a].y;
-        int KK = devSim.sorted_YCutoffIJ[b].x;
-        int LL = devSim.sorted_YCutoffIJ[b].y;
+        int II = sorted_YCutoffIJ[a].x;
+        int JJ = sorted_YCutoffIJ[a].y;
+        int KK = sorted_YCutoffIJ[b].x;
+        int LL = sorted_YCutoffIJ[b].y;
         
-        uint32_t ii = devSim.sorted_Q[II];
-        uint32_t jj = devSim.sorted_Q[JJ];
-        uint32_t kk = devSim.sorted_Q[KK];
-        uint32_t ll = devSim.sorted_Q[LL];
+        uint32_t ii = sorted_Q[II];
+        uint32_t jj = sorted_Q[JJ];
+        uint32_t kk = sorted_Q[KK];
+        uint32_t ll = sorted_Q[LL];
         
         if (ii <= kk) {
-            uint32_t nshell = devSim.nshell;
+            uint32_t nshell = nshell;
             
-            if ((LOC2(devSim.YCutoff, kk, ll, nshell, nshell) * LOC2(devSim.YCutoff, ii, jj, nshell, nshell))
-                    > devSim.leastIntegralCutoff) {
-                const uint8_t iii = devSim.sorted_Qnumber[II];
-                const uint8_t jjj = devSim.sorted_Qnumber[JJ];
-                const uint8_t kkk = devSim.sorted_Qnumber[KK];
-                const uint8_t lll = devSim.sorted_Qnumber[LL];
+            if ((LOC2(YCutoff, kk, ll, nshell, nshell) * LOC2(YCutoff, ii, jj, nshell, nshell))
+                    > leastIntegralCutoff) {
+                const uint8_t iii = sorted_Qnumber[II];
+                const uint8_t jjj = sorted_Qnumber[JJ];
+                const uint8_t kkk = sorted_Qnumber[KK];
+                const uint8_t lll = sorted_Qnumber[LL];
     #if defined(int_spd)
                 iclass_AOInt(iii, jjj, kkk, lll, ii, jj, kk, ll, 1.0, aoint_buffer, streamID,
-                        devSim.store + offside);
+                        store + offside);
     #elif defined(int_spdf)
                 if ((iii + jjj) > 4 || (kkk + lll) > 4) {
                     iclass_AOInt_spdf(iii, jjj, kkk, lll, ii, jj, kk, ll, 1.0, aoint_buffer, streamID,
-                            devSim.store + offside);
+                            store + offside);
                 }
     #elif defined(int_spdf2)
                 if ((iii + jjj) > 4 || (kkk + lll) > 4) {
                     iclass_AOInt_spdf2(iii, jjj, kkk, lll, ii, jj, kk, ll, 1.0, aoint_buffer, streamID,
-                            devSim.store + offside);
+                            store + offside);
                 }
     #elif defined(int_spdf3)
                 if ((iii + jjj) > 4 || (kkk + lll) > 4) {
                     iclass_AOInt_spdf3(iii, jjj, kkk, lll, ii, jj, kk, ll, 1.0, aoint_buffer, streamID,
-                            devSim.store + offside);
+                            store + offside);
                 }
     #elif defined(int_spdf4)
                 if ((iii + jjj) > 4 || (kkk + lll) > 4) {
                     iclass_AOInt_spdf4(iii, jjj, kkk, lll, ii, jj, kk, ll, 1.0, aoint_buffer, streamID,
-                            devSim.store + offside);
+                            store + offside);
                 }
     #elif defined(int_spdf5)
                 if ((iii + jjj) > 4 || (kkk + lll) > 4) {
                     iclass_AOInt_spdf5(iii, jjj, kkk, lll, ii, jj, kk, ll, 1.0, aoint_buffer, streamID,
-                            devSim.store + offside);
+                            store + offside);
                 }
     #elif defined(int_spdf6)
                 if ((iii + jjj) > 4 || (kkk + lll) > 4) {
                     iclass_AOInt_spdf6(iii, jjj, kkk, lll, ii, jj, kk, ll, 1.0, aoint_buffer, streamID,
-                            devSim.store + offside);
+                            store + offside);
                 }
     #elif defined(int_spdf7)
                 if ((iii + jjj) > 4 || (kkk + lll) > 4) {
                     iclass_AOInt_spdf7(iii, jjj, kkk, lll, ii, jj, kk, ll, 1.0, aoint_buffer, streamID,
-                            devSim.store + offside);
+                            store + offside);
                 }
     #elif defined(int_spdf8)
                 if ((iii + jjj) > 4 || (kkk + lll) > 4) {
                     iclass_AOInt_spdf8(iii, jjj, kkk, lll, ii, jj, kk, ll, 1.0, aoint_buffer, streamID,
-                            devSim.store + offside);
+                            store + offside);
                 }
     #elif defined(int_spdf9)
                 if ((iii + jjj) > 4 || (kkk + lll) > 4) {
                     iclass_AOInt_spdf9(iii, jjj, kkk, lll, ii, jj, kk, ll, 1.0, aoint_buffer, streamID,
-                            devSim.store + offside);
+                            store + offside);
                 }
     #elif defined(int_spdf10)
                 if ((iii + jjj) > 4 || (kkk + lll) > 4) {
                     iclass_AOInt_spdf10(iii, jjj, kkk, lll, ii, jj, kk, ll, 1.0, aoint_buffer, streamID,
-                            devSim.store + offside);
+                            store + offside);
                 }
     #endif
             }
@@ -1186,28 +1248,28 @@ __device__ static inline void iclass_AOInt_spdf10
      which means they are corrosponding coorinates for shell II, JJ, KK, and LL.
      And we don't need the coordinates now, so we will not retrieve the data now.
      */
-    QUICKDouble RAx = LOC2(devSim.xyz, 0, devSim.katom[II], 3, devSim.natom);
-    QUICKDouble RAy = LOC2(devSim.xyz, 1, devSim.katom[II], 3, devSim.natom);
-    QUICKDouble RAz = LOC2(devSim.xyz, 2, devSim.katom[II], 3, devSim.natom);
+    QUICKDouble RAx = LOC2(xyz, 0, katom[II], 3, natom);
+    QUICKDouble RAy = LOC2(xyz, 1, katom[II], 3, natom);
+    QUICKDouble RAz = LOC2(xyz, 2, katom[II], 3, natom);
     
-    QUICKDouble RCx = LOC2(devSim.xyz, 0, devSim.katom[KK], 3, devSim.natom);
-    QUICKDouble RCy = LOC2(devSim.xyz, 1, devSim.katom[KK], 3, devSim.natom);
-    QUICKDouble RCz = LOC2(devSim.xyz, 2, devSim.katom[KK], 3, devSim.natom);
+    QUICKDouble RCx = LOC2(xyz, 0, katom[KK], 3, natom);
+    QUICKDouble RCy = LOC2(xyz, 1, katom[KK], 3, natom);
+    QUICKDouble RCz = LOC2(xyz, 2, katom[KK], 3, natom);
     
     /*
      kPrimI, J, K and L indicates the primtive gaussian function number
      kStartI, J, K, and L indicates the starting guassian function for shell I, J, K, and L.
      We retrieve from global memory and save them to register to avoid multiple retrieve.
      */
-    uint32_t kPrimI = devSim.kprim[II];
-    uint32_t kPrimJ = devSim.kprim[JJ];
-    uint32_t kPrimK = devSim.kprim[KK];
-    uint32_t kPrimL = devSim.kprim[LL];
+    uint32_t kPrimI = kprim[II];
+    uint32_t kPrimJ = kprim[JJ];
+    uint32_t kPrimK = kprim[KK];
+    uint32_t kPrimL = kprim[LL];
     
-    uint32_t kStartI = devSim.kstart[II];
-    uint32_t kStartJ = devSim.kstart[JJ];
-    uint32_t kStartK = devSim.kstart[KK];
-    uint32_t kStartL = devSim.kstart[LL];
+    uint32_t kStartI = kstart[II];
+    uint32_t kStartJ = kstart[JJ];
+    uint32_t kStartK = kstart[KK];
+    uint32_t kStartL = kstart[LL];
     
     /*
      store saves temp contracted integral as [as|bs] type. the dimension should be allocatable but because
@@ -1242,27 +1304,27 @@ __device__ static inline void iclass_AOInt_spdf10
          Those two are pre-calculated in CPU stage.
          
          */
-        uint32_t ii_start = devSim.prim_start[II];
-        uint32_t jj_start = devSim.prim_start[JJ];
+        uint32_t ii_start = prim_start[II];
+        uint32_t jj_start = prim_start[JJ];
         
-        QUICKDouble AB = LOC2(devSim.expoSum, ii_start + III, jj_start + JJJ, devSim.prim_total, devSim.prim_total);
-        QUICKDouble Px = LOC2(devSim.weightedCenterX, ii_start + III, jj_start + JJJ, devSim.prim_total, devSim.prim_total);
-        QUICKDouble Py = LOC2(devSim.weightedCenterY, ii_start + III, jj_start + JJJ, devSim.prim_total, devSim.prim_total);
-        QUICKDouble Pz = LOC2(devSim.weightedCenterZ, ii_start + III, jj_start + JJJ, devSim.prim_total, devSim.prim_total);
+        QUICKDouble AB = LOC2(expoSum, ii_start + III, jj_start + JJJ, prim_total, prim_total);
+        QUICKDouble Px = LOC2(weightedCenterX, ii_start + III, jj_start + JJJ, prim_total, prim_total);
+        QUICKDouble Py = LOC2(weightedCenterY, ii_start + III, jj_start + JJJ, prim_total, prim_total);
+        QUICKDouble Pz = LOC2(weightedCenterZ, ii_start + III, jj_start + JJJ, prim_total, prim_total);
         
         /*
          X1 is the contracted coeffecient, which is pre-calcuated in CPU stage as well.
          cutoffprim is used to cut too small prim gaussian function when bring density matrix into consideration.
          */
-        QUICKDouble cutoffPrim = DNMax * LOC2(devSim.cutPrim, kStartI + III, kStartJ + JJJ, devSim.jbasis, devSim.jbasis);
-        QUICKDouble X1 = LOC4(devSim.Xcoeff, kStartI + III, kStartJ + JJJ,
-                I - devSim.Qstart[II], J - devSim.Qstart[JJ], devSim.jbasis, devSim.jbasis, 2, 2);
+        QUICKDouble cutoffPrim = DNMax * LOC2(cutPrim, kStartI + III, kStartJ + JJJ, jbasis, jbasis);
+        QUICKDouble X1 = LOC4(Xcoeff, kStartI + III, kStartJ + JJJ,
+                I - Qstart[II], J - Qstart[JJ], jbasis, jbasis, 2, 2);
         
         for (uint32_t j = 0; j < kPrimK * kPrimL; j++) {
             uint32_t LLL = (uint32_t) j / kPrimK;
             uint32_t KKK = (uint32_t) j - kPrimK * LLL;
             
-            if (cutoffPrim * LOC2(devSim.cutPrim, kStartK + KKK, kStartL + LLL, devSim.jbasis, devSim.jbasis) > devSim.primLimit) {
+            if (cutoffPrim * LOC2(cutPrim, kStartK + KKK, kStartL + LLL, jbasis, jbasis) > primLimit) {
                 /*
                  CD = expo(L)+expo(K)
                  ABCD = 1/ (AB + CD) = 1 / (expo(I)+expo(J)+expo(K)+expo(L))
@@ -1277,16 +1339,16 @@ __device__ static inline void iclass_AOInt_spdf10
                  
                  ABCDtemp = 1/2(expo(I)+expo(J)+expo(K)+expo(L))
                  */
-                uint32_t kk_start = devSim.prim_start[KK];
-                uint32_t ll_start = devSim.prim_start[LL];
-                QUICKDouble CD = LOC2(devSim.expoSum, kk_start + KKK, ll_start + LLL, devSim.prim_total, devSim.prim_total);
+                uint32_t kk_start = prim_start[KK];
+                uint32_t ll_start = prim_start[LL];
+                QUICKDouble CD = LOC2(expoSum, kk_start + KKK, ll_start + LLL, prim_total, prim_total);
                 QUICKDouble ABCD = 1.0 / (AB + CD);
                 
                 /*
                  X2 is the multiplication of four indices normalized coeffecient
                  */
-                QUICKDouble X2 = sqrt(ABCD) * X1 * LOC4(devSim.Xcoeff, kStartK + KKK, kStartL + LLL,
-                        K - devSim.Qstart[KK], L - devSim.Qstart[LL], devSim.jbasis, devSim.jbasis, 2, 2);
+                QUICKDouble X2 = sqrt(ABCD) * X1 * LOC4(Xcoeff, kStartK + KKK, kStartL + LLL,
+                        K - Qstart[KK], L - Qstart[LL], jbasis, jbasis, 2, 2);
                 
                 /*
                  Q' is the weighting center of K and L
@@ -1307,9 +1369,9 @@ __device__ static inline void iclass_AOInt_spdf10
                  ```````````->  -> 2
                  T = ROU * | P - Q|
                  */
-                QUICKDouble Qx = LOC2(devSim.weightedCenterX, kk_start + KKK, ll_start + LLL, devSim.prim_total, devSim.prim_total);
-                QUICKDouble Qy = LOC2(devSim.weightedCenterY, kk_start + KKK, ll_start + LLL, devSim.prim_total, devSim.prim_total);
-                QUICKDouble Qz = LOC2(devSim.weightedCenterZ, kk_start + KKK, ll_start + LLL, devSim.prim_total, devSim.prim_total);
+                QUICKDouble Qx = LOC2(weightedCenterX, kk_start + KKK, ll_start + LLL, prim_total, prim_total);
+                QUICKDouble Qy = LOC2(weightedCenterY, kk_start + KKK, ll_start + LLL, prim_total, prim_total);
+                QUICKDouble Qz = LOC2(weightedCenterZ, kk_start + KKK, ll_start + LLL, prim_total, prim_total);
                 
                 double YVerticalTemp[PRIM_INT_ERI_LEN];
                 FmT(I + J + K + L, AB * CD * ABCD * (SQR(Px - Qx) + SQR(Py - Qy) + SQR(Pz - Qz)),
@@ -1352,21 +1414,21 @@ __device__ static inline void iclass_AOInt_spdf10
         }
     }
     
-    QUICKDouble RBx = LOC2(devSim.xyz, 0, devSim.katom[JJ], 3, devSim.natom);
-    QUICKDouble RBy = LOC2(devSim.xyz, 1, devSim.katom[JJ], 3, devSim.natom);
-    QUICKDouble RBz = LOC2(devSim.xyz, 2, devSim.katom[JJ], 3, devSim.natom);
-    QUICKDouble RDx = LOC2(devSim.xyz, 0, devSim.katom[LL], 3, devSim.natom);
-    QUICKDouble RDy = LOC2(devSim.xyz, 1, devSim.katom[LL], 3, devSim.natom);
-    QUICKDouble RDz = LOC2(devSim.xyz, 2, devSim.katom[LL], 3, devSim.natom);
+    QUICKDouble RBx = LOC2(xyz, 0, katom[JJ], 3, natom);
+    QUICKDouble RBy = LOC2(xyz, 1, katom[JJ], 3, natom);
+    QUICKDouble RBz = LOC2(xyz, 2, katom[JJ], 3, natom);
+    QUICKDouble RDx = LOC2(xyz, 0, katom[LL], 3, natom);
+    QUICKDouble RDy = LOC2(xyz, 1, katom[LL], 3, natom);
+    QUICKDouble RDz = LOC2(xyz, 2, katom[LL], 3, natom);
     
-    uint32_t III1 = LOC2(devSim.Qsbasis, II, I, devSim.nshell, 4);
-    uint32_t III2 = LOC2(devSim.Qfbasis, II, I, devSim.nshell, 4);
-    uint32_t JJJ1 = LOC2(devSim.Qsbasis, JJ, J, devSim.nshell, 4);
-    uint32_t JJJ2 = LOC2(devSim.Qfbasis, JJ, J, devSim.nshell, 4);
-    uint32_t KKK1 = LOC2(devSim.Qsbasis, KK, K, devSim.nshell, 4);
-    uint32_t KKK2 = LOC2(devSim.Qfbasis, KK, K, devSim.nshell, 4);
-    uint32_t LLL1 = LOC2(devSim.Qsbasis, LL, L, devSim.nshell, 4);
-    uint32_t LLL2 = LOC2(devSim.Qfbasis, LL, L, devSim.nshell, 4);
+    uint32_t III1 = LOC2(Qsbasis, II, I, nshell, 4);
+    uint32_t III2 = LOC2(Qfbasis, II, I, nshell, 4);
+    uint32_t JJJ1 = LOC2(Qsbasis, JJ, J, nshell, 4);
+    uint32_t JJJ2 = LOC2(Qfbasis, JJ, J, nshell, 4);
+    uint32_t KKK1 = LOC2(Qsbasis, KK, K, nshell, 4);
+    uint32_t KKK2 = LOC2(Qfbasis, KK, K, nshell, 4);
+    uint32_t LLL1 = LOC2(Qsbasis, LL, L, nshell, 4);
+    uint32_t LLL2 = LOC2(Qfbasis, LL, L, nshell, 4);
     
     // Store generated ERI to buffer
     for (uint32_t III = III1; III <= III2; III++) {
@@ -1385,13 +1447,13 @@ __device__ static inline void iclass_AOInt_spdf10
                               RAx, RAy, RAz, RBx, RBy, RBz,
                               RCx, RCy, RCz, RDx, RDy, RDz);
                         
-                        if (abs(Y) > devSim.maxIntegralCutoff) {
+                        if (abs(Y) > maxIntegralCutoff) {
                             ERI_entry a;
                             a.value = Y;
-                            a.IJ = III * devSim.nbasis + JJJ;
-                            a.KL = KKK * devSim.nbasis + LLL;
+                            a.IJ = III * nbasis + JJJ;
+                            a.KL = KKK * nbasis + LLL;
                             
-                            aoint_buffer[atomicAdd(&devSim.intCount[streamID], 1)] = a;
+                            aoint_buffer[atomicAdd(&intCount[streamID], 1)] = a;
                         }
                     }
                 }

@@ -97,8 +97,6 @@ static void upload_pteval()
 //        gpu->gpu_sim.dphidy = gpu->gpu_xcq->dphidy->_devData;
 //        gpu->gpu_sim.dphidz = gpu->gpu_xcq->dphidz->_devData;
 //
-//        upload_sim_to_constant_dft(gpu);
-//
 //        getpteval(gpu);
 //
 //        gpu->gpu_xcq->phi->Download();
@@ -2200,15 +2198,6 @@ extern "C" void gpu_upload_lri_(QUICKDouble* zeta, QUICKDouble* cc, int *ierr)
 
     gpu->gpu_sim.lri_zeta = *zeta;
 
-    /*    printf("zeta %f \n", gpu->gpu_sim.lri_zeta);
-
-          for(uint32_t i=0; i < (gpu->natom+gpu->nextatom); i++)
-          printf("cc %d %f \n", i, gpu->lri_data->cc->_hostData[i]);
-
-          for(uint32_t iatom=0; iatom < (gpu->natom+gpu->nextatom); iatom++)
-          printf("allxyz %d %f %f %f \n", iatom, LOC2( gpu->allxyz->_hostData, 0, iatom, 3, devSim.natom+devSim.nextatom),\
-          LOC2( gpu->allxyz->_hostData, 1, iatom, 3, devSim.natom+devSim.nextatom), LOC2( gpu->allxyz->_hostData, 2, iatom, 3, devSim.natom+devSim.nextatom));
-     */
     gpu->gpu_sim.lri_cc = gpu->lri_data->cc->_devData;
 }
 
@@ -2280,8 +2269,6 @@ extern "C" void gpu_get_ssw_(QUICKDouble *gridx, QUICKDouble *gridy, QUICKDouble
     gpu->gpu_sim.gatm = gpu->gpu_xcq->gatm->_devData;
     gpu->gpu_sim.sswt = gpu->gpu_xcq->sswt->_devData;
     gpu->gpu_sim.weight = gpu->gpu_xcq->weight->_devData;
-
-    upload_sim_to_constant_dft(gpu);
 
     get_ssw(gpu);
 
@@ -2411,8 +2398,6 @@ void prune_grid_sswgrad()
     gpu->gpu_sim.uw_ssd = gpu->gpu_xcq->uw_ssd->_devData;
     gpu->gpu_sim.gatm_ssd = gpu->gpu_xcq->gatm_ssd->_devData;
 
-    upload_sim_to_constant_dft(gpu);
-
     PRINTDEBUG("COMPLETE UPLOADING DFT GRID FOR SSWGRAD");
 
     //Clean up temporary arrays
@@ -2475,8 +2460,6 @@ void gpu_get_octree_info(QUICKDouble *gridx, QUICKDouble *gridy, QUICKDouble *gr
     gpuMemcpy(d_gpweight, gpweight, sizeof(unsigned char) * gpu->gpu_xcq->npoints, hipMemcpyHostToDevice);
     gpuMemcpy(d_cfweight, cfweight, sizeof(unsigned int) * nbins * gpu->nbasis, hipMemcpyHostToDevice);
     gpuMemcpy(d_pfweight, pfweight, sizeof(unsigned int) * nbins * gpu->nbasis * gpu->gpu_basis->maxcontract, hipMemcpyHostToDevice);
-
-    upload_sim_to_constant_dft(gpu);
 
     get_primf_contraf_lists(gpu, d_gpweight, d_cfweight, d_pfweight);
 
@@ -2935,8 +2918,6 @@ extern "C" void gpu_addint_(QUICKDouble* o, int* intindex, char* intFileName)
 
     PRINTDEBUG("BEGIN TO RUN KERNEL");
 
-    upload_sim_to_constant(gpu);
-
 #ifdef DEBUG
     fprintf(gpu->debugFile,"int total from addint = %i\n", *intindex);
 #endif
@@ -3217,8 +3198,6 @@ extern "C" void gpu_aoint_(QUICKDouble* leastIntegralCutoff, QUICKDouble* maxInt
     gpu->gpu_sim.iBatchSize = nBatchERICount;
     gpu->intCount = new gpu_buffer_type<QUICKULL>(streamNum);
     gpu->gpu_sim.intCount = gpu->intCount->_devData;
-
-    upload_sim_to_constant(gpu);
 
 #if defined(DEBUG)
     float time_downloadERI, time_kernel, time_io;

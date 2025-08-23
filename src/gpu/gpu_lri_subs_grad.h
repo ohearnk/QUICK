@@ -35,7 +35,8 @@ __device__ static inline void hrrwholegrad_lri(QUICKDouble * const Yaax, QUICKDo
         uint8_t J, uint32_t III, uint32_t JJJ,
         QUICKDouble * const store, QUICKDouble * const storeAA, QUICKDouble * const storeBB,
         QUICKDouble RAx, QUICKDouble RAy, QUICKDouble RAz,
-        QUICKDouble RBx, QUICKDouble RBy, QUICKDouble RBz)
+        QUICKDouble RBx, QUICKDouble RBy, QUICKDouble RBz,
+        uint32_t nbasis, QUICKDouble const * const cons, uint8_t const * const KLMN)
 {
     uint8_t angularL[12];
     QUICKDouble coefAngularL[12];
@@ -47,17 +48,17 @@ __device__ static inline void hrrwholegrad_lri(QUICKDouble * const Yaax, QUICKDo
     *Ybby = 0.0;
     *Ybbz = 0.0;
 
-    QUICKDouble constant = devSim.cons[III] * devSim.cons[JJJ];
+    QUICKDouble constant = cons[III] * cons[JJJ];
     uint8_t numAngularL;
 
     //  Part A - x
     numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-            LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis) + 1,
-            LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
+            LOC2(KLMN, 0, III, 3, nbasis) + 1,
+            LOC2(KLMN, 1, III, 3, nbasis),
+            LOC2(KLMN, 2, III, 3, nbasis),
+            LOC2(KLMN, 0, JJJ, 3, nbasis),
+            LOC2(KLMN, 1, JJJ, 3, nbasis),
+            LOC2(KLMN, 2, JJJ, 3, nbasis),
             J, coefAngularL, angularL);
 
     for (uint8_t i = 0; i < numAngularL; i++) {
@@ -67,12 +68,12 @@ __device__ static inline void hrrwholegrad_lri(QUICKDouble * const Yaax, QUICKDo
     }
 
     numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-            LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis) + 1,
-            LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
+            LOC2(KLMN, 0, III, 3, nbasis),
+            LOC2(KLMN, 1, III, 3, nbasis) + 1,
+            LOC2(KLMN, 2, III, 3, nbasis),
+            LOC2(KLMN, 0, JJJ, 3, nbasis),
+            LOC2(KLMN, 1, JJJ, 3, nbasis),
+            LOC2(KLMN, 2, JJJ, 3, nbasis),
             J, coefAngularL, angularL);
 
     for (uint8_t i = 0; i < numAngularL; i++) {
@@ -82,12 +83,12 @@ __device__ static inline void hrrwholegrad_lri(QUICKDouble * const Yaax, QUICKDo
     }
 
     numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-            LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis) + 1,
-            LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
+            LOC2(KLMN, 0, III, 3, nbasis),
+            LOC2(KLMN, 1, III, 3, nbasis),
+            LOC2(KLMN, 2, III, 3, nbasis) + 1,
+            LOC2(KLMN, 0, JJJ, 3, nbasis),
+            LOC2(KLMN, 1, JJJ, 3, nbasis),
+            LOC2(KLMN, 2, JJJ, 3, nbasis),
             J, coefAngularL, angularL);
 
     for (uint8_t i = 0; i < numAngularL; i++) {
@@ -97,12 +98,12 @@ __device__ static inline void hrrwholegrad_lri(QUICKDouble * const Yaax, QUICKDo
     }
 
     numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-            LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis) + 1,
-            LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
+            LOC2(KLMN, 0, III, 3, nbasis),
+            LOC2(KLMN, 1, III, 3, nbasis),
+            LOC2(KLMN, 2, III, 3, nbasis),
+            LOC2(KLMN, 0, JJJ, 3, nbasis) + 1,
+            LOC2(KLMN, 1, JJJ, 3, nbasis),
+            LOC2(KLMN, 2, JJJ, 3, nbasis),
             J + 1, coefAngularL, angularL);
 
     for (uint8_t i = 0; i < numAngularL; i++) {
@@ -112,12 +113,12 @@ __device__ static inline void hrrwholegrad_lri(QUICKDouble * const Yaax, QUICKDo
     }
 
     numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-            LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis) + 1,
-            LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
+            LOC2(KLMN, 0, III, 3, nbasis),
+            LOC2(KLMN, 1, III, 3, nbasis),
+            LOC2(KLMN, 2, III, 3, nbasis),
+            LOC2(KLMN, 0, JJJ, 3, nbasis),
+            LOC2(KLMN, 1, JJJ, 3, nbasis) + 1,
+            LOC2(KLMN, 2, JJJ, 3, nbasis),
             J + 1, coefAngularL, angularL);
 
     for (uint8_t i = 0; i < numAngularL; i++) {
@@ -127,12 +128,12 @@ __device__ static inline void hrrwholegrad_lri(QUICKDouble * const Yaax, QUICKDo
     }
 
     numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-            LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis) + 1,
+            LOC2(KLMN, 0, III, 3, nbasis),
+            LOC2(KLMN, 1, III, 3, nbasis),
+            LOC2(KLMN, 2, III, 3, nbasis),
+            LOC2(KLMN, 0, JJJ, 3, nbasis),
+            LOC2(KLMN, 1, JJJ, 3, nbasis),
+            LOC2(KLMN, 2, JJJ, 3, nbasis) + 1,
             J + 1, coefAngularL, angularL);
 
     for (uint8_t i = 0; i < numAngularL; i++) {
@@ -141,109 +142,109 @@ __device__ static inline void hrrwholegrad_lri(QUICKDouble * const Yaax, QUICKDo
         }
     }
 
-    if (LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis) >= 1) {
+    if (LOC2(KLMN, 0, III, 3, nbasis) >= 1) {
         numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-                LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis) - 1,
-                LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
+                LOC2(KLMN, 0, III, 3, nbasis) - 1,
+                LOC2(KLMN, 1, III, 3, nbasis),
+                LOC2(KLMN, 2, III, 3, nbasis),
+                LOC2(KLMN, 0, JJJ, 3, nbasis),
+                LOC2(KLMN, 1, JJJ, 3, nbasis),
+                LOC2(KLMN, 2, JJJ, 3, nbasis),
                 J, coefAngularL, angularL);
 
         for (uint8_t i = 0; i < numAngularL; i++) {
             if (angularL[i] < STOREDIM) {
-                *Yaax = *Yaax - LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis) * coefAngularL[i]
+                *Yaax = *Yaax - LOC2(KLMN, 0, III, 3, nbasis) * coefAngularL[i]
                     * LOCSTORE(store, angularL[i], 0, STOREDIM, STOREDIM);
             }
         }
     }
 
-    if (LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis) >= 1) {
+    if (LOC2(KLMN, 1, III, 3, nbasis) >= 1) {
         numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-                LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis) - 1,
-                LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
+                LOC2(KLMN, 0, III, 3, nbasis),
+                LOC2(KLMN, 1, III, 3, nbasis) - 1,
+                LOC2(KLMN, 2, III, 3, nbasis),
+                LOC2(KLMN, 0, JJJ, 3, nbasis),
+                LOC2(KLMN, 1, JJJ, 3, nbasis),
+                LOC2(KLMN, 2, JJJ, 3, nbasis),
                 J, coefAngularL, angularL);
 
         for (uint8_t i = 0; i < numAngularL; i++) {
             if (angularL[i] < STOREDIM) {
-                *Yaay = *Yaay - LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis) * coefAngularL[i]
+                *Yaay = *Yaay - LOC2(KLMN, 1, III, 3, nbasis) * coefAngularL[i]
                     * LOCSTORE(store, angularL[i], 0, STOREDIM, STOREDIM);
             }
         }
     }
 
-    if (LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis) >= 1) {
+    if (LOC2(KLMN, 2, III, 3, nbasis) >= 1) {
         numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-                LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis) - 1,
-                LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
+                LOC2(KLMN, 0, III, 3, nbasis),
+                LOC2(KLMN, 1, III, 3, nbasis),
+                LOC2(KLMN, 2, III, 3, nbasis) - 1,
+                LOC2(KLMN, 0, JJJ, 3, nbasis),
+                LOC2(KLMN, 1, JJJ, 3, nbasis),
+                LOC2(KLMN, 2, JJJ, 3, nbasis),
                 J, coefAngularL, angularL);
 
         for (uint8_t i = 0; i < numAngularL; i++) {
             if (angularL[i] < STOREDIM) {
-                *Yaaz = *Yaaz - LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis) * coefAngularL[i]
+                *Yaaz = *Yaaz - LOC2(KLMN, 2, III, 3, nbasis) * coefAngularL[i]
                     * LOCSTORE(store, angularL[i], 0, STOREDIM, STOREDIM);
             }
         }
     }
 
-    if (LOC2(devSim.KLMN,0,JJJ,3,devSim.nbasis) >= 1) {
+    if (LOC2(KLMN,0,JJJ,3,nbasis) >= 1) {
         numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-                LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis) - 1,
-                LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
+                LOC2(KLMN, 0, III, 3, nbasis),
+                LOC2(KLMN, 1, III, 3, nbasis),
+                LOC2(KLMN, 2, III, 3, nbasis),
+                LOC2(KLMN, 0, JJJ, 3, nbasis) - 1,
+                LOC2(KLMN, 1, JJJ, 3, nbasis),
+                LOC2(KLMN, 2, JJJ, 3, nbasis),
                 J - 1, coefAngularL, angularL);
 
         for (uint8_t i = 0; i < numAngularL; i++) {
             if (angularL[i] < STOREDIM) {
-                *Ybbx = *Ybbx - LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis) * coefAngularL[i]
+                *Ybbx = *Ybbx - LOC2(KLMN, 0, JJJ, 3, nbasis) * coefAngularL[i]
                     * LOCSTORE(store, angularL[i], 0, STOREDIM, STOREDIM);
             }
         }
     }
 
-    if (LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis) >= 1) {
+    if (LOC2(KLMN, 1, JJJ, 3, nbasis) >= 1) {
         numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-                LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis) - 1,
-                LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
+                LOC2(KLMN, 0, III, 3, nbasis),
+                LOC2(KLMN, 1, III, 3, nbasis),
+                LOC2(KLMN, 2, III, 3, nbasis),
+                LOC2(KLMN, 0, JJJ, 3, nbasis),
+                LOC2(KLMN, 1, JJJ, 3, nbasis) - 1,
+                LOC2(KLMN, 2, JJJ, 3, nbasis),
                 J - 1, coefAngularL, angularL);
 
         for (uint8_t i = 0; i < numAngularL; i++) {
             if (angularL[i] < STOREDIM) {
-                *Ybby = *Ybby - LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis) * coefAngularL[i]
+                *Ybby = *Ybby - LOC2(KLMN, 1, JJJ, 3, nbasis) * coefAngularL[i]
                     * LOCSTORE(store, angularL[i], 0, STOREDIM, STOREDIM);
             }
         }
     }
 
-    if (LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis) >= 1) {
+    if (LOC2(KLMN, 2, JJJ, 3, nbasis) >= 1) {
         numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-                LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis) - 1,
+                LOC2(KLMN, 0, III, 3, nbasis),
+                LOC2(KLMN, 1, III, 3, nbasis),
+                LOC2(KLMN, 2, III, 3, nbasis),
+                LOC2(KLMN, 0, JJJ, 3, nbasis),
+                LOC2(KLMN, 1, JJJ, 3, nbasis),
+                LOC2(KLMN, 2, JJJ, 3, nbasis) - 1,
                 J - 1, coefAngularL, angularL);
 
         for (uint8_t i = 0; i < numAngularL; i++) {
             if (angularL[i] < STOREDIM) {
-                *Ybbz = *Ybbz - LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis) * coefAngularL[i]
+                *Ybbz = *Ybbz - LOC2(KLMN, 2, JJJ, 3, nbasis) * coefAngularL[i]
                     * LOCSTORE(store, angularL[i], 0, STOREDIM, STOREDIM);
             }
         }
@@ -266,7 +267,8 @@ __device__ static inline void hrrwholegrad_lri2(QUICKDouble * const Yaax, QUICKD
         uint8_t J, uint32_t III, uint32_t JJJ,
         QUICKDouble * const store, QUICKDouble AA, QUICKDouble BB,
         QUICKDouble RAx, QUICKDouble RAy, QUICKDouble RAz,
-        QUICKDouble RBx, QUICKDouble RBy, QUICKDouble RBz)
+        QUICKDouble RBx, QUICKDouble RBy, QUICKDouble RBz,
+        uint32_t nbasis, QUICKDouble const * const cons, uint8_t const * const KLMN)
 {
     uint8_t angularL[12];
     QUICKDouble coefAngularL[12];
@@ -278,17 +280,17 @@ __device__ static inline void hrrwholegrad_lri2(QUICKDouble * const Yaax, QUICKD
     *Ybby = 0.0;
     *Ybbz = 0.0;
 
-    QUICKDouble constant = devSim.cons[III] * devSim.cons[JJJ];
+    QUICKDouble constant = cons[III] * cons[JJJ];
     uint8_t numAngularL;
 
     //  Part A - x
     numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-            LOC2(devSim.KLMN,0,III,3,devSim.nbasis) + 1,
-            LOC2(devSim.KLMN,1,III,3,devSim.nbasis),
-            LOC2(devSim.KLMN,2,III,3,devSim.nbasis),
-            LOC2(devSim.KLMN,0,JJJ,3,devSim.nbasis),
-            LOC2(devSim.KLMN,1,JJJ,3,devSim.nbasis),
-            LOC2(devSim.KLMN,2,JJJ,3,devSim.nbasis),
+            LOC2(KLMN,0,III,3,nbasis) + 1,
+            LOC2(KLMN,1,III,3,nbasis),
+            LOC2(KLMN,2,III,3,nbasis),
+            LOC2(KLMN,0,JJJ,3,nbasis),
+            LOC2(KLMN,1,JJJ,3,nbasis),
+            LOC2(KLMN,2,JJJ,3,nbasis),
             J, coefAngularL, angularL);
 
     for (uint8_t i = 0; i < numAngularL; i++) {
@@ -298,12 +300,12 @@ __device__ static inline void hrrwholegrad_lri2(QUICKDouble * const Yaax, QUICKD
     }
 
     numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-            LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis) + 1,
-            LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
+            LOC2(KLMN, 0, III, 3, nbasis),
+            LOC2(KLMN, 1, III, 3, nbasis) + 1,
+            LOC2(KLMN, 2, III, 3, nbasis),
+            LOC2(KLMN, 0, JJJ, 3, nbasis),
+            LOC2(KLMN, 1, JJJ, 3, nbasis),
+            LOC2(KLMN, 2, JJJ, 3, nbasis),
             J, coefAngularL, angularL);
 
     for (uint8_t i = 0; i < numAngularL; i++) {
@@ -313,12 +315,12 @@ __device__ static inline void hrrwholegrad_lri2(QUICKDouble * const Yaax, QUICKD
     }
 
     numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-            LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis) + 1,
-            LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
+            LOC2(KLMN, 0, III, 3, nbasis),
+            LOC2(KLMN, 1, III, 3, nbasis),
+            LOC2(KLMN, 2, III, 3, nbasis) + 1,
+            LOC2(KLMN, 0, JJJ, 3, nbasis),
+            LOC2(KLMN, 1, JJJ, 3, nbasis),
+            LOC2(KLMN, 2, JJJ, 3, nbasis),
             J, coefAngularL, angularL);
 
     for (uint8_t i = 0; i < numAngularL; i++) {
@@ -328,12 +330,12 @@ __device__ static inline void hrrwholegrad_lri2(QUICKDouble * const Yaax, QUICKD
     }
 
     numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-            LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis) + 1,
-            LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
+            LOC2(KLMN, 0, III, 3, nbasis),
+            LOC2(KLMN, 1, III, 3, nbasis),
+            LOC2(KLMN, 2, III, 3, nbasis),
+            LOC2(KLMN, 0, JJJ, 3, nbasis) + 1,
+            LOC2(KLMN, 1, JJJ, 3, nbasis),
+            LOC2(KLMN, 2, JJJ, 3, nbasis),
             J + 1, coefAngularL, angularL);
 
     for (uint8_t i = 0; i < numAngularL; i++) {
@@ -343,12 +345,12 @@ __device__ static inline void hrrwholegrad_lri2(QUICKDouble * const Yaax, QUICKD
     }
 
     numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-            LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis) + 1,
-            LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
+            LOC2(KLMN, 0, III, 3, nbasis),
+            LOC2(KLMN, 1, III, 3, nbasis),
+            LOC2(KLMN, 2, III, 3, nbasis),
+            LOC2(KLMN, 0, JJJ, 3, nbasis),
+            LOC2(KLMN, 1, JJJ, 3, nbasis) + 1,
+            LOC2(KLMN, 2, JJJ, 3, nbasis),
             J + 1, coefAngularL, angularL);
 
     for (uint8_t i = 0; i < numAngularL; i++) {
@@ -358,12 +360,12 @@ __device__ static inline void hrrwholegrad_lri2(QUICKDouble * const Yaax, QUICKD
     }
 
     numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-            LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis) + 1,
+            LOC2(KLMN, 0, III, 3, nbasis),
+            LOC2(KLMN, 1, III, 3, nbasis),
+            LOC2(KLMN, 2, III, 3, nbasis),
+            LOC2(KLMN, 0, JJJ, 3, nbasis),
+            LOC2(KLMN, 1, JJJ, 3, nbasis),
+            LOC2(KLMN, 2, JJJ, 3, nbasis) + 1,
             J + 1, coefAngularL, angularL);
 
     for (uint8_t i = 0; i < numAngularL; i++) {
@@ -372,109 +374,109 @@ __device__ static inline void hrrwholegrad_lri2(QUICKDouble * const Yaax, QUICKD
         }
     }
 
-    if (LOC2(devSim.KLMN,0,III,3,devSim.nbasis) >= 1) {
+    if (LOC2(KLMN,0,III,3,nbasis) >= 1) {
         numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-                LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis) - 1,
-                LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
+                LOC2(KLMN, 0, III, 3, nbasis) - 1,
+                LOC2(KLMN, 1, III, 3, nbasis),
+                LOC2(KLMN, 2, III, 3, nbasis),
+                LOC2(KLMN, 0, JJJ, 3, nbasis),
+                LOC2(KLMN, 1, JJJ, 3, nbasis),
+                LOC2(KLMN, 2, JJJ, 3, nbasis),
                 J, coefAngularL, angularL);
 
         for (uint8_t i = 0; i < numAngularL; i++) {
             if (angularL[i] < STOREDIM) {
-                *Yaax = *Yaax - LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis) * coefAngularL[i]
+                *Yaax = *Yaax - LOC2(KLMN, 0, III, 3, nbasis) * coefAngularL[i]
                     * LOCSTORE(store, angularL[i], 0, STOREDIM, STOREDIM);
             }
         }
     }
 
-    if (LOC2(devSim.KLMN,1,III,3,devSim.nbasis) >= 1) {
+    if (LOC2(KLMN,1,III,3,nbasis) >= 1) {
         numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-                LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis) - 1,
-                LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
+                LOC2(KLMN, 0, III, 3, nbasis),
+                LOC2(KLMN, 1, III, 3, nbasis) - 1,
+                LOC2(KLMN, 2, III, 3, nbasis),
+                LOC2(KLMN, 0, JJJ, 3, nbasis),
+                LOC2(KLMN, 1, JJJ, 3, nbasis),
+                LOC2(KLMN, 2, JJJ, 3, nbasis),
                 J, coefAngularL, angularL);
 
         for (uint8_t i = 0; i < numAngularL; i++) {
             if (angularL[i] < STOREDIM) {
-                *Yaay = *Yaay - LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis) * coefAngularL[i]
+                *Yaay = *Yaay - LOC2(KLMN, 1, III, 3, nbasis) * coefAngularL[i]
                     * LOCSTORE(store, angularL[i], 0, STOREDIM, STOREDIM);
             }
         }
     }
 
-    if (LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis) >= 1) {
+    if (LOC2(KLMN, 2, III, 3, nbasis) >= 1) {
         numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-                LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis) - 1,
-                LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
+                LOC2(KLMN, 0, III, 3, nbasis),
+                LOC2(KLMN, 1, III, 3, nbasis),
+                LOC2(KLMN, 2, III, 3, nbasis) - 1,
+                LOC2(KLMN, 0, JJJ, 3, nbasis),
+                LOC2(KLMN, 1, JJJ, 3, nbasis),
+                LOC2(KLMN, 2, JJJ, 3, nbasis),
                 J, coefAngularL, angularL);
 
         for (uint8_t i = 0; i < numAngularL; i++) {
             if (angularL[i] < STOREDIM) {
-                *Yaaz = *Yaaz - LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis) * coefAngularL[i]
+                *Yaaz = *Yaaz - LOC2(KLMN, 2, III, 3, nbasis) * coefAngularL[i]
                     * LOCSTORE(store, angularL[i], 0, STOREDIM, STOREDIM);
             }
         }
     }
 
-    if (LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis) >= 1) {
+    if (LOC2(KLMN, 0, JJJ, 3, nbasis) >= 1) {
         numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-                LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis), 
-                LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis) - 1,
-                LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
+                LOC2(KLMN, 0, III, 3, nbasis),
+                LOC2(KLMN, 1, III, 3, nbasis), 
+                LOC2(KLMN, 2, III, 3, nbasis),
+                LOC2(KLMN, 0, JJJ, 3, nbasis) - 1,
+                LOC2(KLMN, 1, JJJ, 3, nbasis),
+                LOC2(KLMN, 2, JJJ, 3, nbasis),
                 J - 1, coefAngularL, angularL);
 
         for (uint8_t i = 0; i < numAngularL; i++) {
             if (angularL[i] < STOREDIM) {
-                *Ybbx = *Ybbx - LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis) * coefAngularL[i]
+                *Ybbx = *Ybbx - LOC2(KLMN, 0, JJJ, 3, nbasis) * coefAngularL[i]
                     * LOCSTORE(store, angularL[i], 0, STOREDIM, STOREDIM);
             }
         }
     }
 
-    if (LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis) >= 1) {
+    if (LOC2(KLMN, 1, JJJ, 3, nbasis) >= 1) {
         numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-                LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis) - 1,
-                LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
+                LOC2(KLMN, 0, III, 3, nbasis),
+                LOC2(KLMN, 1, III, 3, nbasis),
+                LOC2(KLMN, 2, III, 3, nbasis),
+                LOC2(KLMN, 0, JJJ, 3, nbasis),
+                LOC2(KLMN, 1, JJJ, 3, nbasis) - 1,
+                LOC2(KLMN, 2, JJJ, 3, nbasis),
                 J - 1, coefAngularL, angularL);
 
         for (uint8_t i = 0; i < numAngularL; i++) {
             if (angularL[i] < STOREDIM) {
-                *Ybby = *Ybby - LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis) * coefAngularL[i]
+                *Ybby = *Ybby - LOC2(KLMN, 1, JJJ, 3, nbasis) * coefAngularL[i]
                     * LOCSTORE(store, angularL[i], 0, STOREDIM, STOREDIM);
             }
         }
     }
 
-    if (LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis) >= 1) {
+    if (LOC2(KLMN, 2, JJJ, 3, nbasis) >= 1) {
         numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-                LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis) - 1,
+                LOC2(KLMN, 0, III, 3, nbasis),
+                LOC2(KLMN, 1, III, 3, nbasis),
+                LOC2(KLMN, 2, III, 3, nbasis),
+                LOC2(KLMN, 0, JJJ, 3, nbasis),
+                LOC2(KLMN, 1, JJJ, 3, nbasis),
+                LOC2(KLMN, 2, JJJ, 3, nbasis) - 1,
                 J - 1, coefAngularL, angularL);
 
         for (uint8_t i = 0; i < numAngularL; i++) {
             if (angularL[i] < STOREDIM) {
-                *Ybbz = *Ybbz - LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis) * coefAngularL[i]
+                *Ybbz = *Ybbz - LOC2(KLMN, 2, JJJ, 3, nbasis) * coefAngularL[i]
                     * LOCSTORE(store, angularL[i], 0, STOREDIM, STOREDIM);
 
             }
@@ -496,7 +498,8 @@ __device__ static inline void hrrwholegrad_lri2_2(QUICKDouble * const Yaax, QUIC
         uint8_t J, uint32_t III, uint32_t JJJ,
         QUICKDouble * const store, QUICKDouble AA, QUICKDouble BB,
         QUICKDouble RAx, QUICKDouble RAy, QUICKDouble RAz,
-        QUICKDouble RBx, QUICKDouble RBy, QUICKDouble RBz)
+        QUICKDouble RBx, QUICKDouble RBy, QUICKDouble RBz,
+        uint32_t nbasis, QUICKDouble const * const cons, uint8_t const * const KLMN)
 {
     uint8_t angularL[12];
     QUICKDouble coefAngularL[12];
@@ -508,17 +511,17 @@ __device__ static inline void hrrwholegrad_lri2_2(QUICKDouble * const Yaax, QUIC
     *Ybby = 0.0;
     *Ybbz = 0.0;
 
-    QUICKDouble constant = devSim.cons[III] * devSim.cons[JJJ];
+    QUICKDouble constant = cons[III] * cons[JJJ];
     uint8_t numAngularL;
 
     //  Part A - x
     numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-            LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis) + 1,
-            LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
+            LOC2(KLMN, 0, III, 3, nbasis) + 1,
+            LOC2(KLMN, 1, III, 3, nbasis),
+            LOC2(KLMN, 2, III, 3, nbasis),
+            LOC2(KLMN, 0, JJJ, 3, nbasis),
+            LOC2(KLMN, 1, JJJ, 3, nbasis),
+            LOC2(KLMN, 2, JJJ, 3, nbasis),
             J, coefAngularL, angularL);
 
     for (uint8_t i = 0; i < numAngularL; i++) {
@@ -528,12 +531,12 @@ __device__ static inline void hrrwholegrad_lri2_2(QUICKDouble * const Yaax, QUIC
     }
 
     numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-            LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis) + 1,
-            LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
+            LOC2(KLMN, 0, III, 3, nbasis),
+            LOC2(KLMN, 1, III, 3, nbasis) + 1,
+            LOC2(KLMN, 2, III, 3, nbasis),
+            LOC2(KLMN, 0, JJJ, 3, nbasis),
+            LOC2(KLMN, 1, JJJ, 3, nbasis),
+            LOC2(KLMN, 2, JJJ, 3, nbasis),
             J, coefAngularL, angularL);
 
     for (uint8_t i = 0; i < numAngularL; i++) {
@@ -543,12 +546,12 @@ __device__ static inline void hrrwholegrad_lri2_2(QUICKDouble * const Yaax, QUIC
     }
 
     numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-            LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis) + 1,
-            LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
+            LOC2(KLMN, 0, III, 3, nbasis),
+            LOC2(KLMN, 1, III, 3, nbasis),
+            LOC2(KLMN, 2, III, 3, nbasis) + 1,
+            LOC2(KLMN, 0, JJJ, 3, nbasis),
+            LOC2(KLMN, 1, JJJ, 3, nbasis),
+            LOC2(KLMN, 2, JJJ, 3, nbasis),
             J, coefAngularL, angularL);
 
     for (uint8_t i = 0; i < numAngularL; i++) {
@@ -558,12 +561,12 @@ __device__ static inline void hrrwholegrad_lri2_2(QUICKDouble * const Yaax, QUIC
     }
 
     numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-            LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis) + 1,
-            LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
+            LOC2(KLMN, 0, III, 3, nbasis),
+            LOC2(KLMN, 1, III, 3, nbasis),
+            LOC2(KLMN, 2, III, 3, nbasis),
+            LOC2(KLMN, 0, JJJ, 3, nbasis) + 1,
+            LOC2(KLMN, 1, JJJ, 3, nbasis),
+            LOC2(KLMN, 2, JJJ, 3, nbasis),
             J + 1, coefAngularL, angularL);
 
     for (uint8_t i = 0; i < numAngularL; i++) {
@@ -573,12 +576,12 @@ __device__ static inline void hrrwholegrad_lri2_2(QUICKDouble * const Yaax, QUIC
     }
 
     numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-            LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis) + 1,
-            LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
+            LOC2(KLMN, 0, III, 3, nbasis),
+            LOC2(KLMN, 1, III, 3, nbasis),
+            LOC2(KLMN, 2, III, 3, nbasis),
+            LOC2(KLMN, 0, JJJ, 3, nbasis),
+            LOC2(KLMN, 1, JJJ, 3, nbasis) + 1,
+            LOC2(KLMN, 2, JJJ, 3, nbasis),
             J + 1, coefAngularL, angularL);
 
     for (uint8_t i = 0; i < numAngularL; i++) {
@@ -588,12 +591,12 @@ __device__ static inline void hrrwholegrad_lri2_2(QUICKDouble * const Yaax, QUIC
     }
 
     numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
-            LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis) + 1,
+            LOC2(KLMN, 0, III, 3, nbasis),
+            LOC2(KLMN, 1, III, 3, nbasis),
+            LOC2(KLMN, 2, III, 3, nbasis),
+            LOC2(KLMN, 0, JJJ, 3, nbasis),
+            LOC2(KLMN, 1, JJJ, 3, nbasis),
+            LOC2(KLMN, 2, JJJ, 3, nbasis) + 1,
             J + 1, coefAngularL, angularL);
 
     for (uint8_t i = 0; i < numAngularL; i++) {
@@ -632,8 +635,27 @@ __device__ static inline void iclass_oshell_lri_grad
 __device__ static inline void iclass_lri_grad
   #endif
 (uint8_t I, uint8_t J, uint32_t II, uint32_t JJ, uint32_t iatom, uint32_t totalatom,
+ uint32_t natom, uint32_t nbasis, uint32_t nshell, uint32_t jbasis,
+ QUICKDouble const * const xyz, QUICKDouble const * const allxyz,
+ uint32_t const * const kstart, uint32_t const * const katom,
+ uint32_t const * const kprim, uint32_t const * const Ksumtype, uint32_t const * const Qstart,
+ uint32_t const * const Qsbasis, uint32_t const * const Qfbasis,
+ QUICKDouble const * const cons, QUICKDouble const * const gcexpo, uint8_t const * const KLMN,
+ uint32_t prim_total, uint32_t const * const prim_start, QUICKDouble * const dense,
+#if defined(OSHELL)
+ QUICKDouble * const denseb,
+#endif
+ QUICKDouble const * const Xcoeff, QUICKDouble const * const expoSum,
+ QUICKDouble const * const weightedCenterX, QUICKDouble const * const weightedCenterY,
+ QUICKDouble const * const weightedCenterZ,
+#if defined(USE_LEGACY_ATOMICS)
+ QUICKULL * const gradULL,
+#else
+ QUICKDouble * const grad,
+#endif
  QUICKDouble * const store, QUICKDouble * const store2,
- QUICKDouble * const storeAA, QUICKDouble * const storeBB) {
+ QUICKDouble * const storeAA, QUICKDouble * const storeBB)
+}
     /*
        kAtom A, B, C ,D is the coresponding atom for shell ii, jj, kk, ll
        and be careful with the index difference between Fortran and C++,
@@ -643,24 +665,24 @@ __device__ static inline void iclass_lri_grad
        which means they are corrosponding coorinates for shell II, JJ, KK, and LL.
        And we don't need the coordinates now, so we will not retrieve the data now.
    */
-    QUICKDouble RAx = LOC2(devSim.xyz, 0, devSim.katom[II], 3, devSim.natom);
-    QUICKDouble RAy = LOC2(devSim.xyz, 1, devSim.katom[II], 3, devSim.natom);
-    QUICKDouble RAz = LOC2(devSim.xyz, 2, devSim.katom[II], 3, devSim.natom);
+    QUICKDouble RAx = LOC2(xyz, 0, katom[II], 3, natom);
+    QUICKDouble RAy = LOC2(xyz, 1, katom[II], 3, natom);
+    QUICKDouble RAz = LOC2(xyz, 2, katom[II], 3, natom);
 
-    QUICKDouble RCx = LOC2(devSim.allxyz, 0, iatom, 3, totalatom);
-    QUICKDouble RCy = LOC2(devSim.allxyz, 1, iatom, 3, totalatom);
-    QUICKDouble RCz = LOC2(devSim.allxyz, 2, iatom, 3, totalatom);
+    QUICKDouble RCx = LOC2(allxyz, 0, iatom, 3, totalatom);
+    QUICKDouble RCy = LOC2(allxyz, 1, iatom, 3, totalatom);
+    QUICKDouble RCz = LOC2(allxyz, 2, iatom, 3, totalatom);
 
     /*
        kPrimI, J, K and L indicates the primtive gaussian function number
        kStartI, J, K, and L indicates the starting guassian function for shell I, J, K, and L.
        We retrieve from global memory and save them to register to avoid multiple retrieve.
     */
-    uint32_t kPrimI = devSim.kprim[II];
-    uint32_t kPrimJ = devSim.kprim[JJ];
+    uint32_t kPrimI = kprim[II];
+    uint32_t kPrimJ = kprim[JJ];
 
-    uint32_t kStartI = devSim.kstart[II];
-    uint32_t kStartJ = devSim.kstart[JJ];
+    uint32_t kStartI = kstart[II];
+    uint32_t kStartJ = kstart[JJ];
 
     /*
        store saves temp contracted integral as [as|bs] type. the dimension should be allocatable but because
@@ -707,23 +729,23 @@ __device__ static inline void iclass_lri_grad
            expo(I) + expo(J)
            Those two are pre-calculated in CPU stage.
         */
-        uint32_t ii_start = devSim.prim_start[II];
-        uint32_t jj_start = devSim.prim_start[JJ];
+        uint32_t ii_start = prim_start[II];
+        uint32_t jj_start = prim_start[JJ];
 
-        QUICKDouble AA = LOC2(devSim.gcexpo, III, devSim.Ksumtype[II], MAXPRIM, devSim.nbasis);
-        QUICKDouble BB = LOC2(devSim.gcexpo, JJJ, devSim.Ksumtype[JJ], MAXPRIM, devSim.nbasis);
+        QUICKDouble AA = LOC2(gcexpo, III, Ksumtype[II], MAXPRIM, nbasis);
+        QUICKDouble BB = LOC2(gcexpo, JJJ, Ksumtype[JJ], MAXPRIM, nbasis);
 
-        QUICKDouble AB = LOC2(devSim.expoSum, ii_start + III, jj_start + JJJ, devSim.prim_total, devSim.prim_total);
-        QUICKDouble Px = LOC2(devSim.weightedCenterX, ii_start + III, jj_start + JJJ, devSim.prim_total, devSim.prim_total);
-        QUICKDouble Py = LOC2(devSim.weightedCenterY, ii_start + III, jj_start + JJJ, devSim.prim_total, devSim.prim_total);
-        QUICKDouble Pz = LOC2(devSim.weightedCenterZ, ii_start + III, jj_start + JJJ, devSim.prim_total, devSim.prim_total);
+        QUICKDouble AB = LOC2(expoSum, ii_start + III, jj_start + JJJ, prim_total, prim_total);
+        QUICKDouble Px = LOC2(weightedCenterX, ii_start + III, jj_start + JJJ, prim_total, prim_total);
+        QUICKDouble Py = LOC2(weightedCenterY, ii_start + III, jj_start + JJJ, prim_total, prim_total);
+        QUICKDouble Pz = LOC2(weightedCenterZ, ii_start + III, jj_start + JJJ, prim_total, prim_total);
 
         /*
            X1 is the contracted coeffecient, which is pre-calcuated in CPU stage as well.
            cutoffprim is used to cut too small prim gaussian function when bring density matrix into consideration.
         */
-        QUICKDouble X1 = LOC4(devSim.Xcoeff, kStartI + III, kStartJ + JJJ,
-                I - devSim.Qstart[II], J - devSim.Qstart[JJ], devSim.jbasis, devSim.jbasis, 2, 2);
+        QUICKDouble X1 = LOC4(Xcoeff, kStartI + III, kStartJ + JJJ,
+                I - Qstart[II], J - Qstart[JJ], jbasis, jbasis, 2, 2);
 
         /*
            CD = expo(L)+expo(K)
@@ -738,16 +760,16 @@ __device__ static inline void iclass_lri_grad
 
            ABCDtemp = 1/2(expo(I)+expo(J)+expo(K)+expo(L))
         */
-        QUICKDouble CD = devSim.lri_zeta;
+        QUICKDouble CD = lri_zeta;
         QUICKDouble ABCD = 1.0 / (AB + CD);
 
         /*
            X2 is the multiplication of four indices normalized coeffecient
         */
-        QUICKDouble X2 = sqrt(ABCD) * X1 * X0 * (1.0 / devSim.lri_zeta)
-            * devSim.lri_cc[iatom] * pow(devSim.lri_zeta / PI, 1.5);
+        QUICKDouble X2 = sqrt(ABCD) * X1 * X0 * (1.0 / lri_zeta)
+            * lri_cc[iatom] * pow(lri_zeta / PI, 1.5);
         
-        //printf("lngr grad itt, x0,xcoeff1,x2,xcoeff2,x44: %f %f %f %f %f %f \n", X0, X1, devSim.lri_zeta, devSim.lri_cc[iatom], (1/devSim.lri_zeta) * devSim.lri_cc[iatom] * pow(devSim.lri_zeta/PI, 1.5), X1 * X0 * (1/devSim.lri_zeta) * devSim.lri_cc[iatom] * pow(devSim.lri_zeta/PI, 1.5));
+        //printf("lngr grad itt, x0,xcoeff1,x2,xcoeff2,x44: %f %f %f %f %f %f \n", X0, X1, lri_zeta, lri_cc[iatom], (1/lri_zeta) * lri_cc[iatom] * pow(lri_zeta/PI, 1.5), X1 * X0 * (1/lri_zeta) * lri_cc[iatom] * pow(lri_zeta/PI, 1.5));
 
         /*
            Q' is the weighting center of K and L
@@ -814,39 +836,36 @@ __device__ static inline void iclass_lri_grad
     QUICKDouble BGrady = 0.0;
     QUICKDouble BGradz = 0.0;
 
-    uint32_t AStart = devSim.katom[II] * 3;
-    uint32_t BStart = devSim.katom[JJ] * 3;
+    uint32_t AStart = katom[II] * 3;
+    uint32_t BStart = katom[JJ] * 3;
     uint32_t CStart = iatom * 3;
 
     QUICKDouble RBx, RBy, RBz;
 
-    RBx = LOC2(devSim.xyz, 0, devSim.katom[JJ], 3, devSim.natom);
-    RBy = LOC2(devSim.xyz, 1, devSim.katom[JJ], 3, devSim.natom);
-    RBz = LOC2(devSim.xyz, 2, devSim.katom[JJ], 3, devSim.natom);
+    RBx = LOC2(xyz, 0, katom[JJ], 3, natom);
+    RBy = LOC2(xyz, 1, katom[JJ], 3, natom);
+    RBz = LOC2(xyz, 2, katom[JJ], 3, natom);
 
-    uint32_t III1 = LOC2(devSim.Qsbasis, II, I, devSim.nshell, 4);
-    uint32_t III2 = LOC2(devSim.Qfbasis, II, I, devSim.nshell, 4);
-    uint32_t JJJ1 = LOC2(devSim.Qsbasis, JJ, J, devSim.nshell, 4);
-    uint32_t JJJ2 = LOC2(devSim.Qfbasis, JJ, J, devSim.nshell, 4);
-
-    uint32_t nbasis = devSim.nbasis;
+    uint32_t III1 = LOC2(Qsbasis, II, I, nshell, 4);
+    uint32_t III2 = LOC2(Qfbasis, II, I, nshell, 4);
+    uint32_t JJJ1 = LOC2(Qsbasis, JJ, J, nshell, 4);
+    uint32_t JJJ2 = LOC2(Qfbasis, JJ, J, nshell, 4);
 
     for (uint32_t III = III1; III <= III2; III++) {
         for (uint32_t JJJ = MAX(III, JJJ1); JJJ <= JJJ2; JJJ++) {
             QUICKDouble Yaax, Yaay, Yaaz;
             QUICKDouble Ybbx, Ybby, Ybbz;
 
-            hrrwholegrad_lri(&Yaax, &Yaay, &Yaaz,
-                    &Ybbx, &Ybby, &Ybbz,
-                    J, III, JJJ,
-                    store, storeAA, storeBB,
-                    RAx, RAy, RAz, RBx, RBy, RBz);
+            hrrwholegrad_lri(&Yaax, &Yaay, &Yaaz, &Ybbx, &Ybby, &Ybbz,
+                    J, III, JJJ, store, storeAA, storeBB,
+                    RAx, RAy, RAz, RBx, RBy, RBz,
+                    nbasis, cons, KLMN);
 
   #if defined(OSHELL)
-            QUICKDouble DENSEJI = (QUICKDouble) (LOC2(devSim.dense, JJJ, III, nbasis, nbasis)
-                    + LOC2(devSim.denseb, JJJ, III, nbasis, nbasis));
+            QUICKDouble DENSEJI = (QUICKDouble) (LOC2(dense, JJJ, III, nbasis, nbasis)
+                    + LOC2(denseb, JJJ, III, nbasis, nbasis));
   #else
-            QUICKDouble DENSEJI = (QUICKDouble) LOC2(devSim.dense, JJJ, III, nbasis, nbasis);
+            QUICKDouble DENSEJI = (QUICKDouble) LOC2(dense, JJJ, III, nbasis, nbasis);
   #endif
 
             QUICKDouble constant;
@@ -870,42 +889,42 @@ __device__ static inline void iclass_lri_grad
     }
 
 #if defined(USE_LEGACY_ATOMICS)
-    GPUATOMICADD(&devSim.gradULL[AStart], AGradx, GRADSCALE);
-    GPUATOMICADD(&devSim.gradULL[AStart + 1], AGrady, GRADSCALE);
-    GPUATOMICADD(&devSim.gradULL[AStart + 2], AGradz, GRADSCALE);
+    GPUATOMICADD(&gradULL[AStart], AGradx, GRADSCALE);
+    GPUATOMICADD(&gradULL[AStart + 1], AGrady, GRADSCALE);
+    GPUATOMICADD(&gradULL[AStart + 2], AGradz, GRADSCALE);
 
-    GPUATOMICADD(&devSim.gradULL[BStart], BGradx, GRADSCALE);
-    GPUATOMICADD(&devSim.gradULL[BStart + 1], BGrady, GRADSCALE);
-    GPUATOMICADD(&devSim.gradULL[BStart + 2], BGradz, GRADSCALE);
+    GPUATOMICADD(&gradULL[BStart], BGradx, GRADSCALE);
+    GPUATOMICADD(&gradULL[BStart + 1], BGrady, GRADSCALE);
+    GPUATOMICADD(&gradULL[BStart + 2], BGradz, GRADSCALE);
 
-    if (iatom < devSim.natom) {
-        GPUATOMICADD(&devSim.gradULL[CStart], -AGradx - BGradx, GRADSCALE);
-        GPUATOMICADD(&devSim.gradULL[CStart + 1], -AGrady - BGrady, GRADSCALE);
-        GPUATOMICADD(&devSim.gradULL[CStart + 2], -AGradz - BGradz, GRADSCALE);
+    if (iatom < natom) {
+        GPUATOMICADD(&gradULL[CStart], -AGradx - BGradx, GRADSCALE);
+        GPUATOMICADD(&gradULL[CStart + 1], -AGrady - BGrady, GRADSCALE);
+        GPUATOMICADD(&gradULL[CStart + 2], -AGradz - BGradz, GRADSCALE);
     } else {
-        CStart = (iatom - devSim.natom) * 3;
-        GPUATOMICADD(&devSim.ptchg_gradULL[CStart], -AGradx - BGradx, GRADSCALE);
-        GPUATOMICADD(&devSim.ptchg_gradULL[CStart + 1], -AGrady - BGrady, GRADSCALE);
-        GPUATOMICADD(&devSim.ptchg_gradULL[CStart + 2], -AGradz - BGradz, GRADSCALE);
+        CStart = (iatom - natom) * 3;
+        GPUATOMICADD(&ptchg_gradULL[CStart], -AGradx - BGradx, GRADSCALE);
+        GPUATOMICADD(&ptchg_gradULL[CStart + 1], -AGrady - BGrady, GRADSCALE);
+        GPUATOMICADD(&ptchg_gradULL[CStart + 2], -AGradz - BGradz, GRADSCALE);
     }    
 #else
-    atomicAdd(&devSim.grad[AStart], AGradx);
-    atomicAdd(&devSim.grad[AStart + 1], AGrady);
-    atomicAdd(&devSim.grad[AStart + 2], AGradz);
+    atomicAdd(&grad[AStart], AGradx);
+    atomicAdd(&grad[AStart + 1], AGrady);
+    atomicAdd(&grad[AStart + 2], AGradz);
 
-    atomicAdd(&devSim.grad[BStart], BGradx);
-    atomicAdd(&devSim.grad[BStart + 1], BGrady);
-    atomicAdd(&devSim.grad[BStart + 2], BGradz);
+    atomicAdd(&grad[BStart], BGradx);
+    atomicAdd(&grad[BStart + 1], BGrady);
+    atomicAdd(&grad[BStart + 2], BGradz);
 
-    if (iatom < devSim.natom) {
-        atomicAdd(&devSim.grad[CStart], -AGradx - BGradx);
-        atomicAdd(&devSim.grad[CStart + 1], -AGrady - BGrady);
-        atomicAdd(&devSim.grad[CStart + 2], -AGradz - BGradz);
+    if (iatom < natom) {
+        atomicAdd(&grad[CStart], -AGradx - BGradx);
+        atomicAdd(&grad[CStart + 1], -AGrady - BGrady);
+        atomicAdd(&grad[CStart + 2], -AGradz - BGradz);
     } else {
-        CStart = (iatom - devSim.natom) * 3;
-        atomicAdd(&devSim.ptchg_grad[CStart], -AGradx - BGradx);
-        atomicAdd(&devSim.ptchg_grad[CStart + 1], -AGrady - BGrady);
-        atomicAdd(&devSim.ptchg_grad[CStart + 2], -AGradz - BGradz);
+        CStart = (iatom - natom) * 3;
+        atomicAdd(&ptchg_grad[CStart], -AGradx - BGradx);
+        atomicAdd(&ptchg_grad[CStart + 1], -AGrady - BGrady);
+        atomicAdd(&ptchg_grad[CStart + 2], -AGradz - BGradz);
     }    
 #endif
 }
@@ -926,8 +945,26 @@ __device__ static inline void iclass_lri_grad_spdf2
     #endif
   #endif
 (uint8_t I, uint8_t J, uint32_t II, uint32_t JJ, uint32_t iatom, uint32_t totalatom,
- QUICKDouble* store, QUICKDouble* store2,
- QUICKDouble* storeAA, QUICKDouble* storeBB) {
+ uint32_t natom, uint32_t nbasis, uint32_t nshell, uint32_t jbasis,
+ QUICKDouble const * const xyz, QUICKDouble const * const allxyz,
+ uint32_t const * const kstart, uint32_t const * const katom,
+ uint32_t const * const kprim, uint32_t const * const Ksumtype, uint32_t const * const Qstart,
+ uint32_t const * const Qsbasis, uint32_t const * const Qfbasis,
+ QUICKDouble const * const cons, QUICKDouble const * const gcexpo, uint8_t const * const KLMN,
+ uint32_t prim_total, uint32_t const * const prim_start, QUICKDouble * const dense,
+#if defined(OSHELL)
+ QUICKDouble * const denseb,
+#endif
+ QUICKDouble const * const Xcoeff, QUICKDouble const * const expoSum,
+ QUICKDouble const * const weightedCenterX, QUICKDouble const * const weightedCenterY,
+ QUICKDouble const * const weightedCenterZ,
+#if defined(USE_LEGACY_ATOMICS)
+ QUICKULL * const gradULL,
+#else
+ QUICKDouble * const grad,
+#endif
+ QUICKDouble * const store, QUICKDouble * const store2,
+ QUICKDouble * const storeAA, QUICKDouble * const storeBB)
     /*
        kAtom A, B, C ,D is the coresponding atom for shell ii, jj, kk, ll
        and be careful with the index difference between Fortran and C++,
@@ -938,26 +975,26 @@ __device__ static inline void iclass_lri_grad_spdf2
        which means they are corrosponding coorinates for shell II, JJ, KK, and LL.
        And we don't need the coordinates now, so we will not retrieve the data now.
     */
-    QUICKDouble RAx = LOC2(devSim.xyz, 0, devSim.katom[II], 3, devSim.natom);
-    QUICKDouble RAy = LOC2(devSim.xyz, 1, devSim.katom[II], 3, devSim.natom);
-    QUICKDouble RAz = LOC2(devSim.xyz, 2, devSim.katom[II], 3, devSim.natom);
+    QUICKDouble RAx = LOC2(xyz, 0, katom[II], 3, natom);
+    QUICKDouble RAy = LOC2(xyz, 1, katom[II], 3, natom);
+    QUICKDouble RAz = LOC2(xyz, 2, katom[II], 3, natom);
 
-    QUICKDouble RCx = LOC2(devSim.allxyz, 0, iatom, 3, totalatom);
-    QUICKDouble RCy = LOC2(devSim.allxyz, 1, iatom, 3, totalatom);
-    QUICKDouble RCz = LOC2(devSim.allxyz, 2, iatom, 3, totalatom);
+    QUICKDouble RCx = LOC2(allxyz, 0, iatom, 3, totalatom);
+    QUICKDouble RCy = LOC2(allxyz, 1, iatom, 3, totalatom);
+    QUICKDouble RCz = LOC2(allxyz, 2, iatom, 3, totalatom);
 
     /*
        kPrimI, J, K and L indicates the primtive gaussian function number
        kStartI, J, K, and L indicates the starting guassian function for shell I, J, K, and L.
        We retrieve from global memory and save them to register to avoid multiple retrieve.
        */
-    uint32_t kPrimI = devSim.kprim[II];
-    uint32_t kPrimJ = devSim.kprim[JJ];
+    uint32_t kPrimI = kprim[II];
+    uint32_t kPrimJ = kprim[JJ];
     uint32_t kPrimK = 1;
     uint32_t kPrimL = 1;
 
-    uint32_t kStartI = devSim.kstart[II];
-    uint32_t kStartJ = devSim.kstart[JJ];
+    uint32_t kStartI = kstart[II];
+    uint32_t kStartJ = kstart[JJ];
 
     QUICKDouble AGradx = 0.0;
     QUICKDouble AGrady = 0.0;
@@ -966,8 +1003,8 @@ __device__ static inline void iclass_lri_grad_spdf2
     QUICKDouble BGrady = 0.0;
     QUICKDouble BGradz = 0.0;
 
-    uint32_t AStart = devSim.katom[II] * 3;
-    uint32_t BStart = devSim.katom[JJ] * 3;
+    uint32_t AStart = katom[II] * 3;
+    uint32_t BStart = katom[JJ] * 3;
     uint32_t CStart = iatom * 3;
 
     /*
@@ -991,23 +1028,23 @@ __device__ static inline void iclass_lri_grad_spdf2
            expo(I) + expo(J)
            Those two are pre-calculated in CPU stage.
         */
-        uint32_t ii_start = devSim.prim_start[II];
-        uint32_t jj_start = devSim.prim_start[JJ];
+        uint32_t ii_start = prim_start[II];
+        uint32_t jj_start = prim_start[JJ];
 
-        QUICKDouble AA = LOC2(devSim.gcexpo, III, devSim.Ksumtype[II], MAXPRIM, devSim.nbasis);
-        QUICKDouble BB = LOC2(devSim.gcexpo, JJJ, devSim.Ksumtype[JJ], MAXPRIM, devSim.nbasis);
+        QUICKDouble AA = LOC2(gcexpo, III, Ksumtype[II], MAXPRIM, nbasis);
+        QUICKDouble BB = LOC2(gcexpo, JJJ, Ksumtype[JJ], MAXPRIM, nbasis);
 
-        QUICKDouble AB = LOC2(devSim.expoSum, ii_start + III, jj_start + JJJ, devSim.prim_total, devSim.prim_total);
-        QUICKDouble Px = LOC2(devSim.weightedCenterX, ii_start + III, jj_start + JJJ, devSim.prim_total, devSim.prim_total);
-        QUICKDouble Py = LOC2(devSim.weightedCenterY, ii_start + III, jj_start + JJJ, devSim.prim_total, devSim.prim_total);
-        QUICKDouble Pz = LOC2(devSim.weightedCenterZ, ii_start + III, jj_start + JJJ, devSim.prim_total, devSim.prim_total);
+        QUICKDouble AB = LOC2(expoSum, ii_start + III, jj_start + JJJ, prim_total, prim_total);
+        QUICKDouble Px = LOC2(weightedCenterX, ii_start + III, jj_start + JJJ, prim_total, prim_total);
+        QUICKDouble Py = LOC2(weightedCenterY, ii_start + III, jj_start + JJJ, prim_total, prim_total);
+        QUICKDouble Pz = LOC2(weightedCenterZ, ii_start + III, jj_start + JJJ, prim_total, prim_total);
 
         /*
            X1 is the contracted coeffecient, which is pre-calcuated in CPU stage as well.
            cutoffprim is used to cut too small prim gaussian function when bring density matrix into consideration.
         */
-        QUICKDouble X1 = LOC4(devSim.Xcoeff, kStartI + III, kStartJ + JJJ,
-                I - devSim.Qstart[II], J - devSim.Qstart[JJ], devSim.jbasis, devSim.jbasis, 2, 2);
+        QUICKDouble X1 = LOC4(Xcoeff, kStartI + III, kStartJ + JJJ,
+                I - Qstart[II], J - Qstart[JJ], jbasis, jbasis, 2, 2);
 
         for (uint32_t j = 0; j < kPrimK * kPrimL; j++) {
             /*
@@ -1023,13 +1060,13 @@ __device__ static inline void iclass_lri_grad_spdf2
 
                ABCDtemp = 1/2(expo(I)+expo(J)+expo(K)+expo(L))
                */
-            QUICKDouble CD = devSim.lri_zeta;
+            QUICKDouble CD = lri_zeta;
             QUICKDouble ABCD = 1.0 / (AB + CD);
 
             /*
                X2 is the multiplication of four indices normalized coeffecient
                */
-            QUICKDouble X2 = sqrt(ABCD) * X1 * X0 * (1/devSim.lri_zeta) * devSim.lri_cc[iatom] * pow(devSim.lri_zeta/PI, 1.5);
+            QUICKDouble X2 = sqrt(ABCD) * X1 * X0 * (1/lri_zeta) * lri_cc[iatom] * pow(lri_zeta/PI, 1.5);
 
             /*
                Q' is the weighting center of K and L
@@ -1080,16 +1117,16 @@ __device__ static inline void iclass_lri_grad_spdf2
 
             QUICKDouble RBx, RBy, RBz;
 
-            RBx = LOC2(devSim.xyz, 0, devSim.katom[JJ], 3, devSim.natom);
-            RBy = LOC2(devSim.xyz, 1, devSim.katom[JJ], 3, devSim.natom);
-            RBz = LOC2(devSim.xyz, 2, devSim.katom[JJ], 3, devSim.natom);
+            RBx = LOC2(xyz, 0, katom[JJ], 3, natom);
+            RBy = LOC2(xyz, 1, katom[JJ], 3, natom);
+            RBz = LOC2(xyz, 2, katom[JJ], 3, natom);
 
-            uint32_t III1 = LOC2(devSim.Qsbasis, II, I, devSim.nshell, 4);
-            uint32_t III2 = LOC2(devSim.Qfbasis, II, I, devSim.nshell, 4);
-            uint32_t JJJ1 = LOC2(devSim.Qsbasis, JJ, J, devSim.nshell, 4);
-            uint32_t JJJ2 = LOC2(devSim.Qfbasis, JJ, J, devSim.nshell, 4);
+            uint32_t III1 = LOC2(Qsbasis, II, I, nshell, 4);
+            uint32_t III2 = LOC2(Qfbasis, II, I, nshell, 4);
+            uint32_t JJJ1 = LOC2(Qsbasis, JJ, J, nshell, 4);
+            uint32_t JJJ2 = LOC2(Qfbasis, JJ, J, nshell, 4);
 
-            uint32_t nbasis = devSim.nbasis;
+            uint32_t nbasis = nbasis;
 
             for (uint32_t III = III1; III <= III2; III++) {
                 for (uint32_t JJJ = MAX(III, JJJ1); JJJ <= JJJ2; JJJ++) {
@@ -1101,17 +1138,16 @@ __device__ static inline void iclass_lri_grad_spdf2
   #else
                     hrrwholegrad_lri2
   #endif
-                    (&Yaax, &Yaay, &Yaaz,
-                     &Ybbx, &Ybby, &Ybbz,
-                     J, III, JJJ,
-                     store2, AA, BB,
-                     RAx, RAy, RAz, RBx, RBy, RBz);
+                    (&Yaax, &Yaay, &Yaaz, &Ybbx, &Ybby, &Ybbz,
+                     J, III, JJJ, store2, AA, BB,
+                     RAx, RAy, RAz, RBx, RBy, RBz,
+                     nbasis, cons, KLMN);
 
   #if defined(OSHELL)
-                    QUICKDouble DENSEJI = (QUICKDouble) (LOC2(devSim.dense, JJJ, III, nbasis, nbasis)
-                            + LOC2(devSim.denseb, JJJ, III, nbasis, nbasis));
+                    QUICKDouble DENSEJI = (QUICKDouble) (LOC2(dense, JJJ, III, nbasis, nbasis)
+                            + LOC2(denseb, JJJ, III, nbasis, nbasis));
   #else
-                    QUICKDouble DENSEJI = (QUICKDouble) LOC2(devSim.dense, JJJ, III, nbasis, nbasis);
+                    QUICKDouble DENSEJI = (QUICKDouble) LOC2(dense, JJJ, III, nbasis, nbasis);
   #endif
 
                     QUICKDouble constant;
@@ -1133,47 +1169,43 @@ __device__ static inline void iclass_lri_grad_spdf2
         }
     }
 
-  #if defined(DEBUG)
-    //printf("FILE: %s, LINE: %d, FUNCTION: %s, devSim.hyb_coeff \n", __FILE__, __LINE__, __func__);
-  #endif
-
   #if defined(USE_LEGACY_ATOMICS)
-    GPUATOMICADD(&devSim.gradULL[AStart], AGradx, GRADSCALE);
-    GPUATOMICADD(&devSim.gradULL[AStart + 1], AGrady, GRADSCALE);
-    GPUATOMICADD(&devSim.gradULL[AStart + 2], AGradz, GRADSCALE);
+    GPUATOMICADD(&gradULL[AStart], AGradx, GRADSCALE);
+    GPUATOMICADD(&gradULL[AStart + 1], AGrady, GRADSCALE);
+    GPUATOMICADD(&gradULL[AStart + 2], AGradz, GRADSCALE);
 
-    GPUATOMICADD(&devSim.gradULL[BStart], BGradx, GRADSCALE);
-    GPUATOMICADD(&devSim.gradULL[BStart + 1], BGrady, GRADSCALE);
-    GPUATOMICADD(&devSim.gradULL[BStart + 2], BGradz, GRADSCALE);
+    GPUATOMICADD(&gradULL[BStart], BGradx, GRADSCALE);
+    GPUATOMICADD(&gradULL[BStart + 1], BGrady, GRADSCALE);
+    GPUATOMICADD(&gradULL[BStart + 2], BGradz, GRADSCALE);
 
-    if (iatom < devSim.natom) {
-        GPUATOMICADD(&devSim.gradULL[CStart], -AGradx - BGradx, GRADSCALE);
-        GPUATOMICADD(&devSim.gradULL[CStart + 1], -AGrady - BGrady, GRADSCALE);
-        GPUATOMICADD(&devSim.gradULL[CStart + 2], -AGradz - BGradz, GRADSCALE);
+    if (iatom < natom) {
+        GPUATOMICADD(&gradULL[CStart], -AGradx - BGradx, GRADSCALE);
+        GPUATOMICADD(&gradULL[CStart + 1], -AGrady - BGrady, GRADSCALE);
+        GPUATOMICADD(&gradULL[CStart + 2], -AGradz - BGradz, GRADSCALE);
     } else {
-        CStart = (iatom - devSim.natom) * 3;
-        GPUATOMICADD(&devSim.ptchg_gradULL[CStart], -AGradx - BGradx, GRADSCALE);
-        GPUATOMICADD(&devSim.ptchg_gradULL[CStart + 1], -AGrady - BGrady, GRADSCALE);
-        GPUATOMICADD(&devSim.ptchg_gradULL[CStart + 2], -AGradz - BGradz, GRADSCALE);
+        CStart = (iatom - natom) * 3;
+        GPUATOMICADD(&ptchg_gradULL[CStart], -AGradx - BGradx, GRADSCALE);
+        GPUATOMICADD(&ptchg_gradULL[CStart + 1], -AGrady - BGrady, GRADSCALE);
+        GPUATOMICADD(&ptchg_gradULL[CStart + 2], -AGradz - BGradz, GRADSCALE);
     }
   #else
-    atomicAdd(&devSim.grad[AStart], AGradx);
-    atomicAdd(&devSim.grad[AStart + 1], AGrady);
-    atomicAdd(&devSim.grad[AStart + 2], AGradz);
+    atomicAdd(&grad[AStart], AGradx);
+    atomicAdd(&grad[AStart + 1], AGrady);
+    atomicAdd(&grad[AStart + 2], AGradz);
 
-    atomicAdd(&devSim.grad[BStart], BGradx);
-    atomicAdd(&devSim.grad[BStart + 1], BGrady);
-    atomicAdd(&devSim.grad[BStart + 2], BGradz);
+    atomicAdd(&grad[BStart], BGradx);
+    atomicAdd(&grad[BStart + 1], BGrady);
+    atomicAdd(&grad[BStart + 2], BGradz);
 
-    if (iatom < devSim.natom) {
-        atomicAdd(&devSim.grad[CStart], -AGradx - BGradx);
-        atomicAdd(&devSim.grad[CStart + 1], -AGrady - BGrady);
-        atomicAdd(&devSim.grad[CStart + 2], -AGradz - BGradz);
+    if (iatom < natom) {
+        atomicAdd(&grad[CStart], -AGradx - BGradx);
+        atomicAdd(&grad[CStart + 1], -AGrady - BGrady);
+        atomicAdd(&grad[CStart + 2], -AGradz - BGradz);
     } else {
-        CStart = (iatom - devSim.natom) * 3;
-        atomicAdd(&devSim.ptchg_grad[CStart], -AGradx - BGradx);
-        atomicAdd(&devSim.ptchg_grad[CStart + 1], -AGrady - BGrady);
-        atomicAdd(&devSim.ptchg_grad[CStart + 2], -AGradz - BGradz);
+        CStart = (iatom - natom) * 3;
+        atomicAdd(&ptchg_grad[CStart], -AGradx - BGradx);
+        atomicAdd(&ptchg_grad[CStart + 1], -AGrady - BGrady);
+        atomicAdd(&ptchg_grad[CStart + 2], -AGradz - BGradz);
     }
   #endif
 }
@@ -1182,49 +1214,83 @@ __device__ static inline void iclass_lri_grad_spdf2
 
 #if defined(int_spd)
 __global__ void
-//__launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) get_lri_grad_kernel()
-get_lri_grad_kernel()
+//__launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1)
+k_get_lri_grad
 #elif defined(int_spdf2)
 __global__ void
-//__launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) get_lri_grad_kernel_spdf2()
-get_lri_grad_kernel_spdf2()
+//__launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1)
+k_get_lri_grad_spdf2
 #endif
+    (uint32_t natom, uint32_t nbasis, uint32_t nshell, uint32_t jbasis,
+     QUICKDouble const * const xyz, QUICKDouble const * const allxyz,
+     uint32_t const * const kstart, uint32_t const * const katom,
+     uint32_t const * const kprim, uint32_t const * const Ksumtype, uint32_t const * const Qstart,
+     uint32_t const * const Qsbasis, uint32_t const * const Qfbasis,
+     uint8_t const * const sorted_Qnumber, uint32_t const * const sorted_Q,
+     QUICKDouble const * const cons, QUICKDouble const * const gcexpo, uint8_t const * const KLMN,
+     uint32_t prim_total, uint32_t const * const prim_start, QUICKDouble * const dense,
+#if defined(OSHELL)
+     QUICKDouble * const denseb,
+#endif
+     QUICKDouble const * const Xcoeff, QUICKDouble const * const expoSum,
+     QUICKDouble const * const weightedCenterX, QUICKDouble const * const weightedCenterY,
+     QUICKDouble const * const weightedCenterZ, uint32_t sqrQshell, int2 const * const sorted_YCutoffIJ,
+#if defined(USE_LEGACY_ATOMICS)
+     QUICKULL * const gradULL,
+#else
+     QUICKDouble * const grad,
+#endif
+#if defined(MPIV_GPU)
+     unsigned char const * const mpi_bcompute,
+#endif
+     QUICKDouble * const store, QUICKDouble * const store2,
+     QUICKDouble * const storeAA, QUICKDouble * const storeBB)
 {
     unsigned int offset = blockIdx.x * blockDim.x + threadIdx.x;
     int totalThreads = blockDim.x * gridDim.x;
 
-    uint32_t totalatom = devSim.natom + devSim.nextatom;
-    QUICKULL jshell = (QUICKULL) devSim.sqrQshell;
+    uint32_t totalatom = natom + nextatom;
+    QUICKULL jshell = (QUICKULL) sqrQshell;
 
     for (QUICKULL i = offset; i < totalatom * jshell; i += totalThreads) {
         QUICKULL iatom = (QUICKULL) i / jshell;
         QUICKULL b = (QUICKULL) (i - iatom * jshell);
 
 #if defined(MPIV_GPU)
-        if (devSim.mpi_bcompute[b] > 0) {
+        if (mpi_bcompute[b] > 0) {
 #endif
-        int II = devSim.sorted_YCutoffIJ[b].x;
-        int JJ = devSim.sorted_YCutoffIJ[b].y;
+        int II = sorted_YCutoffIJ[b].x;
+        int JJ = sorted_YCutoffIJ[b].y;
 
-        uint32_t ii = devSim.sorted_Q[II];
-        uint32_t jj = devSim.sorted_Q[JJ];
+        uint32_t ii = sorted_Q[II];
+        uint32_t jj = sorted_Q[JJ];
 
-        uint8_t iii = devSim.sorted_Qnumber[II];
-        uint8_t jjj = devSim.sorted_Qnumber[JJ];
+        uint8_t iii = sorted_Qnumber[II];
+        uint8_t jjj = sorted_Qnumber[JJ];
 
 #if defined(int_spd)
-        iclass_lri_grad(iii, jjj, ii, jj, iatom, totalatom,
-                devSim.store + offset,
-                devSim.store2 + offset, devSim.storeAA + offset,
-                devSim.storeBB + offset);
+        {
+            iclass_lri_grad
 #elif defined(int_spdf2)
         if (iii + jjj >= 4) {
-            iclass_lri_grad_spdf2(iii, jjj, ii, jj, iatom, totalatom,
-                    devSim.store + offset,
-                    devSim.store2 + offset, devSim.storeAA + offset,
-                    devSim.storeBB + offset);
-        }
+            iclass_lri_grad_spdf2
 #endif
+                (iii, jjj, ii, jj, iatom, totalatom,
+                 natom, nbasis, nshell, jbasis, xyz, allxyz,
+                 kstart, katom, kprim, Ksumtype, Qstart, Qsbasis, Qfbasis,
+                 cons, gcexpo, KLMN, prim_total, prim_start, dense,
+#if defined(OSHELL)
+                 denseb,
+#endif
+                 Xcoeff, expoSum, weightedCenterX, weightedCenterY, weightedCenterZ,
+#if defined(USE_LEGACY_ATOMICS)
+                 gradULL,
+#else
+                 grad,
+#endif
+                 store + offset, store2 + offset,
+                 storeAA + offset, storeBB + offset);
+        }
 #if defined(MPIV_GPU)
         }
 #endif

@@ -21,7 +21,6 @@
 #endif
 #include "gpu_common.h"
 
-static __constant__ gpu_simulation_type devSim;
 static __constant__ uint8_t devTrans[TRANSDIM * TRANSDIM * TRANSDIM];
 static __constant__ uint8_t Sumindex[10] = {0, 0, 1, 4, 10, 20, 35, 56, 84, 120};
 
@@ -173,15 +172,6 @@ void upload_para_to_const_oeprop()
 }
 
 
-/*
-   upload gpu simulation type to constant memory
-*/
-void upload_sim_to_constant_oeprop(_gpu_type gpu)
-{
-    gpuMemcpyToSymbol((const void *) &devSim, (const void *) &gpu->gpu_sim, sizeof(gpu_simulation_type));
-}
-
-
 #if defined(DEBUG) || defined(DEBUGTIME)
 static float totTime;
 #endif
@@ -190,5 +180,26 @@ static float totTime;
 // interface for kernel launching
 void getOEPROP(_gpu_type gpu)
 {
-    QUICK_SAFE_CALL((getOEPROP_kernel<<<gpu->blocks, gpu->twoEThreadsPerBlock>>>()));
+    QUICK_SAFE_CALL((k_get_oeprop <<<gpu->blocks, gpu->twoEThreadsPerBlock>>>
+                (gpu->gpu_sim.is_oshell, gpu->gpu_sim.natom, gpu->gpu_sim.nextatom,
+                 gpu->gpu_sim.nextpoint, gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell,
+                 gpu->gpu_sim.jbasis, gpu->gpu_sim.Qshell, gpu->gpu_sim.allxyz,
+                 gpu->gpu_sim.extpointxyz, gpu->gpu_sim.kstart, gpu->gpu_sim.katom,
+                 gpu->gpu_sim.kprim, gpu->gpu_sim.Qstart, gpu->gpu_sim.Qsbasis,
+                 gpu->gpu_sim.Qfbasis, gpu->gpu_sim.sorted_Qnumber, gpu->gpu_sim.sorted_Q,
+                 gpu->gpu_sim.cons, gpu->gpu_sim.KLMN, gpu->gpu_sim.prim_total, gpu->gpu_sim.prim_start,
+                 gpu->gpu_sim.dense, gpu->gpu_sim.denseb,
+#if defined(USE_LEGACY_ATOMICS)
+                 gpu->gpu_sim.esp_electronicULL,
+#else
+                 gpu->gpu_sim.esp_electronic,
+#endif
+                 gpu->gpu_sim.Xcoeff_oei, gpu->gpu_sim.expoSum,
+                 gpu->gpu_sim.weightedCenterX, gpu->gpu_sim.weightedCenterY, gpu->gpu_sim.weightedCenterZ,
+                 gpu->gpu_sim.coreIntegralCutoff, gpu->gpu_sim.sorted_OEICutoffIJ,
+#if defined(MPIV_GPU)
+                 gpu->gpu_sim.mpi_boeicompute,
+#endif
+                 gpu->gpu_sim.store, gpu->gpu_sim.store2)));
+
 }

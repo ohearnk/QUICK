@@ -14,12 +14,6 @@
 #include "gpu_work_gga_c.cu"
 #include "gpu_work_lda.cu"
 
-#if defined(CUDA) || defined(CUDA_MPIV)
-static __constant__ gpu_simulation_type devSim_dft;
-#elif defined(HIP) || defined(HIP_MPIV)
-__constant__ gpu_simulation_type devSim_dft;
-#endif
-
 #if defined(DEBUG) || defined(DEBUGTIME)
 static float totTime;
 #endif
@@ -41,25 +35,28 @@ static float totTime;
    function I and the value of its cartesian derivatives in all three
    derivatives.
 */
-__device__ static inline void pteval_new(QUICKDouble gridx, QUICKDouble gridy, QUICKDouble gridz,
+__device__ static inline void pteval_new(uint32_t natom, uint32_t nbasis, int32_t maxcontract,
+        QUICKDouble gridx, QUICKDouble gridy, QUICKDouble gridz,
         QUICKDouble * const phi, QUICKDouble * const dphidx, QUICKDouble * const dphidy, QUICKDouble * const dphidz,
-        int const * const primf, int const * const primf_counter, int ibas, int ibasp)
+        int const * const primf, int const * const primf_counter, int ibas, int ibasp,
+        int const * const itype, QUICKDouble const * const aexp, QUICKDouble const * const dcoeff,
+        QUICKDouble const * const xyz, int const * const ncenter)
 {
     // relative coordinates between grid point and basis function I.
-    QUICKDouble x1 = gridx - LOC2(devSim_dft.xyz, 0, devSim_dft.ncenter[ibas] - 1, 3, devSim_dft.natom);
-    QUICKDouble y1 = gridy - LOC2(devSim_dft.xyz, 1, devSim_dft.ncenter[ibas] - 1, 3, devSim_dft.natom);
-    QUICKDouble z1 = gridz - LOC2(devSim_dft.xyz, 2, devSim_dft.ncenter[ibas] - 1, 3, devSim_dft.natom);
+    QUICKDouble x1 = gridx - LOC2(xyz, 0, ncenter[ibas] - 1, 3, natom);
+    QUICKDouble y1 = gridy - LOC2(xyz, 1, ncenter[ibas] - 1, 3, natom);
+    QUICKDouble z1 = gridz - LOC2(xyz, 2, ncenter[ibas] - 1, 3, natom);
     QUICKDouble dist = x1 * x1 + y1 * y1 + z1 * z1;
 
     QUICKDouble x1i, y1i, z1i;
     QUICKDouble x1imin1, y1imin1, z1imin1;
     QUICKDouble x1iplus1, y1iplus1, z1iplus1;
 
-    int itypex = LOC2(devSim_dft.itype, 0, ibas, 3, devSim_dft.nbasis);
-    int itypey = LOC2(devSim_dft.itype, 1, ibas, 3, devSim_dft.nbasis);
-    int itypez = LOC2(devSim_dft.itype, 2, ibas, 3, devSim_dft.nbasis);
+    int itypex = LOC2(itype, 0, ibas, 3, nbasis);
+    int itypey = LOC2(itype, 1, ibas, 3, nbasis);
+    int itypez = LOC2(itype, 2, ibas, 3, nbasis);
 
-//    if ( dist <= devSim_dft.sigrad2[ibas]) {
+//    if ( dist <= sigrad2[ibas]) {
     if (itypex != 0) {
         x1imin1 = pow(x1, itypex - 1);
         x1i = x1imin1 * x1;
@@ -95,17 +92,17 @@ __device__ static inline void pteval_new(QUICKDouble gridx, QUICKDouble gridy, Q
     *dphidy = 0.0;
     *dphidz = 0.0;
 
-//    for (int i = 0; i < devSim_dft.ncontract[ibas - 1]; i++) {
+//    for (int i = 0; i < ncontract[ibas - 1]; i++) {
     for (int i = primf_counter[ibasp]; i < primf_counter[ibasp + 1]; i++) {
         int kprim = (int) primf[i];
-        QUICKDouble aexp = LOC2(devSim_dft.aexp, kprim, ibas, devSim_dft.maxcontract, devSim_dft.nbasis);
-        QUICKDouble tmp = LOC2(devSim_dft.dcoeff, kprim, ibas, devSim_dft.maxcontract, devSim_dft.nbasis)
-            * exp(-aexp * dist);
-        aexp *= -2.0;
+        QUICKDouble aexpi = LOC2(aexp, kprim, ibas, maxcontract, nbasis);
+        QUICKDouble tmp = LOC2(dcoeff, kprim, ibas, maxcontract, nbasis)
+            * exp(-aexpi * dist);
+        aexpi *= -2.0;
         *phi += tmp;
-        *dphidx += tmp * (aexp * x1iplus1 + (QUICKDouble) itypex * x1imin1);
-        *dphidy += tmp * (aexp * y1iplus1 + (QUICKDouble) itypey * y1imin1);
-        *dphidz += tmp * (aexp * z1iplus1 + (QUICKDouble) itypez * z1imin1);
+        *dphidx += tmp * (aexpi * x1iplus1 + (QUICKDouble) itypex * x1imin1);
+        *dphidy += tmp * (aexpi * y1iplus1 + (QUICKDouble) itypey * y1imin1);
+        *dphidz += tmp * (aexpi * z1iplus1 + (QUICKDouble) itypez * z1imin1);
     }
 
     *phi *= x1i * y1i * z1i;
@@ -116,48 +113,9 @@ __device__ static inline void pteval_new(QUICKDouble gridx, QUICKDouble gridy, Q
 }
 
 
-/*  Madu Manathunga 09/10/2019
-*/
-__device__ static inline QUICKDouble get_unnormalized_weight(QUICKDouble gridx, QUICKDouble gridy, QUICKDouble gridz, int iatm)
-{
-    QUICKDouble uw = 1.0;
-    QUICKDouble xiatm, yiatm, ziatm, xjatm, yjatm, zjatm;
-    QUICKDouble rig, rjg, rij;
-
-    xiatm = LOC2(devSim_dft.xyz, 0, iatm, 3, devSim_dft.natom);
-    yiatm = LOC2(devSim_dft.xyz, 1, iatm, 3, devSim_dft.natom);
-    ziatm = LOC2(devSim_dft.xyz, 2, iatm, 3, devSim_dft.natom);
-
-    rig = sqrt(SQR(gridx - xiatm) + SQR(gridy - yiatm) + SQR(gridz - ziatm));
-
-    for (int jatm = 0; jatm < devSim_dft.natom; jatm++) {
-        if (jatm != iatm) {
-            xjatm = LOC2(devSim_dft.xyz, 0, jatm, 3, devSim_dft.natom);
-            yjatm = LOC2(devSim_dft.xyz, 1, jatm, 3, devSim_dft.natom);
-            zjatm = LOC2(devSim_dft.xyz, 2, jatm, 3, devSim_dft.natom);
-
-            rjg = sqrt(SQR(gridx - xjatm) + SQR(gridy - yjatm) + SQR(gridz - zjatm));
-            rij = sqrt(SQR(xiatm - xjatm) + SQR(yiatm - yjatm) + SQR(ziatm - zjatm));
-
-            QUICKDouble confocal = (rig - rjg) / rij;
-
-            if (confocal >= 0.64) {
-                uw = 0.0;
-            } else if (confocal >= -0.64) {
-                QUICKDouble frctn = confocal / 0.64;
-                QUICKDouble gofconfocal = (35.0 * frctn - 35.0 * CUBE(frctn)
-                        + 21.0 * pow(frctn, 5.0) - 5.0 * pow(frctn, 7.0)) / 16.0;
-                uw = uw * 0.5 * (1.0 - gofconfocal);
-            }
-        }
-    }
-
-    return uw;
-}
-
-
-__device__ static inline QUICKDouble SSW(QUICKDouble gridx, QUICKDouble gridy, QUICKDouble gridz,
-        QUICKDouble* xyz, int atm)
+__device__ static inline QUICKDouble SSW(uint32_t natom,
+        QUICKDouble gridx, QUICKDouble gridy, QUICKDouble gridz,
+        QUICKDouble const * const xyz, int atm)
 {
     /*
        This subroutie calculates the Scuseria-Stratmann wieghts.  There are
@@ -166,7 +124,7 @@ __device__ static inline QUICKDouble SSW(QUICKDouble gridx, QUICKDouble gridy, Q
     */
     QUICKDouble ssw;
 
-    if (devSim_dft.natom == 1) {
+    if (natom == 1) {
         ssw = 1.0e0;
         return ssw;
     }
@@ -177,20 +135,20 @@ __device__ static inline QUICKDouble SSW(QUICKDouble gridx, QUICKDouble gridy, Q
        point, a is a parameter (=.64) and R(i,n) is the distance from the
        parent atom to it's nearest neighbor.
     */
-    QUICKDouble xparent = LOC2(xyz, 0, atm - 1, 3, devSim_dft.natom);
-    QUICKDouble yparent = LOC2(xyz, 1, atm - 1, 3, devSim_dft.natom);
-    QUICKDouble zparent = LOC2(xyz, 2, atm - 1, 3, devSim_dft.natom);
+    QUICKDouble xparent = LOC2(xyz, 0, atm - 1, 3, natom);
+    QUICKDouble yparent = LOC2(xyz, 1, atm - 1, 3, natom);
+    QUICKDouble zparent = LOC2(xyz, 2, atm - 1, 3, natom);
 
     QUICKDouble rig = sqrt(SQR(gridx - xparent) + SQR(gridy - yparent) + SQR(gridz - zparent));
 
     /* !!!! this part can be done in CPU */
     QUICKDouble distnbor = 1e3;
-    for (int i = 0; i < devSim_dft.natom; i++) {
+    for (int i = 0; i < natom; i++) {
         if (i != atm - 1) {
-            QUICKDouble distance = sqrt(SQR(xparent - LOC2(xyz, 0, i, 3, devSim_dft.natom))
-                    + SQR(yparent - LOC2(xyz, 1, i, 3, devSim_dft.natom))
-                    + SQR(zparent - LOC2(xyz, 2, i, 3, devSim_dft.natom)));
-            distnbor = (distnbor<distance)? distnbor: distance;
+            QUICKDouble distance = sqrt(SQR(xparent - LOC2(xyz, 0, i, 3, natom))
+                    + SQR(yparent - LOC2(xyz, 1, i, 3, natom))
+                    + SQR(zparent - LOC2(xyz, 2, i, 3, natom)));
+            distnbor = (distnbor < distance) ? distnbor: distance;
         }
     }
 
@@ -212,11 +170,11 @@ __device__ static inline QUICKDouble SSW(QUICKDouble gridx, QUICKDouble gridy, Q
     */
     QUICKDouble wofparent = 1.0e0; // weight of parents
 
-    for (int jatm = 1; jatm <= devSim_dft.natom; jatm ++) {
+    for (int jatm = 1; jatm <= natom; jatm ++) {
         if (jatm != atm && wofparent != 0.0e0) {
-            QUICKDouble xjatm = LOC2(xyz, 0, jatm - 1, 3, devSim_dft.natom);
-            QUICKDouble yjatm = LOC2(xyz, 1, jatm - 1, 3, devSim_dft.natom);
-            QUICKDouble zjatm = LOC2(xyz, 2, jatm - 1, 3, devSim_dft.natom);
+            QUICKDouble xjatm = LOC2(xyz, 0, jatm - 1, 3, natom);
+            QUICKDouble yjatm = LOC2(xyz, 1, jatm - 1, 3, natom);
+            QUICKDouble zjatm = LOC2(xyz, 2, jatm - 1, 3, natom);
 
             QUICKDouble rjg = sqrt(SQR(gridx - xjatm) + SQR(gridy - yjatm) + SQR(gridz - zjatm));
             QUICKDouble rij = sqrt(SQR(xparent - xjatm) + SQR(yparent - yjatm) + SQR(zparent - zjatm));
@@ -246,19 +204,19 @@ __device__ static inline QUICKDouble SSW(QUICKDouble gridx, QUICKDouble gridy, Q
     */
 
     // !!!! this part should be rewrite
-    for (int i = 0; i < devSim_dft.natom; i++) {
+    for (int i = 0; i < natom; i++) {
         if (i != atm - 1) {
-            QUICKDouble xiatm = LOC2(xyz, 0, i, 3, devSim_dft.natom);
-            QUICKDouble yiatm = LOC2(xyz, 1, i, 3, devSim_dft.natom);
-            QUICKDouble ziatm = LOC2(xyz, 2, i, 3, devSim_dft.natom);
+            QUICKDouble xiatm = LOC2(xyz, 0, i, 3, natom);
+            QUICKDouble yiatm = LOC2(xyz, 1, i, 3, natom);
+            QUICKDouble ziatm = LOC2(xyz, 2, i, 3, natom);
 
             rig = sqrt(SQR(gridx - xiatm) + SQR(gridy - yiatm) + SQR(gridz - ziatm));
             QUICKDouble wofiatom = 1.0;
-            for (int jatm = 1; jatm <= devSim_dft.natom; jatm++) {
+            for (int jatm = 1; jatm <= natom; jatm++) {
                 if (jatm != i + 1 && wofiatom != 0.0e0) {
-                    QUICKDouble xjatm = LOC2(xyz, 0, jatm - 1, 3, devSim_dft.natom);
-                    QUICKDouble yjatm = LOC2(xyz, 1, jatm - 1, 3, devSim_dft.natom);
-                    QUICKDouble zjatm = LOC2(xyz, 2, jatm - 1, 3, devSim_dft.natom);
+                    QUICKDouble xjatm = LOC2(xyz, 0, jatm - 1, 3, natom);
+                    QUICKDouble yjatm = LOC2(xyz, 1, jatm - 1, 3, natom);
+                    QUICKDouble zjatm = LOC2(xyz, 2, jatm - 1, 3, natom);
 
                     QUICKDouble rjg = sqrt(SQR(gridx - xjatm) + SQR(gridy - yjatm) + SQR(gridz - zjatm));
                     QUICKDouble rij = sqrt(SQR(xiatm - xjatm) + SQR(yiatm - yjatm) + SQR(ziatm - zjatm));
@@ -282,206 +240,209 @@ __device__ static inline QUICKDouble SSW(QUICKDouble gridx, QUICKDouble gridy, Q
 }
 
 
-__device__ static inline QUICKDouble SSW(QUICKDouble gridx, QUICKDouble gridy, QUICKDouble gridz,
-        QUICKDouble *xyz, QUICKDouble xparent, QUICKDouble yparent, QUICKDouble zparent,
-        QUICKDouble xatom, QUICKDouble yatom, QUICKDouble zatom,
-        int iatom, int iparent, unsigned int natom)
+//__device__ static inline QUICKDouble SSW(QUICKDouble gridx, QUICKDouble gridy, QUICKDouble gridz,
+//        QUICKDouble const * const xyz, QUICKDouble * const distance,
+//        QUICKDouble xparent, QUICKDouble yparent, QUICKDouble zparent,
+//        QUICKDouble xatom, QUICKDouble yatom, QUICKDouble zatom,
+//        int iatom, int iparent, unsigned int natom)
+//{
+//    /*
+//       This subroutie calculates the Scuseria-Stratmann wieghts.  There are
+//       two conditions that cause the weights to be unity: If there is only
+//       one atom:
+//    */
+//    QUICKDouble ssw;
+//    if (natom == 1) {
+//        ssw = 1.0e0;
+//        return ssw;
+//    }
+//
+//    /*
+//       Another time the weight is unity is r(iparent,g)<.5*(1-a)*R(i,n)
+//       where r(iparent,g) is the distance from the parent atom to the grid
+//       point, a is a parameter (=.64) and R(i,n) is the distance from the
+//       parent atom to it's nearest neighbor.
+//    */
+//    QUICKDouble rig = sqrt(SQR(gridx - xparent) + SQR(gridy - yparent) + SQR(gridz - zparent));
+//
+//    // compute the ptr to reduce pointer arithmatic inside loops
+//    QUICKDouble *distance_ptr = &distance[(iparent - 1) * natom];
+//
+//    /* !!!! this part can be done in CPU*/
+//    QUICKDouble distnbor = 1e3;
+//    for (int i = 0; i < natom; i++) {
+//        if (i != iparent - 1) {
+//            QUICKDouble distancei = distance_ptr[i];
+//
+//            if (i == iatom) {
+//                distancei = sqrt(SQR(xparent - xatom) + SQR(yparent - yatom) + SQR(zparent - zatom));
+//            }
+//
+//            distnbor = (distnbor < distancei) ? distnbor: distancei;
+//        }
+//    }
+//
+//    if (rig < 0.18 * distnbor) {
+//        ssw = 1.0e0;
+//        return ssw;
+//    }
+//
+//    /*
+//       If neither of those are the case, we have to actually calculate the
+//       weight.  First we must calculate the unnormalized wieght of the grid point
+//       with respect to the parent atom.
+//
+//       Step one of calculating the unnormalized weight is finding the confocal
+//       elliptical coordinate between each cell.  This it the mu with subscripted
+//       i and j in the paper:
+//       Stratmann, Scuseria, and Frisch, Chem. Phys. Lett., v 257,
+//       1996, pg 213-223.
+//
+//       Here reduce the MUL operations by precomputing polynomial constants in eqn 14.
+//       constant of the first term, 3.4179687500 = 35.0 * (1/0.64) * (1/16)
+//       constant of the second term, 8.344650268554688 = 35.0 * (1/0.64)^3 * (1/16)
+//       constant of the third term, 12.223608791828156 = 21.0 * (1/0.64)^5 * (1/16)
+//       constant of the fourth term, 7.105427357601002 = 5.0 * (1/0.64)^7 * (1/16)
+//    */
+//
+//    bool bComputeDistance = false;
+//
+//    if (iatom == iparent - 1) {
+//        bComputeDistance = true;
+//    }
+//
+//    QUICKDouble wofparent = 1.0e0; // weight of parents
+//
+//    for (int jatm = 0; jatm < natom; jatm++)
+//    {
+//        if (jatm != iparent - 1 && wofparent != 0.0e0) {
+//            QUICKDouble xjatm = LOC2(xyz, 0, jatm, 3, natom);
+//            QUICKDouble yjatm = LOC2(xyz, 1, jatm, 3, natom);
+//            QUICKDouble zjatm = LOC2(xyz, 2, jatm, 3, natom);
+//
+//            QUICKDouble rij = distance_ptr[jatm];
+//
+//            if (jatm == iatom) {
+//                xjatm = xatom;
+//                yjatm = yatom;
+//                zjatm = zatom;
+//
+//                bComputeDistance = true;
+//            }
+//
+//            QUICKDouble rjg = sqrt(SQR(gridx - xjatm) + SQR(gridy - yjatm) + SQR(gridz - zjatm));
+//
+//            if (bComputeDistance) {
+//                rij = sqrt(SQR(xparent - xjatm) + SQR(yparent - yjatm) + SQR(zparent - zjatm));
+//            }
+//
+//            QUICKDouble confocal = (rig - rjg) * (1.0 / rij);
+//
+//            if (confocal >= 0.64) {
+//                wofparent = 0.0e0;
+//            } else if (confocal >= -0.64e0) {
+//                //QUICKDouble frctn = confocal * 1.5625;
+//                //QUICKDouble frctn3 = frctn * frctn * frctn;
+//                //QUICKDouble gofconfocal = (35.0 * frctn - 35.0 * frctn3 +21.0 * frctn * frctn * frctn3 - 5.0 * frctn * frctn3 * frctn3) * 0.062500;
+//                QUICKDouble confocal3 = CUBE(confocal);
+//                QUICKDouble gofconfocal = SSW_POLYFAC1 * confocal - SSW_POLYFAC2 * confocal3
+//                    + SSW_POLYFAC3 * confocal * confocal * confocal3
+//                    - SSW_POLYFAC4 * confocal * confocal3 * confocal3;
+//
+//                wofparent = wofparent * 0.5 * (1.0 - gofconfocal);
+//            }
+//        }
+//    }
+//
+//    QUICKDouble totalw = wofparent;
+//    if (wofparent == 0.0e0) {
+//        ssw = 0.0e0;
+//        return ssw;
+//    }
+//
+//    /*
+//       Now we have the unnormalized weight of the grid point with regard to the
+//       parent atom.  Now we have to do this for all other atom pairs to
+//       normalize the grid weight.
+//    */
+//    // !!!! this part should be rewrite
+//    for (int i = 0; i < natom; i++) {
+//        if (i != iparent - 1) {
+//            QUICKDouble xiatm = LOC2(xyz, 0, i, 3, natom);
+//            QUICKDouble yiatm = LOC2(xyz, 1, i, 3, natom);
+//            QUICKDouble ziatm = LOC2(xyz, 2, i, 3, natom);
+//
+//            bComputeDistance = false;
+//            distance_ptr = &distance[i * natom];
+//
+//            if (i == iatom) {
+//                xiatm = xatom;
+//                yiatm = yatom;
+//                ziatm = zatom;
+//                bComputeDistance = true;
+//            }
+//
+//            rig = sqrt(SQR(gridx - xiatm) + SQR(gridy - yiatm) + SQR(gridz - ziatm));
+//
+//            QUICKDouble wofiatom = 1.0;
+//            for (int jatm = 0; jatm < natom; jatm++) {
+//                if (jatm != i && wofiatom != 0.0e0) {
+//                    QUICKDouble xjatm = LOC2(xyz, 0, jatm, 3, natom);
+//                    QUICKDouble yjatm = LOC2(xyz, 1, jatm, 3, natom);
+//                    QUICKDouble zjatm = LOC2(xyz, 2, jatm, 3, natom);
+//
+//                    bool bComputeDistance2 = false;
+//
+//                    QUICKDouble rij = distance_ptr[jatm];
+//
+//                    if (jatm == iatom) {
+//                        xjatm = xatom;
+//                        yjatm = yatom;
+//                        zjatm = zatom;
+//
+//                        bComputeDistance2 = true;
+//                    }
+//
+//                    QUICKDouble rjg = sqrt(SQR(gridx - xjatm) + SQR(gridy - yjatm) + SQR(gridz - zjatm));
+//
+//                    if (bComputeDistance || bComputeDistance2) {
+//                        rij = sqrt(SQR(xiatm - xjatm) + SQR(yiatm - yjatm) + SQR(ziatm - zjatm));
+//                    }
+//
+//                    QUICKDouble confocal = (rig - rjg) * (1.0 / rij);
+//
+//                    if (confocal >= 0.64) {
+//                        wofiatom = 0.0;
+//                    } else if (confocal >= -0.64) {
+//                        //QUICKDouble frctn = confocal * 1.5625;
+//                        //QUICKDouble frctn3 = frctn * frctn * frctn;
+//                        //QUICKDouble gofconfocal = (35.0 * frctn - 35.0 * frctn3 + 21.0 * frctn * frctn * frctn3 - 5.0 * frctn * frctn3 * frctn3) * 0.062500;
+//                        QUICKDouble confocal3 = CUBE(confocal);
+//                        QUICKDouble gofconfocal = SSW_POLYFAC1 * confocal - SSW_POLYFAC2 * confocal3
+//                            + SSW_POLYFAC3 * confocal * confocal * confocal3
+//                            - SSW_POLYFAC4 * confocal * confocal3 * confocal3;
+//
+//                        wofiatom = wofiatom * 0.5 * (1.0 - gofconfocal);
+//                    }
+//                }
+//            }
+//            totalw = totalw + wofiatom;
+//        }
+//    }
+//    ssw = wofparent / totalw;
+//
+//    return ssw;
+//}
+
+
+__device__ static inline QUICKDouble get_uw_ssd(QUICKDouble gridx,
+        QUICKDouble gridy, QUICKDouble gridz,
+        QUICKDouble * const uw_ssd, QUICKDouble const * const xyz,
+        int iparent, int iatm, int natom, bool grad=true)
 {
-    /*
-       This subroutie calculates the Scuseria-Stratmann wieghts.  There are
-       two conditions that cause the weights to be unity: If there is only
-       one atom:
-    */
-    QUICKDouble ssw;
-    if (natom == 1) {
-        ssw = 1.0e0;
-        return ssw;
-    }
-
-    /*
-       Another time the weight is unity is r(iparent,g)<.5*(1-a)*R(i,n)
-       where r(iparent,g) is the distance from the parent atom to the grid
-       point, a is a parameter (=.64) and R(i,n) is the distance from the
-       parent atom to it's nearest neighbor.
-    */
-    QUICKDouble rig = sqrt(SQR(gridx - xparent) + SQR(gridy - yparent) + SQR(gridz - zparent));
-
-    // compute the ptr to reduce pointer arithmatic inside loops
-    QUICKDouble *distance_ptr = devSim_dft.distance + (iparent - 1) * natom;
-
-    /* !!!! this part can be done in CPU*/
-    QUICKDouble distnbor = 1e3;
-    for (int i = 0; i < natom; i++) {
-        if (i != iparent - 1) {
-            QUICKDouble distance = distance_ptr[i];
-
-            if (i == iatom) {
-                distance = sqrt(SQR(xparent - xatom) + SQR(yparent - yatom) + SQR(zparent - zatom));
-            }
-
-            distnbor = (distnbor < distance) ? distnbor: distance;
-        }
-    }
-
-    if (rig < 0.18 * distnbor) {
-        ssw = 1.0e0;
-        return ssw;
-    }
-
-    /*
-       If neither of those are the case, we have to actually calculate the
-       weight.  First we must calculate the unnormalized wieght of the grid point
-       with respect to the parent atom.
-
-       Step one of calculating the unnormalized weight is finding the confocal
-       elliptical coordinate between each cell.  This it the mu with subscripted
-       i and j in the paper:
-       Stratmann, Scuseria, and Frisch, Chem. Phys. Lett., v 257,
-       1996, pg 213-223.
-
-       Here reduce the MUL operations by precomputing polynomial constants in eqn 14.
-       constant of the first term, 3.4179687500 = 35.0 * (1/0.64) * (1/16)
-       constant of the second term, 8.344650268554688 = 35.0 * (1/0.64)^3 * (1/16)
-       constant of the third term, 12.223608791828156 = 21.0 * (1/0.64)^5 * (1/16)
-       constant of the fourth term, 7.105427357601002 = 5.0 * (1/0.64)^7 * (1/16)
-    */
-
-    bool bComputeDistance = false;
-
-    if (iatom == iparent - 1) {
-        bComputeDistance = true;
-    }
-
-    QUICKDouble wofparent = 1.0e0; // weight of parents
-
-    for (int jatm = 0; jatm < natom; jatm++)
-    {
-        if (jatm != iparent - 1 && wofparent != 0.0e0) {
-            QUICKDouble xjatm = LOC2(xyz, 0, jatm, 3, natom);
-            QUICKDouble yjatm = LOC2(xyz, 1, jatm, 3, natom);
-            QUICKDouble zjatm = LOC2(xyz, 2, jatm, 3, natom);
-
-            QUICKDouble rij = distance_ptr[jatm];
-
-            if (jatm == iatom) {
-                xjatm = xatom;
-                yjatm = yatom;
-                zjatm = zatom;
-
-                bComputeDistance = true;
-            }
-
-            QUICKDouble rjg = sqrt(SQR(gridx - xjatm) + SQR(gridy - yjatm) + SQR(gridz - zjatm));
-
-            if (bComputeDistance) {
-                rij = sqrt(SQR(xparent - xjatm) + SQR(yparent - yjatm) + SQR(zparent - zjatm));
-            }
-
-            QUICKDouble confocal = (rig - rjg) * (1.0 / rij);
-
-            if (confocal >= 0.64) {
-                wofparent = 0.0e0;
-            } else if (confocal >= -0.64e0) {
-                //QUICKDouble frctn = confocal * 1.5625;
-                //QUICKDouble frctn3 = frctn * frctn * frctn;
-                //QUICKDouble gofconfocal = (35.0 * frctn - 35.0 * frctn3 +21.0 * frctn * frctn * frctn3 - 5.0 * frctn * frctn3 * frctn3) * 0.062500;
-                QUICKDouble confocal3 = CUBE(confocal);
-                QUICKDouble gofconfocal = SSW_POLYFAC1 * confocal - SSW_POLYFAC2 * confocal3
-                    + SSW_POLYFAC3 * confocal * confocal * confocal3
-                    - SSW_POLYFAC4 * confocal * confocal3 * confocal3;
-
-                wofparent = wofparent * 0.5 * (1.0 - gofconfocal);
-            }
-        }
-    }
-
-    QUICKDouble totalw = wofparent;
-    if (wofparent == 0.0e0) {
-        ssw = 0.0e0;
-        return ssw;
-    }
-
-    /*
-       Now we have the unnormalized weight of the grid point with regard to the
-       parent atom.  Now we have to do this for all other atom pairs to
-       normalize the grid weight.
-    */
-    // !!!! this part should be rewrite
-    for (int i = 0; i < natom; i++) {
-        if (i != iparent - 1) {
-            QUICKDouble xiatm = LOC2(xyz, 0, i, 3, natom);
-            QUICKDouble yiatm = LOC2(xyz, 1, i, 3, natom);
-            QUICKDouble ziatm = LOC2(xyz, 2, i, 3, natom);
-
-            bComputeDistance = false;
-            distance_ptr = devSim_dft.distance + i * natom;
-
-            if (i == iatom) {
-                xiatm = xatom;
-                yiatm = yatom;
-                ziatm = zatom;
-                bComputeDistance = true;
-            }
-
-            rig = sqrt(SQR(gridx - xiatm) + SQR(gridy - yiatm) + SQR(gridz - ziatm));
-
-            QUICKDouble wofiatom = 1.0;
-            for (int jatm = 0; jatm < natom; jatm++) {
-                if (jatm != i && wofiatom != 0.0e0) {
-                    QUICKDouble xjatm = LOC2(xyz, 0, jatm, 3, natom);
-                    QUICKDouble yjatm = LOC2(xyz, 1, jatm, 3, natom);
-                    QUICKDouble zjatm = LOC2(xyz, 2, jatm, 3, natom);
-
-                    bool bComputeDistance2 = false;
-
-                    QUICKDouble rij = distance_ptr[jatm];
-
-                    if (jatm == iatom) {
-                        xjatm = xatom;
-                        yjatm = yatom;
-                        zjatm = zatom;
-
-                        bComputeDistance2 = true;
-                    }
-
-                    QUICKDouble rjg = sqrt(SQR(gridx - xjatm) + SQR(gridy - yjatm) + SQR(gridz - zjatm));
-
-                    if (bComputeDistance || bComputeDistance2) {
-                        rij = sqrt(SQR(xiatm - xjatm) + SQR(yiatm - yjatm) + SQR(ziatm - zjatm));
-                    }
-
-                    QUICKDouble confocal = (rig - rjg) * (1.0 / rij);
-
-                    if (confocal >= 0.64) {
-                        wofiatom = 0.0;
-                    } else if (confocal >= -0.64) {
-                        //QUICKDouble frctn = confocal * 1.5625;
-                        //QUICKDouble frctn3 = frctn * frctn * frctn;
-                        //QUICKDouble gofconfocal = (35.0 * frctn - 35.0 * frctn3 + 21.0 * frctn * frctn * frctn3 - 5.0 * frctn * frctn3 * frctn3) * 0.062500;
-                        QUICKDouble confocal3 = CUBE(confocal);
-                        QUICKDouble gofconfocal = SSW_POLYFAC1 * confocal - SSW_POLYFAC2 * confocal3
-                            + SSW_POLYFAC3 * confocal * confocal * confocal3
-                            - SSW_POLYFAC4 * confocal * confocal3 * confocal3;
-
-                        wofiatom = wofiatom * 0.5 * (1.0 - gofconfocal);
-                    }
-                }
-            }
-            totalw = totalw + wofiatom;
-        }
-    }
-    ssw = wofparent / totalw;
-
-    return ssw;
-}
-
-
-__device__ static inline QUICKDouble get_uw_ssd(const QUICKDouble gridx, const QUICKDouble gridy, const QUICKDouble gridz,
-        QUICKDouble* const uw_ssd, const int iparent, const int iatm, const int natom, const bool grad=true)
-{
-    QUICKDouble xiatm = LOC2(devSim_dft.xyz, 0, iatm, 3, natom);
-    QUICKDouble yiatm = LOC2(devSim_dft.xyz, 1, iatm, 3, natom);
-    QUICKDouble ziatm = LOC2(devSim_dft.xyz, 2, iatm, 3, natom);
+    QUICKDouble xiatm = LOC2(xyz, 0, iatm, 3, natom);
+    QUICKDouble yiatm = LOC2(xyz, 1, iatm, 3, natom);
+    QUICKDouble ziatm = LOC2(xyz, 2, iatm, 3, natom);
 
     QUICKDouble rig = sqrt(SQR(gridx - xiatm) + SQR(gridy - yiatm) + SQR(gridz - ziatm));
 
@@ -489,9 +450,9 @@ __device__ static inline QUICKDouble get_uw_ssd(const QUICKDouble gridx, const Q
 
     for (int jatm=0; jatm < natom; jatm++) {
         if (jatm != iatm) {
-            QUICKDouble xjatm = LOC2(devSim_dft.xyz, 0, jatm, 3, natom);
-            QUICKDouble yjatm = LOC2(devSim_dft.xyz, 1, jatm, 3, natom);
-            QUICKDouble zjatm = LOC2(devSim_dft.xyz, 2, jatm, 3, natom);
+            QUICKDouble xjatm = LOC2(xyz, 0, jatm, 3, natom);
+            QUICKDouble yjatm = LOC2(xyz, 1, jatm, 3, natom);
+            QUICKDouble zjatm = LOC2(xyz, 2, jatm, 3, natom);
 
             QUICKDouble rjg = sqrt(SQR(gridx - xjatm) + SQR(gridy - yjatm) + SQR(gridz - zjatm));
             QUICKDouble rij = sqrt(SQR(xiatm - xjatm) + SQR(yiatm - yjatm) + SQR(ziatm - zjatm));
@@ -556,20 +517,21 @@ __device__ static inline QUICKDouble get_uw_ssd(const QUICKDouble gridx, const Q
 }
 
 
-__device__ static inline void sswanader(const QUICKDouble gridx, const QUICKDouble gridy, const QUICKDouble gridz,
-        const QUICKDouble Exc, const QUICKDouble quadwt, 
+__device__ static inline void sswanader(QUICKDouble gridx, QUICKDouble gridy, QUICKDouble gridz,
+        QUICKDouble Exc, QUICKDouble const * const xyz, QUICKDouble quadwt, 
 #if defined(USE_LEGACY_ATOMICS)
-        QUICKULL* const smemGrad,
+        QUICKULL * const smemGrad,
 #else
-        QUICKDouble* const smemGrad,
+        QUICKDouble * const smemGrad,
 #endif
-        QUICKDouble* const uw_ssd, const int iparent, const int natom)
+        QUICKDouble * const uw_ssd, int iparent, int natom, QUICKDouble DMCutoff)
 {
     QUICKDouble sumUW = 0.0;
     QUICKDouble parent_uw = 0.0;
 
     for (int iatm = 0; iatm < natom; iatm++) {
-        QUICKDouble uw = get_uw_ssd(gridx, gridy, gridz, uw_ssd, iparent, iatm, natom, false);
+        QUICKDouble uw = get_uw_ssd(gridx, gridy, gridz, uw_ssd, xyz,
+                iparent, iatm, natom, false);
         sumUW += uw;
 
         if (iatm == iparent - 1) {
@@ -586,11 +548,12 @@ __device__ static inline void sswanader(const QUICKDouble gridx, const QUICKDoub
             }
         }
 
-        QUICKDouble uw = get_uw_ssd(gridx, gridy, gridz, uw_ssd, iparent, iatm, natom);
+        QUICKDouble uw = get_uw_ssd(gridx, gridy, gridz, uw_ssd, xyz,
+                iparent, iatm, natom);
 
         for (int i = 0; i < natom; i++) {
             for (int j = 0; j < 3; j++) {
-                if (abs(uw) > devSim_dft.DMCutoff) {
+                if (abs(uw) > DMCutoff) {
                     GPUATOMICADD(&smemGrad[i * 3 + j],
                             LOCUWSSD(uw_ssd, j, i, 3, natom) * Exc * quadwt * uw * (-p / sumUW), GRADSCALE);
                 }
@@ -604,11 +567,11 @@ __device__ static inline void sswanader(const QUICKDouble gridx, const QUICKDoub
         }
     }
 
-    get_uw_ssd(gridx, gridy, gridz, uw_ssd, iparent, iparent - 1, natom);
+    get_uw_ssd(gridx, gridy, gridz, uw_ssd, xyz, iparent, iparent - 1, natom);
 
     for (int i = 0; i < natom; i++) {
         for (int j = 0; j < 3; j++) {
-            if (abs(parent_uw) > devSim_dft.DMCutoff) {
+            if (abs(parent_uw) > DMCutoff) {
                 GPUATOMICADD(&smemGrad[i * 3 + j],
                         LOCUWSSD(uw_ssd, j, i, 3, natom) * (1.0 / sumUW) * Exc * quadwt * parent_uw, GRADSCALE);
             }
@@ -617,196 +580,22 @@ __device__ static inline void sswanader(const QUICKDouble gridx, const QUICKDoub
 }
 
 
-__device__ static inline void sswder(QUICKDouble gridx, QUICKDouble gridy, QUICKDouble gridz,
-        QUICKDouble Exc, QUICKDouble quadwt, 
-#if defined(USE_LEGACY_ATOMICS)
-        QUICKULL* smemGrad,
-#else
-        QUICKDouble* smemGrad,
-#endif
-        int iparent, int gid)
-{
-    /*
-       This subroutine calculates the derivatives of weight found in
-       Stratmann, Scuseria, and Frisch, Chem. Phys. Lett., v 257,
-       1996, pg 213-223.  The mathematical development is similar to
-       the developement found in the papers of Gill and Pople, but uses
-       SSW method rather than Becke's weights.
-
-       The derivative of the weight with repsect to the displacement of the
-       parent atom is mathematically quite complicated, thus rotational
-       invariance is used.  Rotational invariance simply is the condition that
-       the sum of all derivatives must be zero.
-
-       Certain things will be needed again and again in this subroutine.  We
-       are therefore goint to store them.  They are the unnormalized weights.
-       The array is called UW for obvious reasons.
-    */
-#if defined(DEBUG)
-//    printf("gridx: %f  gridy: %f  gridz: %f, exc: %.10e, quadwt: %.10e, iparent: %i \n", gridx, gridy, gridz, Exc, quadwt, iparent);
-#endif
-
-    QUICKDouble sumUW = 0.0;
-    QUICKDouble xiatm, yiatm, ziatm, xjatm, yjatm, zjatm, xlatm, ylatm, zlatm;
-    QUICKDouble rig, rjg, rlg, rij, rjl;
-
-    for (int iatm = 0; iatm < devSim_dft.natom; iatm++) {
-        QUICKDouble tmp_uw = get_unnormalized_weight(gridx, gridy, gridz, iatm);
-        devSim_dft.uw_ssd[gid * devSim_dft.natom + iatm] = tmp_uw;
-        sumUW = sumUW + tmp_uw;
-    }
-
-#if defined(DEBUG)
-//    printf("gridx: %f  gridy: %f  gridz: %f, exc: %.10e, quadwt: %.10e, iparent: %i, sumUW: %.10e \n",
-//            gridx, gridy, gridz, Exc, quadwt, iparent, sumUW);
-#endif
-
-    /*
-       At this point we now have the unnormalized weight and the sum of same.
-       Calculate the parent atom - grid point distance, and then start the loop.
-    */
-    xiatm = LOC2(devSim_dft.xyz, 0, iparent - 1, 3, devSim_dft.natom);
-    yiatm = LOC2(devSim_dft.xyz, 1, iparent - 1, 3, devSim_dft.natom);
-    ziatm = LOC2(devSim_dft.xyz, 2, iparent - 1, 3, devSim_dft.natom);
-
-    rig = sqrt(SQR(gridx - xiatm) + SQR(gridy - yiatm) + SQR(gridz - ziatm));
-
-    QUICKDouble a = 0.64;
-
-    int istart = (iparent - 1) * 3;
-
-    QUICKDouble wtgradix = 0.0;
-    QUICKDouble wtgradiy = 0.0;
-    QUICKDouble wtgradiz = 0.0;
-
-    for (int jatm = 0; jatm < devSim_dft.natom; jatm++) {
-        int jstart = jatm * 3;
-
-        QUICKDouble wtgradjx = 0.0;
-        QUICKDouble wtgradjy = 0.0;
-        QUICKDouble wtgradjz = 0.0;
-
-        if (jatm != iparent - 1) {
-            xjatm = LOC2(devSim_dft.xyz, 0, jatm, 3, devSim_dft.natom);
-            yjatm = LOC2(devSim_dft.xyz, 1, jatm, 3, devSim_dft.natom);
-            zjatm = LOC2(devSim_dft.xyz, 2, jatm, 3, devSim_dft.natom);
-
-            rjg = sqrt(SQR(gridx - xjatm) + SQR(gridy - yjatm) + SQR(gridz - zjatm));
-            rij = sqrt(SQR(xiatm - xjatm) + SQR(yiatm - yjatm) + SQR(ziatm - zjatm));
-
-            QUICKDouble dmudx = (-1.0 / rij) * (1.0 / rjg) * (xjatm - gridx) + ((rig - rjg) / CUBE(rij)) * (xiatm - xjatm);
-            QUICKDouble dmudy = (-1.0 / rij) * (1.0 / rjg) * (yjatm - gridy) + ((rig - rjg) / CUBE(rij)) * (yiatm - yjatm);
-            QUICKDouble dmudz = (-1.0 / rij) * (1.0 / rjg) * (zjatm - gridz) + ((rig - rjg) / CUBE(rij)) * (ziatm - zjatm);
-
-            QUICKDouble u = (rig - rjg) / rij;
-            QUICKDouble t = (-35.0 * CUBE(a + u)) / ((a - u) * (16.0 * CUBE(a)
-                        + 29.0 * SQR(a) * u + 20.0 * a * SQR(u) + 5.0 * CUBE(u)));
-            //QUICKDouble uw_iparent = get_unnormalized_weight(gridx, gridy, gridz, iparent - 1);
-            QUICKDouble uw_iparent = devSim_dft.uw_ssd[gid * devSim_dft.natom + (iparent - 1)];
-            //QUICKDouble uw_jatm = get_unnormalized_weight(gridx, gridy, gridz, jatm);
-            QUICKDouble uw_jatm = devSim_dft.uw_ssd[gid * devSim_dft.natom + jatm];
-
-            wtgradjx += uw_iparent * dmudx * t / sumUW;
-            wtgradjy += uw_iparent * dmudy * t / sumUW;
-            wtgradjz += uw_iparent * dmudz * t / sumUW;
-
-#if defined(DEBUG)
-//            printf("gridx: %f  gridy: %f  gridz: %f \n", wtgradjx, wtgradjy, wtgradjz);
-#endif
-
-            for (int latm = 0; latm < devSim_dft.natom; latm++) {
-                if (latm != jatm) {
-                    xlatm = LOC2(devSim_dft.xyz, 0, latm, 3, devSim_dft.natom);
-                    ylatm = LOC2(devSim_dft.xyz, 1, latm, 3, devSim_dft.natom);
-                    zlatm = LOC2(devSim_dft.xyz, 2, latm, 3, devSim_dft.natom);
-
-                    rlg = sqrt(SQR(gridx - xlatm) + SQR(gridy - ylatm) + SQR(gridz - zlatm));
-                    rjl = sqrt(SQR(xjatm - xlatm) + SQR(yjatm - ylatm) + SQR(zjatm - zlatm));
-
-                    dmudx = (-1.0 / rjl) * (1.0 / rjg) * (xjatm - gridx) + ((rlg - rjg) / CUBE(rjl)) * (xlatm - xjatm);
-                    dmudy = (-1.0 / rjl) * (1.0 / rjg) * (yjatm - gridy) + ((rlg - rjg) / CUBE(rjl)) * (ylatm - yjatm);
-                    dmudz = (-1.0 / rjl) * (1.0 / rjg) * (zjatm - gridz) + ((rlg - rjg) / CUBE(rjl)) * (zlatm - zjatm);
-
-                    u = (rlg - rjg) / rjl;
-                    t = (-35.0 * CUBE(a + u)) / ((a - u) * (16.0 * CUBE(a) + 29.0 * SQR(a) * u + 20.0 * a * SQR(u) + 5.0 * CUBE(u)));
-                    //QUICKDouble uw_latm = get_unnormalized_weight(gridx, gridy, gridz, latm);
-                    QUICKDouble uw_latm = devSim_dft.uw_ssd[gid * devSim_dft.natom + latm];
-                    wtgradjx -= uw_latm * uw_iparent * dmudx * t / SQR(sumUW);
-                    wtgradjy -= uw_latm * uw_iparent * dmudy * t / SQR(sumUW);
-                    wtgradjz -= uw_latm * uw_iparent * dmudz * t / SQR(sumUW);
-                }
-            }
-
-#if defined(DEBUG)
-//            printf("gridx: %f  gridy: %f  gridz: %f \n", wtgradjx, wtgradjy, wtgradjz);
-
-#endif
-            for (int latm = 0; latm < devSim_dft.natom; latm++) {
-                if (latm != jatm) {
-                    xlatm = LOC2(devSim_dft.xyz, 0, latm, 3, devSim_dft.natom);
-                    ylatm = LOC2(devSim_dft.xyz, 1, latm, 3, devSim_dft.natom);
-                    zlatm = LOC2(devSim_dft.xyz, 2, latm, 3, devSim_dft.natom);
-
-                    rlg = sqrt(SQR(gridx - xlatm) + SQR(gridy - ylatm) + SQR(gridz - zlatm));
-                    rjl = sqrt(SQR(xjatm - xlatm) + SQR(yjatm - ylatm) + SQR(zjatm - zlatm));
-
-                    dmudx = (-1.0 / rjl) * (1.0 / rlg) * (xlatm - gridx) + ((rjg - rlg) / CUBE(rjl)) * (xjatm - xlatm);
-                    dmudy = (-1.0 / rjl) * (1.0 / rlg) * (ylatm - gridy) + ((rjg - rlg) / CUBE(rjl)) * (yjatm - ylatm);
-                    dmudz = (-1.0 / rjl) * (1.0 / rlg) * (zlatm - gridz) + ((rjg - rlg) / CUBE(rjl)) * (zjatm - zlatm);
-
-                    u = (rjg - rlg) / rjl;
-                    t = (-35.0 * CUBE(a + u)) / ((a - u) * (16.0 * CUBE(a) + 29.0 * SQR(a) * u + 20.0 * a * SQR(u) + 5.0 * CUBE(u)));
-
-                    wtgradjx += uw_jatm * uw_iparent * dmudx * t / SQR(sumUW);
-                    wtgradjy += uw_jatm * uw_iparent * dmudy * t / SQR(sumUW);
-                    wtgradjz += uw_jatm * uw_iparent * dmudz * t / SQR(sumUW);
-                }
-            }
-
-#if defined(DEBUG)
-//            printf("gridx: %f  gridy: %f  gridz: %f \n", wtgradjx, wtgradjy, wtgradjz);
-#endif
-
-            // Now do the rotational invariance part of the derivatives.
-            wtgradix -= wtgradjx;
-            wtgradiy -= wtgradjy;
-            wtgradiz -= wtgradjz;
-
-#if defined(DEBUG)
-//            printf("gridx: %f  gridy: %f  gridz: %f Exc: %e quadwt: %e\n", wtgradjx, wtgradjy, wtgradjz, Exc, quadwt);
-#endif
-
-            // We should now have the derivatives of the SS weights.  Now just add it to the temporary gradient vector in shared memory.
-            GPUATOMICADD(&smemGrad[jstart], wtgradjx * Exc * quadwt, GRADSCALE);
-            GPUATOMICADD(&smemGrad[jstart + 1], wtgradjy * Exc * quadwt, GRADSCALE);
-            GPUATOMICADD(&smemGrad[jstart + 2], wtgradjz * Exc * quadwt, GRADSCALE);
-        }
-    }
-
-#if defined(DEBUG)
-//    printf("istart: %i  gridx: %f  gridy: %f  gridz: %f Exc: %e quadwt: %e\n", istart, wtgradix, wtgradiy, wtgradiz, Exc, quadwt);
-#endif
-
-    // update the temporary gradient vector
-    GPUATOMICADD(&smemGrad[istart], wtgradix * Exc * quadwt, GRADSCALE);
-    GPUATOMICADD(&smemGrad[istart + 1], wtgradiy * Exc * quadwt, GRADSCALE);
-    GPUATOMICADD(&smemGrad[istart + 2], wtgradiz * Exc * quadwt, GRADSCALE);
-}
-
-
-__device__ static inline void pt2der_new(QUICKDouble gridx, QUICKDouble gridy, QUICKDouble gridz,
-        QUICKDouble* dxdx, QUICKDouble* dxdy, QUICKDouble* dxdz,
-        QUICKDouble* dydy, QUICKDouble* dydz, QUICKDouble* dzdz,
-        int *primf, int *primf_counter, int ibas, int ibasp)
+__device__ static inline void pt2der_new(uint32_t natom, uint32_t nbasis, int32_t maxcontract,
+        QUICKDouble gridx, QUICKDouble gridy, QUICKDouble gridz,
+        QUICKDouble * const dxdx, QUICKDouble * const dxdy, QUICKDouble * const dxdz,
+        QUICKDouble * const dydy, QUICKDouble * const dydz, QUICKDouble * const dzdz,
+        int const * const primf, int const * const primf_counter, int ibas, int ibasp,
+        int const * const itype, QUICKDouble const * const aexp, QUICKDouble const * const dcoeff,
+        QUICKDouble const * const xyz, int const * const ncenter)
 {
     /* Given a point in space, this function calculates the value of basis
      * function I and the value of its cartesian derivatives in all three derivatives.
      * */
 
     // relative coordinates between grid point and basis function I.
-    QUICKDouble x1 = gridx - LOC2(devSim_dft.xyz, 0, devSim_dft.ncenter[ibas] - 1, 3, devSim_dft.natom);
-    QUICKDouble y1 = gridy - LOC2(devSim_dft.xyz, 1, devSim_dft.ncenter[ibas] - 1, 3, devSim_dft.natom);
-    QUICKDouble z1 = gridz - LOC2(devSim_dft.xyz, 2, devSim_dft.ncenter[ibas] - 1, 3, devSim_dft.natom);
+    QUICKDouble x1 = gridx - LOC2(xyz, 0, ncenter[ibas] - 1, 3, natom);
+    QUICKDouble y1 = gridy - LOC2(xyz, 1, ncenter[ibas] - 1, 3, natom);
+    QUICKDouble z1 = gridz - LOC2(xyz, 2, ncenter[ibas] - 1, 3, natom);
     QUICKDouble dist = x1 * x1 + y1 * y1 + z1 * z1;
 
     QUICKDouble x1i, y1i, z1i;
@@ -820,11 +609,11 @@ __device__ static inline void pt2der_new(QUICKDouble gridx, QUICKDouble gridy, Q
     *dydz = 0.0;
     *dzdz = 0.0;
 
-    int itypex = LOC2(devSim_dft.itype, 0, ibas, 3, devSim_dft.nbasis);
-    int itypey = LOC2(devSim_dft.itype, 1, ibas, 3, devSim_dft.nbasis);
-    int itypez = LOC2(devSim_dft.itype, 2, ibas, 3, devSim_dft.nbasis);
+    int itypex = LOC2(itype, 0, ibas, 3, nbasis);
+    int itypey = LOC2(itype, 1, ibas, 3, nbasis);
+    int itypez = LOC2(itype, 2, ibas, 3, nbasis);
 
-//    if (dist <= devSim_dft.sigrad2[ibas]) {
+//    if (dist <= sigrad2[ibas]) {
     if (itypex == 1) {
         x1imin1 = 1.0;
         x1imin2 = 0.0;
@@ -885,13 +674,13 @@ __device__ static inline void pt2der_new(QUICKDouble gridx, QUICKDouble gridy, Q
         z1iplus2 = z1 * z1;
     }
 
-//    for (int i = 0; i < devSim_dft.ncontract[ibas - 1]; i++) {
+//    for (int i = 0; i < ncontract[ibas - 1]; i++) {
     for (int i = primf_counter[ibasp]; i < primf_counter[ibasp + 1]; i++) {
         int kprim = (int) primf[i];
-        QUICKDouble aexp = LOC2(devSim_dft.aexp, kprim, ibas, devSim_dft.maxcontract, devSim_dft.nbasis);
-        QUICKDouble temp = LOC2(devSim_dft.dcoeff, kprim, ibas, devSim_dft.maxcontract, devSim_dft.nbasis)
-            * exp(-aexp * dist);
-        QUICKDouble twoA = 2.0 * aexp;
+        QUICKDouble aexpi = LOC2(aexp, kprim, ibas, maxcontract, nbasis);
+        QUICKDouble temp = LOC2(dcoeff, kprim, ibas, maxcontract, nbasis)
+            * exp(-aexpi * dist);
+        QUICKDouble twoA = 2.0 * aexpi;
         QUICKDouble fourAsqr = twoA * twoA;
 
         *dxdx += temp * ((QUICKDouble) itypex * ((QUICKDouble) itypex - 1.0) * x1imin2
@@ -1349,874 +1138,6 @@ __device__ static inline QUICKDouble b3lypf(QUICKDouble rho, QUICKDouble sigma, 
 }
 
 
-/*
-   ! vd
-   ! vd   This subroutine is part of a set of subroutines that generate
-   ! vd   Lebedev grids [1-6] for integration on a sphere. The original
-   ! vd   C-code [1] was kindly provided by Dr. Dmitri N. Laikov and
-   ! vd   translated into fortran by Dr. Christoph van Wuellen.
-   ! vd
-   ! vd   Users of this code are asked to include reference [1] in their
-   ! vd   publications, and in the user- and programmers-manuals
-   ! vd   describing their codes.
-   ! vd
-   ! vd   This code was distributed through CCL (http://www.ccl.net/).
-   ! vd
-   ! vd   [1] V.I. Lebedev, and D.N. Laikov
-   ! vd       "A quadrature formula for the sphere of the 131st
-   ! vd        algebraic order of accuracy"
-   ! vd       doklady Mathematics, Vol. 59, No. 3, 1999, pp. 477-481.
-   ! vd
-   ! vd   [2] V.I. Lebedev
-   ! vd       "A quadrature formula for the sphere of 59th algebraic
-   ! vd        order of accuracy"
-   ! vd       Russian Acad. Sci. dokl. Math., Vol. 50, 1995, pp. 283-286.
-   ! vd
-   ! vd   [3] V.I. Lebedev, and A.L. Skorokhodov
-   ! vd       "Quadrature formulas of orders 41, 47, and 53 for the sphere"
-   ! vd       Russian Acad. Sci. dokl. Math., Vol. 45, 1992, pp. 587-592.
-   ! vd
-   ! vd   [4] V.I. Lebedev
-   ! vd       "Spherical quadrature formulas exact to orders 25-29"
-   ! vd       Siberian Mathematical Journal, Vol. 18, 1977, pp. 99-107.
-   ! vd
-   ! vd   [5] V.I. Lebedev
-   ! vd       "Quadratures on a sphere"
-   ! vd       Computational Mathematics and Mathematical Physics, Vol. 16,
-   ! vd       1976, pp. 10-24.
-   ! vd
-   ! vd   [6] V.I. Lebedev
-   ! vd       "Values of the nodes and weights of ninth to seventeenth
-   ! vd        order Gauss-Markov quadrature formulae invariant under the
-   ! vd        octahedron group with inversion"
-   ! vd       Computational Mathematics and Mathematical Physics, Vol. 15,
-   ! vd       1975, pp. 44-51.
-   ! vd
-   ! w
-   ! w    Given a point on a sphere (specified by a and b), generate all
-   ! w    the equivalent points under Oh symmetry, making grid points with
-   ! w    weight v.
-   ! w    The variable num is increased by the number of different points
-   ! w    generated.
-   ! w
-   ! w    Depending on code, there are 6...48 different but equivalent
-   ! w    points.
-   ! w
-   ! w    code=1:   (0,0,1) etc                                (  6 points)
-   ! w    code=2:   (0,a,a) etc, a=1/sqrt(2)                   ( 12 points)
-   ! w    code=3:   (a,a,a) etc, a=1/sqrt(3)                   (  8 points)
-   ! w    code=4:   (a,a,b) etc, b=sqrt(1-2 a^2)               ( 24 points)
-   ! w    code=5:   (a,b,0) etc, b=sqrt(1-a^2), a input        ( 24 points)
-   ! w    code=6:   (a,b,c) etc, c=sqrt(1-a^2-b^2), a/b input  ( 48 points)
-   ! w
-*/
-__device__ static inline int gen_oh(int code, int num, QUICKDouble* x, QUICKDouble* y, QUICKDouble* z,
-        QUICKDouble* w, QUICKDouble a, QUICKDouble b, QUICKDouble v)
-{
-    QUICKDouble c;
-    switch (code) {
-        case 1:
-            {
-                a = 1.0e0;
-                x[0 + num] =      a; y[0 + num] =  0.0e0; z[0 + num] =  0.0e0; w[0 + num] =  v;
-                x[1 + num] =     -a; y[1 + num] =  0.0e0; z[1 + num] =  0.0e0; w[1 + num] =  v;
-                x[2 + num] =  0.0e0; y[2 + num] =      a; z[2 + num] =  0.0e0; w[2 + num] =  v;
-                x[3 + num] =  0.0e0; y[3 + num] =     -a; z[3 + num] =  0.0e0; w[3 + num] =  v;
-                x[4 + num] =  0.0e0; y[4 + num] =  0.0e0; z[4 + num] =      a; w[4 + num] =  v;
-                x[5 + num] =  0.0e0; y[5 + num] =  0.0e0; z[5 + num] =     -a; w[5 + num] =  v;
-                num = num + 6;
-                break;
-            }
-        case 2:
-            {
-                a = sqrt(0.5);
-                x[0  + num] =  0e0;  y[0  + num] =    a;  z[0  + num] =    a;  w[0  + num] =  v;
-                x[1  + num] =  0e0;  y[1  + num] =   -a;  z[1  + num] =    a;  w[1  + num] =  v;
-                x[2  + num] =  0e0;  y[2  + num] =    a;  z[2  + num] =   -a;  w[2  + num] =  v;
-                x[3  + num] =  0e0;  y[3  + num] =   -a;  z[3  + num] =   -a;  w[3  + num] =  v;
-                x[4  + num] =    a;  y[4  + num] =  0e0;  z[4  + num] =    a;  w[4  + num] =  v;
-                x[5  + num] =   -a;  y[5  + num] =  0e0;  z[5  + num] =    a;  w[5  + num] =  v;
-                x[6  + num] =    a;  y[6  + num] =  0e0;  z[6  + num] =   -a;  w[6  + num] =  v;
-                x[7  + num] =   -a;  y[7  + num] =  0e0;  z[7  + num] =   -a;  w[7  + num] =  v;
-                x[8  + num] =    a;  y[8  + num] =    a;  z[8  + num] =  0e0;  w[8  + num] =  v;
-                x[9  + num] =   -a;  y[9  + num] =    a;  z[9  + num] =  0e0;  w[9  + num] =  v;
-                x[10 + num] =    a;  y[10 + num] =   -a;  z[10 + num] =  0e0;  w[10 + num] =  v;
-                x[11 + num] =   -a;  y[11 + num] =   -a;  z[11 + num] =  0e0;  w[11 + num] =  v;
-                num = num + 12;
-                break;
-            }
-        case 3:
-            {
-                a = sqrt(1.0 / 3.0);
-                x[0 + num] =  a;  y[0 + num] =  a;  z[0 + num] =  a;  w[0 + num] =  v;
-                x[1 + num] = -a;  y[1 + num] =  a;  z[1 + num] =  a;  w[1 + num] =  v;
-                x[2 + num] =  a;  y[2 + num] = -a;  z[2 + num] =  a;  w[2 + num] =  v;
-                x[3 + num] = -a;  y[3 + num] = -a;  z[3 + num] =  a;  w[3 + num] =  v;
-                x[4 + num] =  a;  y[4 + num] =  a;  z[4 + num] = -a;  w[4 + num] =  v;
-                x[5 + num] = -a;  y[5 + num] =  a;  z[5 + num] = -a;  w[5 + num] =  v;
-                x[6 + num] =  a;  y[6 + num] = -a;  z[6 + num] = -a;  w[6 + num] =  v;
-                x[7 + num] = -a;  y[7 + num] = -a;  z[7 + num] = -a;  w[7 + num] =  v;
-                num = num + 8;
-                break;
-            }
-        case 4:
-            {
-                b = sqrt(1.0 - 2.0 * a * a);
-                x[0  + num] =  a;  y[0  + num] =  a;  z[0  + num] =  b;  w[0  + num] =  v;
-                x[1  + num] = -a;  y[1  + num] =  a;  z[1  + num] =  b;  w[1  + num] =  v;
-                x[2  + num] =  a;  y[2  + num] = -a;  z[2  + num] =  b;  w[2  + num] =  v;
-                x[3  + num] = -a;  y[3  + num] = -a;  z[3  + num] =  b;  w[3  + num] =  v;
-                x[4  + num] =  a;  y[4  + num] =  a;  z[4  + num] = -b;  w[4  + num] =  v;
-                x[5  + num] = -a;  y[5  + num] =  a;  z[5  + num] = -b;  w[5  + num] =  v;
-                x[6  + num] =  a;  y[6  + num] = -a;  z[6  + num] = -b;  w[6  + num] =  v;
-                x[7  + num] = -a;  y[7  + num] = -a;  z[7  + num] = -b;  w[7  + num] =  v;
-                x[8  + num] =  a;  y[8  + num] =  b;  z[8  + num] =  a;  w[8  + num] =  v;
-                x[9  + num] = -a;  y[9  + num] =  b;  z[9  + num] =  a;  w[9  + num] =  v;
-                x[10 + num] =  a;  y[10 + num] = -b;  z[10 + num] =  a;  w[10 + num] =  v;
-                x[11 + num] = -a;  y[11 + num] = -b;  z[11 + num] =  a;  w[11 + num] =  v;
-                x[12 + num] =  a;  y[12 + num] =  b;  z[12 + num] = -a;  w[12 + num] =  v;
-                x[13 + num] = -a;  y[13 + num] =  b;  z[13 + num] = -a;  w[13 + num] =  v;
-                x[14 + num] =  a;  y[14 + num] = -b;  z[14 + num] = -a;  w[14 + num] =  v;
-                x[15 + num] = -a;  y[15 + num] = -b;  z[15 + num] = -a;  w[15 + num] =  v;
-                x[16 + num] =  b;  y[16 + num] =  a;  z[16 + num] =  a;  w[16 + num] =  v;
-                x[17 + num] = -b;  y[17 + num] =  a;  z[17 + num] =  a;  w[17 + num] =  v;
-                x[18 + num] =  b;  y[18 + num] = -a;  z[18 + num] =  a;  w[18 + num] =  v;
-                x[19 + num] = -b;  y[19 + num] = -a;  z[19 + num] =  a;  w[19 + num] =  v;
-                x[20 + num] =  b;  y[20 + num] =  a;  z[20 + num] = -a;  w[20 + num] =  v;
-                x[21 + num] = -b;  y[21 + num] =  a;  z[21 + num] = -a;  w[21 + num] =  v;
-                x[22 + num] =  b;  y[22 + num] = -a;  z[22 + num] = -a;  w[22 + num] =  v;
-                x[23 + num] = -b;  y[23 + num] = -a;  z[23 + num] = -a;  w[23 + num] =  v;
-                num = num + 24;
-                break;
-            }
-        case 5:
-            {
-                b=sqrt(1.0 - a * a);
-                x[0  + num] =    a;  y[0  + num] =    b;  z[0  + num] =  0e0;  w[0  + num] =  v;
-                x[1  + num] =   -a;  y[1  + num] =    b;  z[1  + num] =  0e0;  w[1  + num] =  v;
-                x[2  + num] =    a;  y[2  + num] =   -b;  z[2  + num] =  0e0;  w[2  + num] =  v;
-                x[3  + num] =   -a;  y[3  + num] =   -b;  z[3  + num] =  0e0;  w[3  + num] =  v;
-                x[4  + num] =    b;  y[4  + num] =    a;  z[4  + num] =  0e0;  w[4  + num] =  v;
-                x[5  + num] =   -b;  y[5  + num] =    a;  z[5  + num] =  0e0;  w[5  + num] =  v;
-                x[6  + num] =    b;  y[6  + num] =   -a;  z[6  + num] =  0e0;  w[6  + num] =  v;
-                x[7  + num] =   -b;  y[7  + num] =   -a;  z[7  + num] =  0e0;  w[7  + num] =  v;
-                x[8  + num] =    a;  y[8  + num] =  0e0;  z[8  + num] =    b;  w[8  + num] =  v;
-                x[9  + num] =   -a;  y[9  + num] =  0e0;  z[9  + num] =    b;  w[9  + num] =  v;
-                x[10 + num] =    a;  y[10 + num] =  0e0;  z[10 + num] =   -b;  w[10 + num] =  v;
-                x[11 + num] =   -a;  y[11 + num] =  0e0;  z[11 + num] =   -b;  w[11 + num] =  v;
-                x[12 + num] =    b;  y[12 + num] =  0e0;  z[12 + num] =    a;  w[12 + num] =  v;
-                x[13 + num] =   -b;  y[13 + num] =  0e0;  z[13 + num] =    a;  w[13 + num] =  v;
-                x[14 + num] =    b;  y[14 + num] =  0e0;  z[14 + num] =   -a;  w[14 + num] =  v;
-                x[15 + num] =   -b;  y[15 + num] =  0e0;  z[15 + num] =   -a;  w[15 + num] =  v;
-                x[16 + num] =  0e0;  y[16 + num] =    a;  z[16 + num] =    b;  w[16 + num] =  v;
-                x[17 + num] =  0e0;  y[17 + num] =   -a;  z[17 + num] =    b;  w[17 + num] =  v;
-                x[18 + num] =  0e0;  y[18 + num] =    a;  z[18 + num] =   -b;  w[18 + num] =  v;
-                x[19 + num] =  0e0;  y[19 + num] =   -a;  z[19 + num] =   -b;  w[19 + num] =  v;
-                x[20 + num] =  0e0;  y[20 + num] =    b;  z[20 + num] =    a;  w[20 + num] =  v;
-                x[21 + num] =  0e0;  y[21 + num] =   -b;  z[21 + num] =    a;  w[21 + num] =  v;
-                x[22 + num] =  0e0;  y[22 + num] =    b;  z[22 + num] =   -a;  w[22 + num] =  v;
-                x[23 + num] =  0e0;  y[23 + num] =   -b;  z[23 + num] =   -a;  w[23 + num] =  v;
-                num = num + 24;
-                break;
-            }
-        case 6:
-            {
-                c = sqrt(1.0 - a * a - b * b);
-                x[0  + num] =  a;  y[0  + num] =  b;  z[0  + num] =  c;  w[0  + num] =  v;
-                x[1  + num] = -a;  y[1  + num] =  b;  z[1  + num] =  c;  w[1  + num] =  v;
-                x[2  + num] =  a;  y[2  + num] = -b;  z[2  + num] =  c;  w[2  + num] =  v;
-                x[3  + num] = -a;  y[3  + num] = -b;  z[3  + num] =  c;  w[3  + num] =  v;
-                x[4  + num] =  a;  y[4  + num] =  b;  z[4  + num] = -c;  w[4  + num] =  v;
-                x[5  + num] = -a;  y[5  + num] =  b;  z[5  + num] = -c;  w[5  + num] =  v;
-                x[6  + num] =  a;  y[6  + num] = -b;  z[6  + num] = -c;  w[6  + num] =  v;
-                x[7  + num] = -a;  y[7  + num] = -b;  z[7  + num] = -c;  w[7  + num] =  v;
-                x[8  + num] =  a;  y[8  + num] =  c;  z[8  + num] =  b;  w[8  + num] =  v;
-                x[9  + num] = -a;  y[9  + num] =  c;  z[9  + num] =  b;  w[9  + num] =  v;
-                x[10 + num] =  a;  y[10 + num] = -c;  z[10 + num] =  b;  w[10 + num] =  v;
-                x[11 + num] = -a;  y[11 + num] = -c;  z[11 + num] =  b;  w[11 + num] =  v;
-                x[12 + num] =  a;  y[12 + num] =  c;  z[12 + num] = -b;  w[12 + num] =  v;
-                x[13 + num] = -a;  y[13 + num] =  c;  z[13 + num] = -b;  w[13 + num] =  v;
-                x[14 + num] =  a;  y[14 + num] = -c;  z[14 + num] = -b;  w[14 + num] =  v;
-                x[15 + num] = -a;  y[15 + num] = -c;  z[15 + num] = -b;  w[15 + num] =  v;
-                x[16 + num] =  b;  y[16 + num] =  a;  z[16 + num] =  c;  w[16 + num] =  v;
-                x[17 + num] = -b;  y[17 + num] =  a;  z[17 + num] =  c;  w[17 + num] =  v;
-                x[18 + num] =  b;  y[18 + num] = -a;  z[18 + num] =  c;  w[18 + num] =  v;
-                x[19 + num] = -b;  y[19 + num] = -a;  z[19 + num] =  c;  w[19 + num] =  v;
-                x[20 + num] =  b;  y[20 + num] =  a;  z[20 + num] = -c;  w[20 + num] =  v;
-                x[21 + num] = -b;  y[21 + num] =  a;  z[21 + num] = -c;  w[21 + num] =  v;
-                x[22 + num] =  b;  y[22 + num] = -a;  z[22 + num] = -c;  w[22 + num] =  v;
-                x[23 + num] = -b;  y[23 + num] = -a;  z[23 + num] = -c;  w[23 + num] =  v;
-                x[24 + num] =  b;  y[24 + num] =  c;  z[24 + num] =  a;  w[24 + num] =  v;
-                x[25 + num] = -b;  y[25 + num] =  c;  z[25 + num] =  a;  w[25 + num] =  v;
-                x[26 + num] =  b;  y[26 + num] = -c;  z[26 + num] =  a;  w[26 + num] =  v;
-                x[27 + num] = -b;  y[27 + num] = -c;  z[27 + num] =  a;  w[27 + num] =  v;
-                x[28 + num] =  b;  y[28 + num] =  c;  z[28 + num] = -a;  w[28 + num] =  v;
-                x[29 + num] = -b;  y[29 + num] =  c;  z[29 + num] = -a;  w[29 + num] =  v;
-                x[30 + num] =  b;  y[30 + num] = -c;  z[30 + num] = -a;  w[30 + num] =  v;
-                x[31 + num] = -b;  y[31 + num] = -c;  z[31 + num] = -a;  w[31 + num] =  v;
-                x[32 + num] =  c;  y[32 + num] =  a;  z[32 + num] =  b;  w[32 + num] =  v;
-                x[33 + num] = -c;  y[33 + num] =  a;  z[33 + num] =  b;  w[33 + num] =  v;
-                x[34 + num] =  c;  y[34 + num] = -a;  z[34 + num] =  b;  w[34 + num] =  v;
-                x[35 + num] = -c;  y[35 + num] = -a;  z[35 + num] =  b;  w[35 + num] =  v;
-                x[36 + num] =  c;  y[36 + num] =  a;  z[36 + num] = -b;  w[36 + num] =  v;
-                x[37 + num] = -c;  y[37 + num] =  a;  z[37 + num] = -b;  w[37 + num] =  v;
-                x[38 + num] =  c;  y[38 + num] = -a;  z[38 + num] = -b;  w[38 + num] =  v;
-                x[39 + num] = -c;  y[39 + num] = -a;  z[39 + num] = -b;  w[39 + num] =  v;
-                x[40 + num] =  c;  y[40 + num] =  b;  z[40 + num] =  a;  w[40 + num] =  v;
-                x[41 + num] = -c;  y[41 + num] =  b;  z[41 + num] =  a;  w[41 + num] =  v;
-                x[42 + num] =  c;  y[42 + num] = -b;  z[42 + num] =  a;  w[42 + num] =  v;
-                x[43 + num] = -c;  y[43 + num] = -b;  z[43 + num] =  a;  w[43 + num] =  v;
-                x[44 + num] =  c;  y[44 + num] =  b;  z[44 + num] = -a;  w[44 + num] =  v;
-                x[45 + num] = -c;  y[45 + num] =  b;  z[45 + num] = -a;  w[45 + num] =  v;
-                x[46 + num] =  c;  y[46 + num] = -b;  z[46 + num] = -a;  w[46 + num] =  v;
-                x[47 + num] = -c;  y[47 + num] = -b;  z[47 + num] = -a;  w[47 + num] =  v;
-                num = num + 48;
-                break;
-            }
-    default:
-        break;
-    }
-
-    return num;
-}
-
-
-/*
-   ! W
-   ! W    LEBEDEV    6-POINT ANGULAR GRID
-   ! W
-   ! vd
-   ! vd   This subroutine is part of a set of subroutines that generate
-   ! vd   Lebedev grids [1-6] for integration on a sphere. The original
-   ! vd   C-code [1] was kindly provided by Dr. Dmitri N. Laikov and
-   ! vd   translated into fortran by Dr. Christoph van Wuellen.
-   ! vd
-   ! vd
-   ! vd   Users of this code are asked to include reference [1] in their
-   ! vd   publications, and in the user- and programmers-manuals
-   ! vd   describing their codes.
-   ! vd
-   ! vd   This code was distributed through CCL (http://www.ccl.net/).
-   ! vd
-   ! vd   [1] V.I. Lebedev, and D.N. Laikov
-   ! vd       "A quadrature formula for the sphere of the 131st
-   ! vd        algebraic order of accuracy"
-   ! vd       doklady Mathematics, Vol. 59, No. 3, 1999, pp. 477-481.
-   ! vd
-   ! vd   [2] V.I. Lebedev
-   ! vd       "A quadrature formula for the sphere of 59th algebraic
-   ! vd        order of accuracy"
-   ! vd       Russian Acad. Sci. dokl. Math., Vol. 50, 1995, pp. 283-286.
-   ! vd
-   ! vd   [3] V.I. Lebedev, and A.L. Skorokhodov
-   ! vd       "Quadrature formulas of orders 41, 47, and 53 for the sphere"
-   ! vd       Russian Acad. Sci. dokl. Math., Vol. 45, 1992, pp. 587-592.
-   ! vd
-   ! vd   [4] V.I. Lebedev
-   ! vd       "Spherical quadrature formulas exact to orders 25-29"
-   ! vd       Siberian Mathematical Journal, Vol. 18, 1977, pp. 99-107.
-   ! vd
-   ! vd   [5] V.I. Lebedev
-   ! vd       "Quadratures on a sphere"
-   ! vd       Computational Mathematics and Mathematical Physics, Vol. 16,
-   ! vd       1976, pp. 10-24.
-   ! vd
-   ! vd   [6] V.I. Lebedev
-   ! vd       "Values of the nodes and weights of ninth to seventeenth
-   ! vd        order Gauss-Markov quadrature formulae invariant under the
-   ! vd        octahedron group with inversion"
-   ! vd       Computational Mathematics and Mathematical Physics, Vol. 15,
-   ! vd       1975, pp. 44-51.
-   ! vd
-*/
-__device__ static inline void LD0006(QUICKDouble* x, QUICKDouble* y, QUICKDouble* z, QUICKDouble* w, int N)
-{
-    gen_oh(1, 0, x, y, z, w, 0.0, 0.0, 0.1666666666666667);
-}
-
-
-/*
-   ! W
-   ! W    LEBEDEV    14-POINT ANGULAR GRID
-   ! W
-   ! vd
-   ! vd   This subroutine is part of a set of subroutines that generate
-   ! vd   Lebedev grids [1-6] for integration on a sphere. The original
-   ! vd   C-code [1] was kindly provided by Dr. Dmitri N. Laikov and
-   ! vd   translated into fortran by Dr. Christoph van Wuellen.
-   ! vd
-   ! vd
-   ! vd   Users of this code are asked to include reference [1] in their
-   ! vd   publications, and in the user- and programmers-manuals
-   ! vd   describing their codes.
-   ! vd
-   ! vd   This code was distributed through CCL (http://www.ccl.net/).
-   ! vd
-   ! vd   [1] V.I. Lebedev, and D.N. Laikov
-   ! vd       "A quadrature formula for the sphere of the 131st
-   ! vd        algebraic order of accuracy"
-   ! vd       doklady Mathematics, Vol. 59, No. 3, 1999, pp. 477-481.
-   ! vd
-   ! vd   [2] V.I. Lebedev
-   ! vd       "A quadrature formula for the sphere of 59th algebraic
-   ! vd        order of accuracy"
-   ! vd       Russian Acad. Sci. dokl. Math., Vol. 50, 1995, pp. 283-286.
-   ! vd
-   ! vd   [3] V.I. Lebedev, and A.L. Skorokhodov
-   ! vd       "Quadrature formulas of orders 41, 47, and 53 for the sphere"
-   ! vd       Russian Acad. Sci. dokl. Math., Vol. 45, 1992, pp. 587-592.
-   ! vd
-   ! vd   [4] V.I. Lebedev
-   ! vd       "Spherical quadrature formulas exact to orders 25-29"
-   ! vd       Siberian Mathematical Journal, Vol. 18, 1977, pp. 99-107.
-   ! vd
-   ! vd   [5] V.I. Lebedev
-   ! vd       "Quadratures on a sphere"
-   ! vd       Computational Mathematics and Mathematical Physics, Vol. 16,
-   ! vd       1976, pp. 10-24.
-   ! vd
-   ! vd   [6] V.I. Lebedev
-   ! vd       "Values of the nodes and weights of ninth to seventeenth
-   ! vd        order Gauss-Markov quadrature formulae invariant under the
-   ! vd        octahedron group with inversion"
-   ! vd       Computational Mathematics and Mathematical Physics, Vol. 15,
-   ! vd       1975, pp. 44-51.
-   ! vd
-*/
-__device__ static inline void LD0014(QUICKDouble* x, QUICKDouble* y, QUICKDouble* z, QUICKDouble* w, int N)
-{
-    N = gen_oh(1, 0, x, y, z, w, 0.0, 0.0, 0.6666666666666667e-1);
-    gen_oh(3, N, x, y, z, w, 0.0, 0.0, 0.7500000000000000e-1);
-}
-
-
-/*
-   ! W
-   ! W    LEBEDEV    26-POINT ANGULAR GRID
-   ! W
-   ! vd
-   ! vd   This subroutine is part of a set of subroutines that generate
-   ! vd   Lebedev grids [1-6] for integration on a sphere. The original
-   ! vd   C-code [1] was kindly provided by Dr. Dmitri N. Laikov and
-   ! vd   translated into fortran by Dr. Christoph van Wuellen.
-   ! vd
-   ! vd
-   ! vd   Users of this code are asked to include reference [1] in their
-   ! vd   publications, and in the user- and programmers-manuals
-   ! vd   describing their codes.
-   ! vd
-   ! vd   This code was distributed through CCL (http://www.ccl.net/).
-   ! vd
-   ! vd   [1] V.I. Lebedev, and D.N. Laikov
-   ! vd       "A quadrature formula for the sphere of the 131st
-   ! vd        algebraic order of accuracy"
-   ! vd       doklady Mathematics, Vol. 59, No. 3, 1999, pp. 477-481.
-   ! vd
-   ! vd   [2] V.I. Lebedev
-   ! vd       "A quadrature formula for the sphere of 59th algebraic
-   ! vd        order of accuracy"
-   ! vd       Russian Acad. Sci. dokl. Math., Vol. 50, 1995, pp. 283-286.
-   ! vd
-   ! vd   [3] V.I. Lebedev, and A.L. Skorokhodov
-   ! vd       "Quadrature formulas of orders 41, 47, and 53 for the sphere"
-   ! vd       Russian Acad. Sci. dokl. Math., Vol. 45, 1992, pp. 587-592.
-   ! vd
-   ! vd   [4] V.I. Lebedev
-   ! vd       "Spherical quadrature formulas exact to orders 25-29"
-   ! vd       Siberian Mathematical Journal, Vol. 18, 1977, pp. 99-107.
-   ! vd
-   ! vd   [5] V.I. Lebedev
-   ! vd       "Quadratures on a sphere"
-   ! vd       Computational Mathematics and Mathematical Physics, Vol. 16,
-   ! vd       1976, pp. 10-24.
-   ! vd
-   ! vd   [6] V.I. Lebedev
-   ! vd       "Values of the nodes and weights of ninth to seventeenth
-   ! vd        order Gauss-Markov quadrature formulae invariant under the
-   ! vd        octahedron group with inversion"
-   ! vd       Computational Mathematics and Mathematical Physics, Vol. 15,
-   ! vd       1975, pp. 44-51.
-   ! vd
-*/
-__device__ static inline void LD0026(QUICKDouble* x, QUICKDouble* y, QUICKDouble* z, QUICKDouble* w, int N)
-{
-    N = gen_oh(1, 0, x, y, z, w, 0.0, 0.0, 0.4761904761904762e-1);
-    N = gen_oh(2, N, x, y, z, w, 0.0, 0.0, 0.3809523809523810e-1);
-    gen_oh(3, N, x, y, z, w, 0.0, 0.0, 0.3214285714285714e-1);
-}
-
-
-/*
-   ! W
-   ! W    LEBEDEV    38-POINT ANGULAR GRID
-   ! W
-   ! vd
-   ! vd   This subroutine is part of a set of subroutines that generate
-   ! vd   Lebedev grids [1-6] for integration on a sphere. The original
-   ! vd   C-code [1] was kindly provided by Dr. Dmitri N. Laikov and
-   ! vd   translated into fortran by Dr. Christoph van Wuellen.
-   ! vd
-   ! vd
-   ! vd   Users of this code are asked to include reference [1] in their
-   ! vd   publications, and in the user- and programmers-manuals
-   ! vd   describing their codes.
-   ! vd
-   ! vd   This code was distributed through CCL (http://www.ccl.net/).
-   ! vd
-   ! vd   [1] V.I. Lebedev, and D.N. Laikov
-   ! vd       "A quadrature formula for the sphere of the 131st
-   ! vd        algebraic order of accuracy"
-   ! vd       doklady Mathematics, Vol. 59, No. 3, 1999, pp. 477-481.
-   ! vd
-   ! vd   [2] V.I. Lebedev
-   ! vd       "A quadrature formula for the sphere of 59th algebraic
-   ! vd        order of accuracy"
-   ! vd       Russian Acad. Sci. dokl. Math., Vol. 50, 1995, pp. 283-286.
-   ! vd
-   ! vd   [3] V.I. Lebedev, and A.L. Skorokhodov
-   ! vd       "Quadrature formulas of orders 41, 47, and 53 for the sphere"
-   ! vd       Russian Acad. Sci. dokl. Math., Vol. 45, 1992, pp. 587-592.
-   ! vd
-   ! vd   [4] V.I. Lebedev
-   ! vd       "Spherical quadrature formulas exact to orders 25-29"
-   ! vd       Siberian Mathematical Journal, Vol. 18, 1977, pp. 99-107.
-   ! vd
-   ! vd   [5] V.I. Lebedev
-   ! vd       "Quadratures on a sphere"
-   ! vd       Computational Mathematics and Mathematical Physics, Vol. 16,
-   ! vd       1976, pp. 10-24.
-   ! vd
-   ! vd   [6] V.I. Lebedev
-   ! vd       "Values of the nodes and weights of ninth to seventeenth
-   ! vd        order Gauss-Markov quadrature formulae invariant under the
-   ! vd        octahedron group with inversion"
-   ! vd       Computational Mathematics and Mathematical Physics, Vol. 15,
-   ! vd       1975, pp. 44-51.
-   ! vd
-*/
-__device__ static inline void LD0038(QUICKDouble* x, QUICKDouble* y, QUICKDouble* z, QUICKDouble* w, int N)
-{
-    N = gen_oh(1, 0, x, y, z, w, 0.0, 0.0, 0.9523809523809524e-2);
-    N = gen_oh(3, N, x, y, z, w, 0.0, 0.0, 0.3214285714285714e-1);
-    gen_oh(5, N, x, y, z, w, 0.4597008433809831e+0, 0.0, 0.2857142857142857e-1);
-}
-
-
-/*
-   ! W
-   ! W    LEBEDEV    50-POINT ANGULAR GRID
-   ! W
-   ! vd
-   ! vd   This subroutine is part of a set of subroutines that generate
-   ! vd   Lebedev grids [1-6] for integration on a sphere. The original
-   ! vd   C-code [1] was kindly provided by Dr. Dmitri N. Laikov and
-   ! vd   translated into fortran by Dr. Christoph van Wuellen.
-   ! vd
-   ! vd
-   ! vd   Users of this code are asked to include reference [1] in their
-   ! vd   publications, and in the user- and programmers-manuals
-   ! vd   describing their codes.
-   ! vd
-   ! vd   This code was distributed through CCL (http://www.ccl.net/).
-   ! vd
-   ! vd   [1] V.I. Lebedev, and D.N. Laikov
-   ! vd       "A quadrature formula for the sphere of the 131st
-   ! vd        algebraic order of accuracy"
-   ! vd       doklady Mathematics, Vol. 59, No. 3, 1999, pp. 477-481.
-   ! vd
-   ! vd   [2] V.I. Lebedev
-   ! vd       "A quadrature formula for the sphere of 59th algebraic
-   ! vd        order of accuracy"
-   ! vd       Russian Acad. Sci. dokl. Math., Vol. 50, 1995, pp. 283-286.
-   ! vd
-   ! vd   [3] V.I. Lebedev, and A.L. Skorokhodov
-   ! vd       "Quadrature formulas of orders 41, 47, and 53 for the sphere"
-   ! vd       Russian Acad. Sci. dokl. Math., Vol. 45, 1992, pp. 587-592.
-   ! vd
-   ! vd   [4] V.I. Lebedev
-   ! vd       "Spherical quadrature formulas exact to orders 25-29"
-   ! vd       Siberian Mathematical Journal, Vol. 18, 1977, pp. 99-107.
-   ! vd
-   ! vd   [5] V.I. Lebedev
-   ! vd       "Quadratures on a sphere"
-   ! vd       Computational Mathematics and Mathematical Physics, Vol. 16,
-   ! vd       1976, pp. 10-24.
-   ! vd
-   ! vd   [6] V.I. Lebedev
-   ! vd       "Values of the nodes and weights of ninth to seventeenth
-   ! vd        order Gauss-Markov quadrature formulae invariant under the
-   ! vd        octahedron group with inversion"
-   ! vd       Computational Mathematics and Mathematical Physics, Vol. 15,
-   ! vd       1975, pp. 44-51.
-   ! vd
-*/
-__device__ static inline void LD0050(QUICKDouble* x, QUICKDouble* y, QUICKDouble* z, QUICKDouble* w, int N)
-{
-    N = gen_oh(1, 0, x, y, z, w, 0.0, 0.0, 0.1269841269841270e-1);
-    N = gen_oh(2, N, x, y, z, w, 0.0, 0.0, 0.2257495590828924e-1);
-    N = gen_oh(3, N, x, y, z, w, 0.0, 0.0, 0.2109375000000000e-1);
-    gen_oh(4, N, x, y, z, w, 0.3015113445777636e+0, 0.0, 0.2017333553791887e-1);
-}
-
-
-/*
-   ! W
-   ! W    LEBEDEV    74-POINT ANGULAR GRID
-   ! W
-   ! vd
-   ! vd   This subroutine is part of a set of subroutines that generate
-   ! vd   Lebedev grids [1-6] for integration on a sphere. The original
-   ! vd   C-code [1] was kindly provided by Dr. Dmitri N. Laikov and
-   ! vd   translated into fortran by Dr. Christoph van Wuellen.
-   ! vd
-   ! vd
-   ! vd   Users of this code are asked to include reference [1] in their
-   ! vd   publications, and in the user- and programmers-manuals
-   ! vd   describing their codes.
-   ! vd
-   ! vd   This code was distributed through CCL (http://www.ccl.net/).
-   ! vd
-   ! vd   [1] V.I. Lebedev, and D.N. Laikov
-   ! vd       "A quadrature formula for the sphere of the 131st
-   ! vd        algebraic order of accuracy"
-   ! vd       doklady Mathematics, Vol. 59, No. 3, 1999, pp. 477-481.
-   ! vd
-   ! vd   [2] V.I. Lebedev
-   ! vd       "A quadrature formula for the sphere of 59th algebraic
-   ! vd        order of accuracy"
-   ! vd       Russian Acad. Sci. dokl. Math., Vol. 50, 1995, pp. 283-286.
-   ! vd
-   ! vd   [3] V.I. Lebedev, and A.L. Skorokhodov
-   ! vd       "Quadrature formulas of orders 41, 47, and 53 for the sphere"
-   ! vd       Russian Acad. Sci. dokl. Math., Vol. 45, 1992, pp. 587-592.
-   ! vd
-   ! vd   [4] V.I. Lebedev
-   ! vd       "Spherical quadrature formulas exact to orders 25-29"
-   ! vd       Siberian Mathematical Journal, Vol. 18, 1977, pp. 99-107.
-   ! vd
-   ! vd   [5] V.I. Lebedev
-   ! vd       "Quadratures on a sphere"
-   ! vd       Computational Mathematics and Mathematical Physics, Vol. 16,
-   ! vd       1976, pp. 10-24.
-   ! vd
-   ! vd   [6] V.I. Lebedev
-   ! vd       "Values of the nodes and weights of ninth to seventeenth
-   ! vd        order Gauss-Markov quadrature formulae invariant under the
-   ! vd        octahedron group with inversion"
-   ! vd       Computational Mathematics and Mathematical Physics, Vol. 15,
-   ! vd       1975, pp. 44-51.
-   ! vd
-*/
-__device__ static inline void LD0074(QUICKDouble* x, QUICKDouble* y, QUICKDouble* z, QUICKDouble* w, int N)
-{
-    N = gen_oh(1, 0, x, y, z, w, 0.0, 0.0, 0.5130671797338464e-3);
-    N = gen_oh(2, N, x, y, z, w, 0.0, 0.0, 0.1660406956574204e-1);
-    N = gen_oh(3, N, x, y, z, w, 0.0, 0.0, -0.2958603896103896e-1);
-    N = gen_oh(4, N, x, y, z, w, 0.4803844614152614, 0.0, 0.2657620708215946e-1);
-    gen_oh(5, N, x, y, z, w, 0.3207726489807764, 0.0, 0.1652217099371571e-1);
-}
-
-
-/*
-   ! W
-   ! W    LEBEDEV    86-POINT ANGULAR GRID
-   ! W
-   ! vd
-   ! vd   This subroutine is part of a set of subroutines that generate
-   ! vd   Lebedev grids [1-6] for integration on a sphere. The original
-   ! vd   C-code [1] was kindly provided by Dr. Dmitri N. Laikov and
-   ! vd   translated into fortran by Dr. Christoph van Wuellen.
-   ! vd
-   ! vd
-   ! vd   Users of this code are asked to include reference [1] in their
-   ! vd   publications, and in the user- and programmers-manuals
-   ! vd   describing their codes.
-   ! vd
-   ! vd   This code was distributed through CCL (http://www.ccl.net/).
-   ! vd
-   ! vd   [1] V.I. Lebedev, and D.N. Laikov
-   ! vd       "A quadrature formula for the sphere of the 131st
-   ! vd        algebraic order of accuracy"
-   ! vd       doklady Mathematics, Vol. 59, No. 3, 1999, pp. 477-481.
-   ! vd
-   ! vd   [2] V.I. Lebedev
-   ! vd       "A quadrature formula for the sphere of 59th algebraic
-   ! vd        order of accuracy"
-   ! vd       Russian Acad. Sci. dokl. Math., Vol. 50, 1995, pp. 283-286.
-   ! vd
-   ! vd   [3] V.I. Lebedev, and A.L. Skorokhodov
-   ! vd       "Quadrature formulas of orders 41, 47, and 53 for the sphere"
-   ! vd       Russian Acad. Sci. dokl. Math., Vol. 45, 1992, pp. 587-592.
-   ! vd
-   ! vd   [4] V.I. Lebedev
-   ! vd       "Spherical quadrature formulas exact to orders 25-29"
-   ! vd       Siberian Mathematical Journal, Vol. 18, 1977, pp. 99-107.
-   ! vd
-   ! vd   [5] V.I. Lebedev
-   ! vd       "Quadratures on a sphere"
-   ! vd       Computational Mathematics and Mathematical Physics, Vol. 16,
-   ! vd       1976, pp. 10-24.
-   ! vd
-   ! vd   [6] V.I. Lebedev
-   ! vd       "Values of the nodes and weights of ninth to seventeenth
-   ! vd        order Gauss-Markov quadrature formulae invariant under the
-   ! vd        octahedron group with inversion"
-   ! vd       Computational Mathematics and Mathematical Physics, Vol. 15,
-   ! vd       1975, pp. 44-51.
-   ! vd
-*/
-__device__ static inline void LD0086(QUICKDouble* x, QUICKDouble* y, QUICKDouble* z, QUICKDouble* w, int N)
-{
-    N = gen_oh(1, 0, x, y, z, w, 0.0, 0.0, 0.1154401154401154e-1);
-    N = gen_oh(3, N, x, y, z, w, 0.0, 0.0, 0.1194390908585628e-1);
-    N = gen_oh(4, N, x, y, z, w, 0.3696028464541502, 0.0, 0.1111055571060340e-1);
-    N = gen_oh(4, N, x, y, z, w, 0.6943540066026664, 0.0, 0.1187650129453714e-1);
-    gen_oh(5, N, x, y, z, w, 0.3742430390903412, 0.0, 0.1181230374690448e-1);
-}
-
-
-/*
-   ! W
-   ! W    LEBEDEV    110-POINT ANGULAR GRID
-   ! W
-   ! vd
-   ! vd   This subroutine is part of a set of subroutines that generate
-   ! vd   Lebedev grids [1-6] for integration on a sphere. The original
-   ! vd   C-code [1] was kindly provided by Dr. Dmitri N. Laikov and
-   ! vd   translated into fortran by Dr. Christoph van Wuellen.
-   ! vd
-   ! vd
-   ! vd   Users of this code are asked to include reference [1] in their
-   ! vd   publications, and in the user- and programmers-manuals
-   ! vd   describing their codes.
-   ! vd
-   ! vd   This code was distributed through CCL (http://www.ccl.net/).
-   ! vd
-   ! vd   [1] V.I. Lebedev, and D.N. Laikov
-   ! vd       "A quadrature formula for the sphere of the 131st
-   ! vd        algebraic order of accuracy"
-   ! vd       doklady Mathematics, Vol. 59, No. 3, 1999, pp. 477-481.
-   ! vd
-   ! vd   [2] V.I. Lebedev
-   ! vd       "A quadrature formula for the sphere of 59th algebraic
-   ! vd        order of accuracy"
-   ! vd       Russian Acad. Sci. dokl. Math., Vol. 50, 1995, pp. 283-286.
-   ! vd
-   ! vd   [3] V.I. Lebedev, and A.L. Skorokhodov
-   ! vd       "Quadrature formulas of orders 41, 47, and 53 for the sphere"
-   ! vd       Russian Acad. Sci. dokl. Math., Vol. 45, 1992, pp. 587-592.
-   ! vd
-   ! vd   [4] V.I. Lebedev
-   ! vd       "Spherical quadrature formulas exact to orders 25-29"
-   ! vd       Siberian Mathematical Journal, Vol. 18, 1977, pp. 99-107.
-   ! vd
-   ! vd   [5] V.I. Lebedev
-   ! vd       "Quadratures on a sphere"
-   ! vd       Computational Mathematics and Mathematical Physics, Vol. 16,
-   ! vd       1976, pp. 10-24.
-   ! vd
-   ! vd   [6] V.I. Lebedev
-   ! vd       "Values of the nodes and weights of ninth to seventeenth
-   ! vd        order Gauss-Markov quadrature formulae invariant under the
-   ! vd        octahedron group with inversion"
-   ! vd       Computational Mathematics and Mathematical Physics, Vol. 15,
-   ! vd       1975, pp. 44-51.
-   ! vd
-*/
-__device__ static inline void LD0110(QUICKDouble* x, QUICKDouble* y, QUICKDouble* z, QUICKDouble* w, int N)
-{
-    N = gen_oh(1, 0, x, y, z, w, 0.0, 0.0, 0.3828270494937162e-2);
-    N = gen_oh(3, N, x, y, z, w, 0.0, 0.0, 0.9793737512487512e-2);
-    N = gen_oh(4, N, x, y, z, w, 0.1851156353447362, 0.0, 0.8211737283191111e-2);
-    N = gen_oh(4, N, x, y, z, w, 0.6904210483822922, 0.0, 0.9942814891178103e-2);
-    N = gen_oh(4, N, x, y, z, w, 0.3956894730559419, 0.0, 0.9595471336070963e-2);
-    gen_oh(5, N, x, y, z, w, 0.4783690288121502, 0.0, 0.9694996361663028e-2);
-}
-
-
-/*
-   ! W
-   ! W    LEBEDEV    146-POINT ANGULAR GRID
-   ! W
-   ! vd
-   ! vd   This subroutine is part of a set of subroutines that generate
-   ! vd   Lebedev grids [1-6] for integration on a sphere. The original
-   ! vd   C-code [1] was kindly provided by Dr. Dmitri N. Laikov and
-   ! vd   translated into fortran by Dr. Christoph van Wuellen.
-   ! vd
-   ! vd
-   ! vd   Users of this code are asked to include reference [1] in their
-   ! vd   publications, and in the user- and programmers-manuals
-   ! vd   describing their codes.
-   ! vd
-   ! vd   This code was distributed through CCL (http://www.ccl.net/).
-   ! vd
-   ! vd   [1] V.I. Lebedev, and D.N. Laikov
-   ! vd       "A quadrature formula for the sphere of the 131st
-   ! vd        algebraic order of accuracy"
-   ! vd       doklady Mathematics, Vol. 59, No. 3, 1999, pp. 477-481.
-   ! vd
-   ! vd   [2] V.I. Lebedev
-   ! vd       "A quadrature formula for the sphere of 59th algebraic
-   ! vd        order of accuracy"
-   ! vd       Russian Acad. Sci. dokl. Math., Vol. 50, 1995, pp. 283-286.
-   ! vd
-   ! vd   [3] V.I. Lebedev, and A.L. Skorokhodov
-   ! vd       "Quadrature formulas of orders 41, 47, and 53 for the sphere"
-   ! vd       Russian Acad. Sci. dokl. Math., Vol. 45, 1992, pp. 587-592.
-   ! vd
-   ! vd   [4] V.I. Lebedev
-   ! vd       "Spherical quadrature formulas exact to orders 25-29"
-   ! vd       Siberian Mathematical Journal, Vol. 18, 1977, pp. 99-107.
-   ! vd
-   ! vd   [5] V.I. Lebedev
-   ! vd       "Quadratures on a sphere"
-   ! vd       Computational Mathematics and Mathematical Physics, Vol. 16,
-   ! vd       1976, pp. 10-24.
-   ! vd
-   ! vd   [6] V.I. Lebedev
-   ! vd       "Values of the nodes and weights of ninth to seventeenth
-   ! vd        order Gauss-Markov quadrature formulae invariant under the
-   ! vd        octahedron group with inversion"
-   ! vd       Computational Mathematics and Mathematical Physics, Vol. 15,
-   ! vd       1975, pp. 44-51.
-   ! vd
-*/
-__device__ static inline void LD0146(QUICKDouble* x, QUICKDouble* y, QUICKDouble* z, QUICKDouble* w, int N)
-{
-    N = gen_oh(1, 0, x, y, z, w, 0.0, 0.0, 0.5996313688621381e-3);
-    N = gen_oh(2, N, x, y, z, w, 0.0, 0.0, 0.7372999718620756e-2);
-    N = gen_oh(3, N, x, y, z, w, 0.0, 0.0, 0.7210515360144488e-2);
-    N = gen_oh(4, N, x, y, z, w, 0.6764410400114264e+0, 0.0, 0.7116355493117555e-2);
-    N = gen_oh(4, N, x, y, z, w, 0.4174961227965453e+0, 0.0, 0.6753829486314477e-2);
-    N = gen_oh(4, N, x, y, z, w, 0.1574676672039082e+0, 0.0, 0.7574394159054034e-2);
-    gen_oh(6, N, x, y, z, w, 0.1403553811713183e+0, 0.4493328323269557e+0, 0.6991087353303262e-2);
-}
-
-
-/*
-   ! W
-   ! W    LEBEDEV    170-POINT ANGULAR GRID
-   ! W
-   ! vd
-   ! vd   This subroutine is part of a set of subroutines that generate
-   ! vd   Lebedev grids [1-6] for integration on a sphere. The original
-   ! vd   C-code [1] was kindly provided by Dr. Dmitri N. Laikov and
-   ! vd   translated into fortran by Dr. Christoph van Wuellen.
-   ! vd
-   ! vd
-   ! vd   Users of this code are asked to include reference [1] in their
-   ! vd   publications, and in the user- and programmers-manuals
-   ! vd   describing their codes.
-   ! vd
-   ! vd   This code was distributed through CCL (http://www.ccl.net/).
-   ! vd
-   ! vd   [1] V.I. Lebedev, and D.N. Laikov
-   ! vd       "A quadrature formula for the sphere of the 131st
-   ! vd        algebraic order of accuracy"
-   ! vd       doklady Mathematics, Vol. 59, No. 3, 1999, pp. 477-481.
-   ! vd
-   ! vd   [2] V.I. Lebedev
-   ! vd       "A quadrature formula for the sphere of 59th algebraic
-   ! vd        order of accuracy"
-   ! vd       Russian Acad. Sci. dokl. Math., Vol. 50, 1995, pp. 283-286.
-   ! vd
-   ! vd   [3] V.I. Lebedev, and A.L. Skorokhodov
-   ! vd       "Quadrature formulas of orders 41, 47, and 53 for the sphere"
-   ! vd       Russian Acad. Sci. dokl. Math., Vol. 45, 1992, pp. 587-592.
-   ! vd
-   ! vd   [4] V.I. Lebedev
-   ! vd       "Spherical quadrature formulas exact to orders 25-29"
-   ! vd       Siberian Mathematical Journal, Vol. 18, 1977, pp. 99-107.
-   ! vd
-   ! vd   [5] V.I. Lebedev
-   ! vd       "Quadratures on a sphere"
-   ! vd       Computational Mathematics and Mathematical Physics, Vol. 16,
-   ! vd       1976, pp. 10-24.
-   ! vd
-   ! vd   [6] V.I. Lebedev
-   ! vd       "Values of the nodes and weights of ninth to seventeenth
-   ! vd        order Gauss-Markov quadrature formulae invariant under the
-   ! vd        octahedron group with inversion"
-   ! vd       Computational Mathematics and Mathematical Physics, Vol. 15,
-   ! vd       1975, pp. 44-51.
-   ! vd
-*/
-__device__ static inline void LD0170(QUICKDouble* x, QUICKDouble* y, QUICKDouble* z, QUICKDouble* w, int N)
-{
-    N = gen_oh(1, 0, x, y, z, w, 0.0, 0.0, 0.5544842902037365e-2);
-    N = gen_oh(2, N, x, y, z, w, 0.0, 0.0, 0.6071332770670752e-2);
-    N = gen_oh(3, N, x, y, z, w, 0.0, 0.0, 0.6383674773515093e-2);
-    N = gen_oh(4, N, x, y, z, w, 0.2551252621114134e+0, 0.0, 0.5183387587747790e-2);
-    N = gen_oh(4, N, x, y, z, w, 0.6743601460362766e+0, 0.0, 0.6317929009813725e-2);
-    N = gen_oh(4, N, x, y, z, w, 0.4318910696719410e+0, 0.0, 0.6201670006589077e-2);
-    N = gen_oh(5, N, x, y, z, w, 0.2613931360335988e+0, 0.0, 0.5477143385137348e-2);
-    gen_oh(6, N, x, y, z, w, 0.4990453161796037e+0, 0.1446630744325115e+0, 0.5968383987681156e-2);
-}
-
-
-/*
-   ! W
-   ! W    LEBEDEV    194-POINT ANGULAR GRID
-   ! W
-   ! vd
-   ! vd   This subroutine is part of a set of subroutines that generate
-   ! vd   Lebedev grids [1-6] for integration on a sphere. The original
-   ! vd   C-code [1] was kindly provided by Dr. Dmitri N. Laikov and
-   ! vd   translated into fortran by Dr. Christoph van Wuellen.
-   ! vd
-   ! vd
-   ! vd   Users of this code are asked to include reference [1] in their
-   ! vd   publications, and in the user- and programmers-manuals
-   ! vd   describing their codes.
-   ! vd
-   ! vd   This code was distributed through CCL (http://www.ccl.net/).
-   ! vd
-   ! vd   [1] V.I. Lebedev, and D.N. Laikov
-   ! vd       "A quadrature formula for the sphere of the 131st
-   ! vd        algebraic order of accuracy"
-   ! vd       doklady Mathematics, Vol. 59, No. 3, 1999, pp. 477-481.
-   ! vd
-   ! vd   [2] V.I. Lebedev
-   ! vd       "A quadrature formula for the sphere of 59th algebraic
-   ! vd        order of accuracy"
-   ! vd       Russian Acad. Sci. dokl. Math., Vol. 50, 1995, pp. 283-286.
-   ! vd
-   ! vd   [3] V.I. Lebedev, and A.L. Skorokhodov
-   ! vd       "Quadrature formulas of orders 41, 47, and 53 for the sphere"
-   ! vd       Russian Acad. Sci. dokl. Math., Vol. 45, 1992, pp. 587-592.
-   ! vd
-   ! vd   [4] V.I. Lebedev
-   ! vd       "Spherical quadrature formulas exact to orders 25-29"
-   ! vd       Siberian Mathematical Journal, Vol. 18, 1977, pp. 99-107.
-   ! vd
-   ! vd   [5] V.I. Lebedev
-   ! vd       "Quadratures on a sphere"
-   ! vd       Computational Mathematics and Mathematical Physics, Vol. 16,
-   ! vd       1976, pp. 10-24.
-   ! vd
-   ! vd   [6] V.I. Lebedev
-   ! vd       "Values of the nodes and weights of ninth to seventeenth
-   ! vd        order Gauss-Markov quadrature formulae invariant under the
-   ! vd        octahedron group with inversion"
-   ! vd       Computational Mathematics and Mathematical Physics, Vol. 15,
-   ! vd       1975, pp. 44-51.
-   ! vd
-*/
-__device__ static inline void LD0194(QUICKDouble* x, QUICKDouble* y, QUICKDouble* z, QUICKDouble* w, int N)
-{
-    N = gen_oh(1, 0, x, y, z, w, 0.0, 0.0, 0.1782340447244611e-2);
-    N = gen_oh(2, N, x, y, z, w, 0.0, 0.0, 0.5716905949977102e-2);
-    N = gen_oh(3, N, x, y, z, w, 0.0, 0.0, 0.5573383178848738e-2);
-    N = gen_oh(4, N, x, y, z, w, 0.6712973442695226e+0, 0.0, 0.5608704082587997e-2);
-    N = gen_oh(4, N, x, y, z, w, 0.2892465627575439e+0, 0.0, 0.5158237711805383e-2);
-    N = gen_oh(4, N, x, y, z, w, 0.4446933178717437e+0, 0.0, 0.5518771467273614e-2);
-    N = gen_oh(4, N, x, y, z, w, 0.1299335447650067e+0, 0.0, 0.4106777028169394e-2);
-    N = gen_oh(5, N, x, y, z, w, 0.3457702197611283e+0, 0.0, 0.5051846064614808e-2);
-    gen_oh(6, N, x, y, z, w, 0.1590417105383530e+0, 0.8360360154824589e+0, 0.5530248916233094e-2);
-}
-
-
 #include "gpu_getxc.h"
 #if defined(CEW)
   #include "gpu_cew_quad.h"
@@ -2229,29 +1150,38 @@ __device__ static inline void LD0194(QUICKDouble* x, QUICKDouble* y, QUICKDouble
 #undef OSHELL
 
 
-__global__ void get_pteval_kernel() {
+__global__ void k_get_pteval(uint32_t natom, uint32_t nbasis, int32_t maxcontract, int npoints,
+        QUICKDouble const * const gridx, QUICKDouble const * const gridy, QUICKDouble const * const gridz,
+        QUICKDouble * const phi, QUICKDouble * const dphidx, QUICKDouble * const dphidy, QUICKDouble * const dphidz,
+        unsigned int const * const phi_loc, int const * const basf, int const * const primf,
+        int const * const basf_locator, int const * const primf_locator, int const * const bin_locator,
+        int const * const itype, QUICKDouble const * const aexp, QUICKDouble const * const dcoeff,
+        QUICKDouble const * const xyz, int const * const ncenter)
+{
     unsigned int offset = blockIdx.x * blockDim.x + threadIdx.x;
     int totalThreads = blockDim.x * gridDim.x;
 
-    for (QUICKULL gid = offset; gid < devSim_dft.npoints; gid += totalThreads) {
-        int bin_id = devSim_dft.bin_locator[gid];
-        unsigned int idx = devSim_dft.phi_loc[gid];
+    for (QUICKULL gid = offset; gid < npoints; gid += totalThreads) {
+        int bin_id = bin_locator[gid];
+        unsigned int idx = phi_loc[gid];
 
-        QUICKDouble gridx = devSim_dft.gridx[gid];
-        QUICKDouble gridy = devSim_dft.gridy[gid];
-        QUICKDouble gridz = devSim_dft.gridz[gid];
+        QUICKDouble gridxg = gridx[gid];
+        QUICKDouble gridyg = gridy[gid];
+        QUICKDouble gridzg = gridz[gid];
 
-        for (int i = devSim_dft.basf_locator[bin_id]; i < devSim_dft.basf_locator[bin_id + 1]; i++) {
-            int ibas = (int) devSim_dft.basf[i];
-            QUICKDouble phi, dphidx, dphidy, dphidz;
+        for (int i = basf_locator[bin_id]; i < basf_locator[bin_id + 1]; i++) {
+            int ibas = basf[i];
+            QUICKDouble phii, dphidxi, dphidyi, dphidzi;
 
-            pteval_new(gridx, gridy, gridz, &phi, &dphidx, &dphidy, &dphidz,
-                    devSim_dft.primf, devSim_dft.primf_locator, ibas, i);
+            pteval_new(natom, nbasis, maxcontract,
+                    gridxg, gridyg, gridzg, &phii, &dphidxi, &dphidyi, &dphidzi,
+                    primf, primf_locator, ibas, i,
+                    itype, aexp, dcoeff, xyz, ncenter);
 
-            devSim_dft.phi[idx] = phi;
-            devSim_dft.dphidx[idx] = dphidx;
-            devSim_dft.dphidy[idx] = dphidy;
-            devSim_dft.dphidz[idx] = dphidz;
+            phi[idx] = phii;
+            dphidx[idx] = dphidxi;
+            dphidy[idx] = dphidyi;
+            dphidz[idx] = dphidzi;
             ++idx;
         }
     }
@@ -2259,28 +1189,34 @@ __global__ void get_pteval_kernel() {
 
 
 //device kernel to compute significant grid pts, contracted and primitive functions for octree
-__global__ void get_primf_contraf_lists_kernel(unsigned char * const gpweight,
-        unsigned int * const cfweight, unsigned int * const pfweight) {
+__global__ void k_get_primf_contraf_lists(QUICKDouble const * const sigrad2,
+        uint32_t natom, uint32_t nbasis, int32_t maxcontract, int npoints,
+        QUICKDouble const * const gridx, QUICKDouble const * const gridy, QUICKDouble const * const gridz,
+        int const * const bin_locator, unsigned char * const gpweight, unsigned int * const cfweight,
+        unsigned int * const pfweight, int const * const ncontract,
+        int const * const itype, QUICKDouble const * const aexp, QUICKDouble const * const dcoeff,
+        QUICKDouble const * const xyz, int const * const ncenter, QUICKDouble XCCutoff)
+{
     unsigned int offset = blockIdx.x * blockDim.x + threadIdx.x;
-    int totalThreads = blockDim.x*gridDim.x;
+    int totalThreads = blockDim.x * gridDim.x;
 
-    for (QUICKULL gid = offset; gid < devSim_dft.npoints; gid += totalThreads) {
+    for (QUICKULL gid = offset; gid < npoints; gid += totalThreads) {
         if (gpweight[gid] > 0) {
-            int binIdx = devSim_dft.bin_locator[gid];
+            int binIdx = bin_locator[gid];
 
-            QUICKDouble gridx = devSim_dft.gridx[gid];
-            QUICKDouble gridy = devSim_dft.gridy[gid];
-            QUICKDouble gridz = devSim_dft.gridz[gid];
+            QUICKDouble gridxg = gridx[gid];
+            QUICKDouble gridyg = gridy[gid];
+            QUICKDouble gridzg = gridz[gid];
 
             unsigned int sigcfcount = 0;
 
             // relative coordinates between grid point and basis function I.
-            for (int ibas = 0; ibas < devSim_dft.nbasis; ibas++) {
-                unsigned long cfwid = binIdx * devSim_dft.nbasis + ibas;
+            for (int ibas = 0; ibas < nbasis; ibas++) {
+                unsigned long cfwid = binIdx * nbasis + ibas;
 
-                QUICKDouble x1 = gridx - LOC2(devSim_dft.xyz, 0, devSim_dft.ncenter[ibas] - 1, 3, devSim_dft.natom);
-                QUICKDouble y1 = gridy - LOC2(devSim_dft.xyz, 1, devSim_dft.ncenter[ibas] - 1, 3, devSim_dft.natom);
-                QUICKDouble z1 = gridz - LOC2(devSim_dft.xyz, 2, devSim_dft.ncenter[ibas] - 1, 3, devSim_dft.natom);
+                QUICKDouble x1 = gridxg - LOC2(xyz, 0, ncenter[ibas] - 1, 3, natom);
+                QUICKDouble y1 = gridyg - LOC2(xyz, 1, ncenter[ibas] - 1, 3, natom);
+                QUICKDouble z1 = gridzg - LOC2(xyz, 2, ncenter[ibas] - 1, 3, natom);
                 QUICKDouble dist = x1 * x1 + y1 * y1 + z1 *z1;
 
                 QUICKDouble x1i, y1i, z1i;
@@ -2292,11 +1228,11 @@ __global__ void get_primf_contraf_lists_kernel(unsigned char * const gpweight,
                 QUICKDouble dphidy = 0.0;
                 QUICKDouble dphidz = 0.0;
 
-                int itypex = LOC2(devSim_dft.itype, 0, ibas, 3, devSim_dft.nbasis);
-                int itypey = LOC2(devSim_dft.itype, 1, ibas, 3, devSim_dft.nbasis);
-                int itypez = LOC2(devSim_dft.itype, 2, ibas, 3, devSim_dft.nbasis);
+                int itypex = LOC2(itype, 0, ibas, 3, nbasis);
+                int itypey = LOC2(itype, 1, ibas, 3, nbasis);
+                int itypez = LOC2(itype, 2, ibas, 3, nbasis);
 
-                if (dist <= devSim_dft.sigrad2[ibas]) {
+                if (dist <= sigrad2[ibas]) {
                     if (itypex != 0) {
                         x1imin1 = pow(x1, itypex - 1);
                         x1i = x1imin1 * x1;
@@ -2327,17 +1263,16 @@ __global__ void get_primf_contraf_lists_kernel(unsigned char * const gpweight,
                         z1iplus1 = z1;
                     }
 
-                    for (int kprim = 0; kprim < devSim_dft.ncontract[ibas]; kprim++) {
-                        unsigned long pfwid = binIdx * devSim_dft.nbasis * devSim_dft.maxcontract
-                            + ibas * devSim_dft.maxcontract + kprim;
-                        QUICKDouble aexp = LOC2(devSim_dft.aexp, kprim, ibas, devSim_dft.maxcontract, devSim_dft.nbasis);
+                    for (int kprim = 0; kprim < ncontract[ibas]; kprim++) {
+                        unsigned long pfwid = binIdx * nbasis * maxcontract + ibas * maxcontract + kprim;
+                        QUICKDouble aexpk = LOC2(aexp, kprim, ibas, maxcontract, nbasis);
 
-                        QUICKDouble tmp = LOC2(devSim_dft.dcoeff, kprim, ibas, devSim_dft.maxcontract, devSim_dft.nbasis)
-                            * exp(-aexp * dist);
-                        aexp *= -2.0;
-                        QUICKDouble tmpdx = tmp * (aexp * x1iplus1 + (QUICKDouble) itypex * x1imin1);
-                        QUICKDouble tmpdy = tmp * (aexp * y1iplus1 + (QUICKDouble) itypey * y1imin1);
-                        QUICKDouble tmpdz = tmp * (aexp * z1iplus1 + (QUICKDouble) itypez * z1imin1);
+                        QUICKDouble tmp = LOC2(dcoeff, kprim, ibas, maxcontract, nbasis)
+                            * exp(-aexpk * dist);
+                        aexpk *= -2.0;
+                        QUICKDouble tmpdx = tmp * (aexpk * x1iplus1 + (QUICKDouble) itypex * x1imin1);
+                        QUICKDouble tmpdy = tmp * (aexpk * y1iplus1 + (QUICKDouble) itypey * y1imin1);
+                        QUICKDouble tmpdz = tmp * (aexpk * z1iplus1 + (QUICKDouble) itypez * z1imin1);
 
                         phi += tmp;
                         dphidx += tmpdx;
@@ -2345,7 +1280,7 @@ __global__ void get_primf_contraf_lists_kernel(unsigned char * const gpweight,
                         dphidz += tmpdz;
 
                         //Check the significance of the primitive
-                        if (abs(tmp + tmpdx + tmpdy + tmpdz) > devSim_dft.XCCutoff) {
+                        if (abs(tmp + tmpdx + tmpdy + tmpdz) > XCCutoff) {
                             atomicAdd(&pfweight[pfwid], 1);
                         }
                     }
@@ -2356,7 +1291,7 @@ __global__ void get_primf_contraf_lists_kernel(unsigned char * const gpweight,
                     dphidz *= x1i * y1i;
                 }
 
-                if (abs(phi + dphidx + dphidy + dphidz) > devSim_dft.XCCutoff) {
+                if (abs(phi + dphidx + dphidy + dphidz) > XCCutoff) {
                     atomicAdd(&cfweight[cfwid], 1);
                     sigcfcount++;
                 }
@@ -2370,65 +1305,64 @@ __global__ void get_primf_contraf_lists_kernel(unsigned char * const gpweight,
 }
 
 
-__global__ void get_ssw_kernel() {
+__global__ void k_get_ssw(uint32_t natom, int npoints,
+        QUICKDouble const * const gridx, QUICKDouble const * const gridy, QUICKDouble const * const gridz,
+        QUICKDouble * const sswt, QUICKDouble * const weight, QUICKDouble const * const wtang,
+        QUICKDouble const * const rwt, QUICKDouble const * const rad3, int const * const gatm,
+        QUICKDouble const * const xyz)
+{
     unsigned int offset = blockIdx.x * blockDim.x + threadIdx.x;
     int totalThreads = blockDim.x * gridDim.x;
 
-    for (QUICKULL gid = offset; gid < devSim_dft.npoints; gid += totalThreads) {
-        QUICKDouble gridx = devSim_dft.gridx[gid];
-        QUICKDouble gridy = devSim_dft.gridy[gid];
-        QUICKDouble gridz = devSim_dft.gridz[gid];
-        QUICKDouble wtang = devSim_dft.wtang[gid];
-        QUICKDouble rwt = devSim_dft.rwt[gid];
-        QUICKDouble rad3 = devSim_dft.rad3[gid];
-        int gatm = devSim_dft.gatm[gid];
-
-        QUICKDouble sswt = SSW(gridx, gridy, gridz, devSim_dft.xyz, gatm);
-        QUICKDouble weight = sswt * wtang * rwt * rad3;
-
-        devSim_dft.sswt[gid] = sswt;
-        devSim_dft.weight[gid] = weight;
+    for (QUICKULL gid = offset; gid < npoints; gid += totalThreads) {
+        sswt[gid] = SSW(natom, gridx[gid], gridy[gid], gridz[gid], xyz, gatm[gid]);
+        weight[gid] = sswt[gid] * wtang[gid] * rwt[gid] * rad3[gid];
     }
 }
 
 
-__global__ void get_sswgrad_kernel() {
+__global__ void k_get_ssw_grad(uint32_t natom, int npoints_ssd,
+        QUICKDouble const * const gridx_ssd, QUICKDouble const * const gridy_ssd, QUICKDouble const * const gridz_ssd,
+        QUICKDouble const * const quadwt, QUICKDouble * const uw_ssd, QUICKDouble const * const exc_ssd,
+        int const * const gatm_ssd, QUICKDouble const * const xyz, QUICKDouble DMCutoff,
+#if defined(USE_LEGACY_ATOMICS)
+        QUICKULL * const gradULL
+#else
+        QUICKDouble * const grad
+#endif
+        )
+{
     unsigned int offset = blockIdx.x * blockDim.x + threadIdx.x;
     int totalThreads = blockDim.x * gridDim.x;
 #if defined(USE_LEGACY_ATOMICS)
     extern __shared__ QUICKULL smem_buffer[];
     QUICKULL* smemGrad = (QUICKULL*) smem_buffer;
 
-    for (int i = threadIdx.x; i < devSim_dft.natom * 3; i += blockDim.x) {
+    for (int i = threadIdx.x; i < natom * 3; i += blockDim.x) {
       smemGrad[i] = 0ull;
     }
 #else
     extern __shared__ QUICKDouble smem_buffer[];
-    QUICKDouble* smemGrad = (QUICKDouble*) smem_buffer;
+    QUICKDouble *smemGrad = (QUICKDouble *) smem_buffer;
 
-    for (int i = threadIdx.x; i < devSim_dft.natom * 3; i += blockDim.x) {
+    for (int i = threadIdx.x; i < natom * 3; i += blockDim.x) {
         smemGrad[i] = 0.0;
     }
 #endif
     __syncthreads();
 
-    for (QUICKULL gid = offset; gid < devSim_dft.npoints_ssd; gid += totalThreads) {
-        QUICKDouble gridx = devSim_dft.gridx_ssd[gid];
-        QUICKDouble gridy = devSim_dft.gridy_ssd[gid];
-        QUICKDouble gridz = devSim_dft.gridz_ssd[gid];
-        QUICKDouble exc = devSim_dft.exc_ssd[gid];
-        QUICKDouble quadwt = devSim_dft.quadwt[gid];
-        int gatm = devSim_dft.gatm_ssd[gid];
-
-        sswanader(gridx, gridy, gridz, exc, quadwt, smemGrad, devSim_dft.uw_ssd + offset, gatm, devSim_dft.natom);
+    for (QUICKULL gid = offset; gid < npoints_ssd; gid += totalThreads) {
+        sswanader(gridx_ssd[gid], gridy_ssd[gid], gridz_ssd[gid], exc_ssd[gid], xyz,
+                quadwt[gid], smemGrad, &uw_ssd[offset], gatm_ssd[gid], natom,
+                DMCutoff);
     }
     __syncthreads();
 
-    for (int i = threadIdx.x; i < devSim_dft.natom * 3; i += blockDim.x) {
+    for (int i = threadIdx.x; i < natom * 3; i += blockDim.x) {
 #if defined(USE_LEGACY_ATOMICS)
-        atomicAdd(&devSim_dft.gradULL[i], smemGrad[i]);
+        atomicAdd(&gradULL[i], smemGrad[i]);
 #else
-        atomicAdd(&devSim_dft.grad[i], smemGrad[i]);
+        atomicAdd(&grad[i], smemGrad[i]);
 #endif
     }
 
@@ -2441,163 +1375,164 @@ __global__ void get_sswgrad_kernel() {
    Note: this can be futher speed up by using npoints*natom*3 # of threads and
    computing x, y and z gradients separately.
 */
-__global__ void get_sswnumgrad_kernel() {
-    unsigned int offset = blockIdx.x * blockDim.x + threadIdx.x;
-    unsigned int totalThreads = blockDim.x * gridDim.x;
-    unsigned int natom = devSim_dft.natom;
-    QUICKULL npoints_ssd = devSim_dft.npoints_ssd;
-#if defined(USE_LEGACY_ATOMICS)
-    //declare smem grad vector
-    extern __shared__ QUICKULL smem_buffer[];
-    QUICKULL* smemGrad = (QUICKULL*) smem_buffer;
+//__global__ void k_get_ssw_numgrad(uint32_t natom, int npoints_ssd,
+//        QUICKDouble const * const gridx_ssd, QUICKDouble const * const gridy_ssd, QUICKDouble const * const gridz_ssd,
+//        QUICKDouble const * const quadwt, QUICKDouble const * const exc_ssd, int const * const gatm_ssd,
+//        QUICKDouble const * const xyz, QUICKDouble * const distance,
+//#if defined(USE_LEGACY_ATOMICS)
+//        QUICKULL * const gradULL
+//#else
+//        QUICKDouble * const grad
+//#endif
+//        )
+//{
+//    unsigned int offset = blockIdx.x * blockDim.x + threadIdx.x;
+//    unsigned int totalThreads = blockDim.x * gridDim.x;
+//#if defined(USE_LEGACY_ATOMICS)
+//    //declare smem grad vector
+//    extern __shared__ QUICKULL smem_buffer[];
+//    QUICKULL* smemGrad = (QUICKULL*) smem_buffer;
+//
+//    // initialize smem grad
+//    for (int i = threadIdx.x; i < natom * 3; i += blockDim.x) {
+//        smemGrad[i] = 0ull;
+//    }
+//#else
+//    extern __shared__ QUICKDouble smem_buffer[];
+//    QUICKDouble* smemGrad = (QUICKDouble*) smem_buffer;
+//
+//    for (int i = threadIdx.x; i < natom * 3; i += blockDim.x) {
+//        smemGrad[i] = 0.0;
+//    }
+//#endif
+//
+//    __syncthreads();
+//
+//    for (QUICKULL gid = offset; gid < npoints_ssd * natom; gid += totalThreads) {
+//        unsigned int iatom = (unsigned int) gid / npoints_ssd;
+//        QUICKULL idx = gid - iatom * npoints_ssd;
+//
+//        QUICKDouble gridx = gridx_ssd[idx];
+//        QUICKDouble gridy = gridy_ssd[idx];
+//        QUICKDouble gridz = gridz_ssd[idx];
+//        QUICKDouble gradfac = RECIP_SSW_NUMGRAD_DELTA2 * exc_ssd[idx] * quadwt[idx];
+//        int gatm = gatm_ssd[idx];
+//
+//        QUICKDouble xparent = LOC2(xyz, 0, gatm - 1, 3, natom);
+//        QUICKDouble yparent = LOC2(xyz, 1, gatm - 1, 3, natom);
+//        QUICKDouble zparent = LOC2(xyz, 2, gatm - 1, 3, natom);
+//        QUICKDouble tx = gridx - xparent;
+//        QUICKDouble ty = gridy - yparent;
+//        QUICKDouble tz = gridz - zparent;
+//
+//        // compute x gradient
+//        QUICKDouble xatm = LOC2(xyz, 0, iatom, 3, natom);
+//        QUICKDouble yatm = LOC2(xyz, 1, iatom, 3, natom);
+//        QUICKDouble zatm = LOC2(xyz, 2, iatom, 3, natom);
+//
+//        xatm += SSW_NUMGRAD_DELTA;
+//
+//        if (iatom == gatm - 1) {
+//            xparent = xatm;
+//        }
+//
+//        QUICKDouble sswt1 = SSW(xparent + tx, yparent + ty, zparent + tz, xyz,
+//                distance, xparent, yparent, zparent, xatm, yatm, zatm, iatom, gatm, natom);
+//
+//        xatm -= SSW_NUMGRAD_DELTA2;
+//
+//        if (iatom == gatm - 1) {
+//            xparent = xatm;
+//        }
+//
+//        QUICKDouble sswt2 = SSW(xparent + tx, yparent + ty, zparent + tz, xyz,
+//                distance, xparent, yparent, zparent, xatm, yatm, zatm, iatom, gatm, natom);
+//
+//        QUICKDouble dpx = (sswt1 - sswt2) * gradfac;
+//
+//        xatm += SSW_NUMGRAD_DELTA;
+//
+//        if (iatom == gatm - 1) {
+//            xparent = xatm;
+//        }
+//
+//        // compute y gradient
+//        yatm += SSW_NUMGRAD_DELTA;
+//
+//        if (iatom == gatm - 1) {
+//            yparent = yatm;
+//        }
+//
+//        sswt1 = SSW(xparent + tx, yparent + ty, zparent + tz, xyz,
+//                distance, xparent, yparent, zparent, xatm, yatm, zatm, iatom, gatm, natom);
+//
+//        yatm -= SSW_NUMGRAD_DELTA2;
+//
+//        if (iatom == gatm - 1) {
+//            yparent = yatm;
+//        }
+//
+//        sswt2 = SSW(xparent + tx, yparent + ty, zparent + tz, xyz,
+//                distance, xparent, yparent, zparent, xatm, yatm, zatm, iatom, gatm, natom);
+//
+//        QUICKDouble dpy = (sswt1 - sswt2) * gradfac;
+//
+//        yatm += SSW_NUMGRAD_DELTA;
+//
+//        if (iatom == gatm - 1) {
+//            yparent = yatm;
+//        }
+//
+//        // compute z gradient
+//        zatm += SSW_NUMGRAD_DELTA;
+//
+//        if (iatom == gatm - 1) {
+//            zparent = zatm;
+//        }
+//
+//        sswt1 = SSW(xparent + tx, yparent + ty, zparent + tz, xyz,
+//                distance, xparent, yparent, zparent, xatm, yatm, zatm, iatom, gatm, natom);
+//
+//        zatm -= SSW_NUMGRAD_DELTA2;
+//
+//        if (iatom == gatm - 1) {
+//            zparent = zatm;
+//        }
+//
+//        sswt2 = SSW(xparent + tx, yparent + ty, zparent + tz, xyz,
+//                distance, xparent, yparent, zparent, xatm, yatm, zatm, iatom, gatm, natom);
+//
+//        QUICKDouble dpz = (sswt1 -sswt2) * gradfac;
+//
+//        zatm += SSW_NUMGRAD_DELTA;
+//
+//        if (iatom == gatm - 1) {
+//            zparent = zatm;
+//        }
+//
+//        GPUATOMICADD(&smemGrad[iatom * 3], dpx, GRADSCALE);
+//        GPUATOMICADD(&smemGrad[iatom * 3 + 1], dpy, GRADSCALE);
+//        GPUATOMICADD(&smemGrad[iatom * 3 + 2], dpz, GRADSCALE);
+//    }
+//
+//    __syncthreads();
+//
+//    // update gmem grad vector
+//    for (int i = threadIdx.x; i < natom * 3; i += blockDim.x)
+//#if defined(USE_LEGACY_ATOMICS)
+//        atomicAdd(&gradULL[i], smemGrad[i]);
+//#else
+//        atomicAdd(&grad[i], smemGrad[i]);
+//#endif
+//
+//    __syncthreads();
+//
+//}
 
-    // initialize smem grad
-    for (int i = threadIdx.x; i < natom * 3; i += blockDim.x) {
-        smemGrad[i] = 0ull;
-    }
-#else
-    extern __shared__ QUICKDouble smem_buffer[];
-    QUICKDouble* smemGrad = (QUICKDouble*) smem_buffer;
-
-    for (int i = threadIdx.x; i < natom * 3; i += blockDim.x) {
-        smemGrad[i] = 0.0;
-    }
-#endif
-
-    __syncthreads();
-
-    for (QUICKULL gid = offset; gid < npoints_ssd * natom; gid += totalThreads) {
-        unsigned int iatom = (unsigned int) gid / npoints_ssd;
-        QUICKULL idx = gid - iatom * npoints_ssd;
-
-        QUICKDouble gridx = devSim_dft.gridx_ssd[idx];
-        QUICKDouble gridy = devSim_dft.gridy_ssd[idx];
-        QUICKDouble gridz = devSim_dft.gridz_ssd[idx];
-        QUICKDouble gradfac = RECIP_SSW_NUMGRAD_DELTA2 * devSim_dft.exc_ssd[idx] * devSim_dft.quadwt[idx];
-        int gatm = devSim_dft.gatm_ssd[idx];
-
-//        QUICKDouble *tmpxyz = devSim_dft.xyz_ssd + 3 * devSim_dft.natom*offset;
-
-        QUICKDouble xparent = LOC2(devSim_dft.xyz, 0, gatm - 1, 3, natom);
-        QUICKDouble yparent = LOC2(devSim_dft.xyz, 1, gatm - 1, 3, natom);
-        QUICKDouble zparent = LOC2(devSim_dft.xyz, 2, gatm - 1, 3, natom);
-        QUICKDouble tx = gridx - xparent;
-        QUICKDouble ty = gridy - yparent;
-        QUICKDouble tz = gridz - zparent;
-
-        //for (int i = 0; i<devSim_dft.natom; i++) {
-
-        // compute x gradient
-        QUICKDouble xatm = LOC2(devSim_dft.xyz, 0, iatom, 3, natom);
-        QUICKDouble yatm = LOC2(devSim_dft.xyz, 1, iatom, 3, natom);
-        QUICKDouble zatm = LOC2(devSim_dft.xyz, 2, iatom, 3, natom);
-
-        xatm += SSW_NUMGRAD_DELTA;
-
-        if (iatom == gatm - 1) {
-            xparent = xatm;
-        }
-
-        QUICKDouble sswt1 = SSW(xparent + tx, yparent + ty, zparent + tz, devSim_dft.xyz,
-                xparent, yparent, zparent, xatm, yatm, zatm, iatom, gatm, natom);
-
-        xatm -= SSW_NUMGRAD_DELTA2;
-
-        if (iatom == gatm - 1) {
-            xparent = xatm;
-        }
-
-        QUICKDouble sswt2 = SSW(xparent + tx, yparent + ty, zparent + tz, devSim_dft.xyz,
-                xparent, yparent, zparent, xatm, yatm, zatm, iatom, gatm, natom);
-
-        QUICKDouble dpx = (sswt1 - sswt2) * gradfac;
-
-        xatm += SSW_NUMGRAD_DELTA;
-
-        if (iatom == gatm - 1)
-        {
-            xparent = xatm;
-        }
-
-        // compute y gradient
-        yatm += SSW_NUMGRAD_DELTA;
-
-        if (iatom == gatm - 1) {
-            yparent = yatm;
-        }
-
-        sswt1 = SSW(xparent + tx, yparent + ty, zparent + tz, devSim_dft.xyz,
-                xparent, yparent, zparent, xatm, yatm, zatm, iatom, gatm, natom);
-
-        yatm -= SSW_NUMGRAD_DELTA2;
-
-        if (iatom == gatm - 1) {
-            yparent = yatm;
-        }
-
-        sswt2 = SSW(xparent + tx, yparent + ty, zparent + tz, devSim_dft.xyz,
-                xparent, yparent, zparent, xatm, yatm, zatm, iatom, gatm, natom);
-
-        QUICKDouble dpy = (sswt1 - sswt2) * gradfac;
-
-        yatm += SSW_NUMGRAD_DELTA;
-
-        if (iatom == gatm - 1) {
-            yparent = yatm;
-        }
-
-        // compute z gradient
-        zatm += SSW_NUMGRAD_DELTA;
-
-        if(iatom == gatm-1) zparent = zatm;
-
-        sswt1 = SSW(xparent + tx, yparent + ty, zparent + tz, devSim_dft.xyz,
-                xparent, yparent, zparent, xatm, yatm, zatm, iatom, gatm, natom);
-
-        zatm -= SSW_NUMGRAD_DELTA2;
-
-        if(iatom == gatm-1) zparent = zatm;
-
-        sswt2 = SSW(xparent + tx, yparent + ty, zparent + tz, devSim_dft.xyz,
-                xparent, yparent, zparent, xatm, yatm, zatm, iatom, gatm, natom);
-
-        QUICKDouble dpz = (sswt1-sswt2) * gradfac;
-
-        zatm += SSW_NUMGRAD_DELTA;
-
-        if(iatom == gatm-1) zparent = zatm;
-
-        GPUATOMICADD(&smemGrad[iatom * 3], dpx, GRADSCALE);
-        GPUATOMICADD(&smemGrad[iatom * 3 + 1], dpy, GRADSCALE);
-        GPUATOMICADD(&smemGrad[iatom * 3 + 2], dpz, GRADSCALE);
-        /*
-           printf("sswgrad  %f %f %f %d %d %f %f %f \n", gridx, gridy, gridz, iatom, 1, dpx, devSim_dft.exc_ssd[idx], devSim_dft.quadwt[idx]);
-
-           printf("sswgrad  %f %f %f %d %d %f %f %f \n", gridx, gridy, gridz, iatom, 2, dpy, devSim_dft.exc_ssd[idx], devSim_dft.quadwt[idx]);
-
-           printf("sswgrad  %f %f %f %d %d %f %f %f \n", gridx, gridy, gridz, iatom, 3, dpz, devSim_dft.exc_ssd[idx], devSim_dft.quadwt[idx]);
-           */
-        //}
-
-
-    }
-
-    __syncthreads();
-
-    // update gmem grad vector
-    for (int i = threadIdx.x; i< natom * 3; i += blockDim.x)
-#if defined(USE_LEGACY_ATOMICS)
-        atomicAdd(&devSim_dft.gradULL[i], smemGrad[i]);
-#else
-        atomicAdd(&devSim_dft.grad[i], smemGrad[i]);
-#endif
-
-    __syncthreads();
-
-}
 
 #if defined(CEW)
-static void get_cew_accdens(_gpu_type gpu) {
+static void get_cew_accdens(_gpu_type gpu)
+{
     QUICKDouble *gridpt = new QUICKDouble[3];
     QUICKDouble *cewGrad= new QUICKDouble[3];
 
@@ -2650,21 +1585,17 @@ static void get_cew_accdens(_gpu_type gpu) {
 #endif
 
 
-/*
-   upload gpu simulation type to constant memory
-*/
-void upload_sim_to_constant_dft(_gpu_type gpu) {
-    gpuMemcpyToSymbol((const void *) &devSim_dft, (const void *) &gpu->gpu_sim, sizeof(gpu_simulation_type));
-}
-
-
 void get_ssw(_gpu_type gpu) {
 #if defined(DEBUG)
     GPU_TIMER_CREATE();
     GPU_TIMER_START();
 #endif
 
-    QUICK_SAFE_CALL((get_ssw_kernel <<<gpu->blocks, gpu->xc_threadsPerBlock>>> ()));
+    QUICK_SAFE_CALL((k_get_ssw <<<gpu->blocks, gpu->xc_threadsPerBlock>>>
+                (gpu->gpu_sim.natom, gpu->gpu_sim.npoints,
+                 gpu->gpu_sim.gridx, gpu->gpu_sim.gridy, gpu->gpu_sim.gridz,
+                 gpu->gpu_sim.sswt, gpu->gpu_sim.weight, gpu->gpu_sim.wtang,
+                 gpu->gpu_sim.rwt, gpu->gpu_sim.rad3, gpu->gpu_sim.gatm, gpu->gpu_sim.xyz)));
 
 #if defined(DEBUG)
     GPU_TIMER_STOP();
@@ -2682,8 +1613,12 @@ void get_primf_contraf_lists(_gpu_type gpu, unsigned char *gpweight,
     GPU_TIMER_START();
 #endif
 
-    QUICK_SAFE_CALL((get_primf_contraf_lists_kernel <<<gpu->blocks, gpu->xc_threadsPerBlock>>>
-                (gpweight, cfweight, pfweight)));
+    QUICK_SAFE_CALL((k_get_primf_contraf_lists <<<gpu->blocks, gpu->xc_threadsPerBlock>>>
+                (gpu->gpu_sim.sigrad2, gpu->gpu_sim.natom, gpu->gpu_sim.nbasis, gpu->gpu_sim.maxcontract, gpu->gpu_sim.npoints,
+                 gpu->gpu_sim.gridx, gpu->gpu_sim.gridy, gpu->gpu_sim.gridz,
+                 gpu->gpu_sim.bin_locator, gpweight, cfweight, pfweight,
+                 gpu->gpu_sim.ncontract, gpu->gpu_sim.itype, gpu->gpu_sim.aexp, gpu->gpu_sim.dcoeff,
+                 gpu->gpu_sim.xyz, gpu->gpu_sim.ncenter, gpu->gpu_sim.XCCutoff)));
 
 #if defined(DEBUG)
     GPU_TIMER_STOP();
@@ -2695,7 +1630,14 @@ void get_primf_contraf_lists(_gpu_type gpu, unsigned char *gpweight,
 
 
 void getpteval(_gpu_type gpu) {
-    QUICK_SAFE_CALL((get_pteval_kernel <<<gpu->blocks, gpu->xc_threadsPerBlock>>> ()));
+    QUICK_SAFE_CALL((k_get_pteval <<<gpu->blocks, gpu->xc_threadsPerBlock>>>
+                (gpu->gpu_sim.natom, gpu->gpu_sim.nbasis, gpu->gpu_sim.maxcontract, gpu->gpu_sim.npoints,
+                 gpu->gpu_sim.gridx, gpu->gpu_sim.gridy, gpu->gpu_sim.gridz,
+                 gpu->gpu_sim.phi, gpu->gpu_sim.dphidx, gpu->gpu_sim.dphidy, gpu->gpu_sim.dphidz,
+                 gpu->gpu_sim.phi_loc, gpu->gpu_sim.basf, gpu->gpu_sim.primf,
+                 gpu->gpu_sim.basf_locator, gpu->gpu_sim.primf_locator, gpu->gpu_sim.bin_locator,
+                 gpu->gpu_sim.itype, gpu->gpu_sim.aexp, gpu->gpu_sim.dcoeff,
+                 gpu->gpu_sim.xyz, gpu->gpu_sim.ncenter)));
 }
 
 
@@ -2706,11 +1648,62 @@ void getxc(_gpu_type gpu) {
 #endif
 
     if (gpu->gpu_sim.is_oshell == true) {
-        QUICK_SAFE_CALL((get_oshell_density_kernel <<<gpu->blocks, gpu->xc_threadsPerBlock>>> ()));
-        QUICK_SAFE_CALL((oshell_getxc_kernel <<<gpu->blocks, gpu->xc_threadsPerBlock>>> ()));
+        QUICK_SAFE_CALL((k_get_density_oshell <<<gpu->blocks, gpu->xc_threadsPerBlock>>>
+                    (gpu->gpu_sim.natom, gpu->gpu_sim.nbasis, gpu->gpu_sim.npoints, gpu->gpu_sim.maxcontract,
+                     gpu->gpu_sim.gridx, gpu->gpu_sim.gridy, gpu->gpu_sim.gridz,
+                     gpu->gpu_sim.densa, gpu->gpu_sim.densb,
+                     gpu->gpu_sim.gax, gpu->gpu_sim.gbx, gpu->gpu_sim.gay, gpu->gpu_sim.gby,
+                     gpu->gpu_sim.gaz, gpu->gpu_sim.gbz,
+                     gpu->gpu_sim.basf, gpu->gpu_sim.primf, gpu->gpu_sim.basf_locator,
+                     gpu->gpu_sim.primf_locator, gpu->gpu_sim.bin_locator,
+                     gpu->gpu_sim.itype, gpu->gpu_sim.aexp, gpu->gpu_sim.dcoeff, gpu->gpu_sim.xyz,
+                     gpu->gpu_sim.ncenter, gpu->gpu_sim.dense, gpu->gpu_sim.denseb, gpu->gpu_sim.XCCutoff)));
+        QUICK_SAFE_CALL((k_getxc_oshell <<<gpu->blocks, gpu->xc_threadsPerBlock>>>
+                    (gpu->gpu_sim.method, gpu->gpu_sim.DFT_calculated, gpu->gpu_sim.natom,
+                     gpu->gpu_sim.nbasis, gpu->gpu_sim.npoints, gpu->gpu_sim.maxcontract,
+                     gpu->gpu_sim.gridx, gpu->gpu_sim.gridy, gpu->gpu_sim.gridz,
+                     gpu->gpu_sim.weight, gpu->gpu_sim.densa, gpu->gpu_sim.densb,
+                     gpu->gpu_sim.gax, gpu->gpu_sim.gbx, gpu->gpu_sim.gay, gpu->gpu_sim.gby,
+                     gpu->gpu_sim.gaz, gpu->gpu_sim.gbz,
+                     gpu->gpu_sim.basf, gpu->gpu_sim.primf, gpu->gpu_sim.basf_locator,
+                     gpu->gpu_sim.primf_locator, gpu->gpu_sim.bin_locator,
+                     gpu->gpu_sim.itype, gpu->gpu_sim.aexp, gpu->gpu_sim.dcoeff, gpu->gpu_sim.xyz,
+                     gpu->gpu_sim.ncenter, gpu->gpu_sim.glinfo, gpu->gpu_sim.nauxfunc, 
+#if defined(USE_LEGACY_ATOMICS)
+                     gpu->gpu_sim.oULL, gpu->gpu_sim.obULL,
+#else
+                     gpu->gpu_sim.o, gpu->gpu_sim.ob,
+#endif
+                     gpu->gpu_sim.dense, gpu->gpu_sim.denseb,
+                     gpu->gpu_sim.DMCutoff, gpu->gpu_sim.XCCutoff)));
     } else {
-        QUICK_SAFE_CALL((get_cshell_density_kernel <<<gpu->blocks, gpu->xc_threadsPerBlock>>> ()));
-        QUICK_SAFE_CALL((cshell_getxc_kernel <<<gpu->blocks, gpu->xc_threadsPerBlock>>> ()));
+        QUICK_SAFE_CALL((k_get_density_cshell <<<gpu->blocks, gpu->xc_threadsPerBlock>>>
+                    (gpu->gpu_sim.natom, gpu->gpu_sim.nbasis, gpu->gpu_sim.npoints, gpu->gpu_sim.maxcontract,
+                     gpu->gpu_sim.gridx, gpu->gpu_sim.gridy, gpu->gpu_sim.gridz,
+                     gpu->gpu_sim.densa, gpu->gpu_sim.densb,
+                     gpu->gpu_sim.gax, gpu->gpu_sim.gbx, gpu->gpu_sim.gay, gpu->gpu_sim.gby,
+                     gpu->gpu_sim.gaz, gpu->gpu_sim.gbz,
+                     gpu->gpu_sim.basf, gpu->gpu_sim.primf, gpu->gpu_sim.basf_locator,
+                     gpu->gpu_sim.primf_locator, gpu->gpu_sim.bin_locator,
+                     gpu->gpu_sim.itype, gpu->gpu_sim.aexp, gpu->gpu_sim.dcoeff, gpu->gpu_sim.xyz,
+                     gpu->gpu_sim.ncenter, gpu->gpu_sim.dense, gpu->gpu_sim.XCCutoff)));
+        QUICK_SAFE_CALL((k_getxc_cshell <<<gpu->blocks, gpu->xc_threadsPerBlock>>>
+                    (gpu->gpu_sim.method, gpu->gpu_sim.DFT_calculated, gpu->gpu_sim.natom,
+                     gpu->gpu_sim.nbasis, gpu->gpu_sim.npoints, gpu->gpu_sim.maxcontract,
+                     gpu->gpu_sim.gridx, gpu->gpu_sim.gridy, gpu->gpu_sim.gridz,
+                     gpu->gpu_sim.weight, gpu->gpu_sim.densa, gpu->gpu_sim.densb,
+                     gpu->gpu_sim.gax, gpu->gpu_sim.gbx, gpu->gpu_sim.gay, gpu->gpu_sim.gby,
+                     gpu->gpu_sim.gaz, gpu->gpu_sim.gbz,
+                     gpu->gpu_sim.basf, gpu->gpu_sim.primf, gpu->gpu_sim.basf_locator,
+                     gpu->gpu_sim.primf_locator, gpu->gpu_sim.bin_locator,
+                     gpu->gpu_sim.itype, gpu->gpu_sim.aexp, gpu->gpu_sim.dcoeff, gpu->gpu_sim.xyz,
+                     gpu->gpu_sim.ncenter, gpu->gpu_sim.glinfo, gpu->gpu_sim.nauxfunc, 
+#if defined(USE_LEGACY_ATOMICS)
+                     gpu->gpu_sim.oULL,
+#else
+                     gpu->gpu_sim.o,
+#endif
+                     gpu->gpu_sim.dense, gpu->gpu_sim.DMCutoff, gpu->gpu_sim.XCCutoff)));
     }
 
 #if defined(DEBUG)
@@ -2731,11 +1724,62 @@ void getxc_grad(_gpu_type gpu) {
 #endif
 
     if (gpu->gpu_sim.is_oshell == true) {
-        QUICK_SAFE_CALL((get_oshell_density_kernel <<<gpu->blocks, gpu->xc_threadsPerBlock>>> ()));
-        QUICK_SAFE_CALL((oshell_getxcgrad_kernel <<<gpu->blocks, gpu->xc_threadsPerBlock, gpu->gpu_xcq->smem_size>>> ()));
+        QUICK_SAFE_CALL((k_get_density_oshell <<<gpu->blocks, gpu->xc_threadsPerBlock>>>
+                    (gpu->gpu_sim.natom, gpu->gpu_sim.nbasis, gpu->gpu_sim.npoints, gpu->gpu_sim.maxcontract,
+                     gpu->gpu_sim.gridx, gpu->gpu_sim.gridy, gpu->gpu_sim.gridz,
+                     gpu->gpu_sim.densa, gpu->gpu_sim.densb,
+                     gpu->gpu_sim.gax, gpu->gpu_sim.gbx, gpu->gpu_sim.gay, gpu->gpu_sim.gby,
+                     gpu->gpu_sim.gaz, gpu->gpu_sim.gbz,
+                     gpu->gpu_sim.basf, gpu->gpu_sim.primf, gpu->gpu_sim.basf_locator,
+                     gpu->gpu_sim.primf_locator, gpu->gpu_sim.bin_locator,
+                     gpu->gpu_sim.itype, gpu->gpu_sim.aexp, gpu->gpu_sim.dcoeff, gpu->gpu_sim.xyz,
+                     gpu->gpu_sim.ncenter, gpu->gpu_sim.dense, gpu->gpu_sim.denseb, gpu->gpu_sim.XCCutoff)));
+        QUICK_SAFE_CALL((k_getxc_grad_oshell <<<gpu->blocks, gpu->xc_threadsPerBlock, gpu->gpu_xcq->smem_size>>>
+                    (gpu->gpu_sim.method, gpu->gpu_sim.natom, gpu->gpu_sim.nbasis, gpu->gpu_sim.npoints, gpu->gpu_sim.maxcontract,
+                     gpu->gpu_sim.gridx, gpu->gpu_sim.gridy, gpu->gpu_sim.gridz,
+                     gpu->gpu_sim.sswt, gpu->gpu_sim.weight, gpu->gpu_sim.densa, gpu->gpu_sim.densb,
+                     gpu->gpu_sim.gax, gpu->gpu_sim.gbx, gpu->gpu_sim.gay, gpu->gpu_sim.gby, gpu->gpu_sim.gaz, gpu->gpu_sim.gbz,
+                     gpu->gpu_sim.exc, gpu->gpu_sim.gatm, gpu->gpu_sim.dweight_ssd,
+                     gpu->gpu_sim.basf, gpu->gpu_sim.primf, gpu->gpu_sim.basf_locator,
+                     gpu->gpu_sim.primf_locator, gpu->gpu_sim.bin_locator,
+                     gpu->gpu_sim.glinfo, gpu->gpu_sim.nauxfunc, gpu->gpu_sim.ncenter,
+                     gpu->gpu_sim.itype, gpu->gpu_sim.aexp, gpu->gpu_sim.dcoeff,
+                     gpu->gpu_sim.xyz, gpu->gpu_sim.dense, gpu->gpu_sim.denseb,
+                     gpu->gpu_sim.DMCutoff, gpu->gpu_sim.XCCutoff,
+#if defined(USE_LEGACY_ATOMICS)
+                     gpu->gpu_sim.gradULL,
+#else
+                     gpu->gpu_sim.grad,
+#endif
+                     gpu->gpu_sim.cew_vrecip, gpu->gpu_sim.use_cew)));
     } else {
-        QUICK_SAFE_CALL((get_cshell_density_kernel <<<gpu->blocks, gpu->xc_threadsPerBlock>>> ()));
-        QUICK_SAFE_CALL((cshell_getxcgrad_kernel <<<gpu->blocks, gpu->xc_threadsPerBlock, gpu->gpu_xcq->smem_size>>> ()));
+        QUICK_SAFE_CALL((k_get_density_cshell <<<gpu->blocks, gpu->xc_threadsPerBlock>>>
+                    (gpu->gpu_sim.natom, gpu->gpu_sim.nbasis, gpu->gpu_sim.npoints, gpu->gpu_sim.maxcontract,
+                     gpu->gpu_sim.gridx, gpu->gpu_sim.gridy, gpu->gpu_sim.gridz,
+                     gpu->gpu_sim.densa, gpu->gpu_sim.densb,
+                     gpu->gpu_sim.gax, gpu->gpu_sim.gbx, gpu->gpu_sim.gay, gpu->gpu_sim.gby,
+                     gpu->gpu_sim.gaz, gpu->gpu_sim.gbz,
+                     gpu->gpu_sim.basf, gpu->gpu_sim.primf, gpu->gpu_sim.basf_locator,
+                     gpu->gpu_sim.primf_locator, gpu->gpu_sim.bin_locator,
+                     gpu->gpu_sim.itype, gpu->gpu_sim.aexp, gpu->gpu_sim.dcoeff, gpu->gpu_sim.xyz,
+                     gpu->gpu_sim.ncenter, gpu->gpu_sim.dense, gpu->gpu_sim.XCCutoff)));
+        QUICK_SAFE_CALL((k_getxc_grad_cshell <<<gpu->blocks, gpu->xc_threadsPerBlock, gpu->gpu_xcq->smem_size>>>
+                    (gpu->gpu_sim.method, gpu->gpu_sim.natom, gpu->gpu_sim.nbasis, gpu->gpu_sim.npoints, gpu->gpu_sim.maxcontract,
+                     gpu->gpu_sim.gridx, gpu->gpu_sim.gridy, gpu->gpu_sim.gridz,
+                     gpu->gpu_sim.sswt, gpu->gpu_sim.weight, gpu->gpu_sim.densa, gpu->gpu_sim.densb,
+                     gpu->gpu_sim.gax, gpu->gpu_sim.gbx, gpu->gpu_sim.gay, gpu->gpu_sim.gby, gpu->gpu_sim.gaz, gpu->gpu_sim.gbz,
+                     gpu->gpu_sim.exc, gpu->gpu_sim.gatm, gpu->gpu_sim.dweight_ssd,
+                     gpu->gpu_sim.basf, gpu->gpu_sim.primf, gpu->gpu_sim.basf_locator,
+                     gpu->gpu_sim.primf_locator, gpu->gpu_sim.bin_locator,
+                     gpu->gpu_sim.glinfo, gpu->gpu_sim.nauxfunc, gpu->gpu_sim.ncenter,
+                     gpu->gpu_sim.itype, gpu->gpu_sim.aexp, gpu->gpu_sim.dcoeff,
+                     gpu->gpu_sim.xyz, gpu->gpu_sim.dense, gpu->gpu_sim.DMCutoff, gpu->gpu_sim.XCCutoff,
+#if defined(USE_LEGACY_ATOMICS)
+                     gpu->gpu_sim.gradULL,
+#else
+                     gpu->gpu_sim.grad,
+#endif
+                     gpu->gpu_sim.cew_vrecip, gpu->gpu_sim.use_cew)));
     }
 
 #if defined(CEW)
@@ -2746,8 +1790,28 @@ void getxc_grad(_gpu_type gpu) {
 
     prune_grid_sswgrad();
 
-    QUICK_SAFE_CALL((get_sswgrad_kernel <<<gpu->blocks, gpu->xc_threadsPerBlock, gpu->gpu_xcq->smem_size>>> ()));
-//    QUICK_SAFE_CALL((get_sswnumgrad_kernel <<<gpu->blocks, gpu->sswGradThreadsPerBlock, gpu->gpu_xcq->smem_size>>> ()));
+    QUICK_SAFE_CALL((k_get_ssw_grad <<<gpu->blocks, gpu->xc_threadsPerBlock, gpu->gpu_xcq->smem_size>>>
+                (gpu->gpu_sim.natom, gpu->gpu_sim.npoints_ssd,
+                 gpu->gpu_sim.gridx_ssd, gpu->gpu_sim.gridy_ssd, gpu->gpu_sim.gridz_ssd,
+                 gpu->gpu_sim.quadwt, gpu->gpu_sim.uw_ssd, gpu->gpu_sim.exc_ssd,
+                 gpu->gpu_sim.gatm_ssd, gpu->gpu_sim.xyz, gpu->gpu_sim.DMCutoff,
+#if defined(USE_LEGACY_ATOMICS)
+                 gpu->gpu_sim.gradULL
+#else
+                 gpu->gpu_sim.grad
+#endif
+        )));
+//    QUICK_SAFE_CALL((k_get_ssw_numgrad <<<gpu->blocks, gpu->sswGradThreadsPerBlock, gpu->gpu_xcq->smem_size>>>
+//                (gpu->gpu_sim.natom, gpu->gpu_sim.npoints_ssd,
+//                 gpu->gpu_sim.gridx_ssd, gpu->gpu_sim.gridy_ssd, gpu->gpu_sim.gridz_ssd,
+//                 gpu->gpu_sim.quadwt, gpu->gpu_sim.exc_ssd, gpu->gpu_sim.gatm_ssd,
+//                 gpu->gpu_sim.xyz, gpu->gpu_sim.distance,
+//#if defined(USE_LEGACY_ATOMICS)
+//                 gpu->gpu_sim.gradULL
+//#else
+//                 gpu->gpu_sim.grad
+//#endif
+//                )));
 
     gpu_delete_sswgrad_vars();
 
@@ -2763,18 +1827,74 @@ void getxc_grad(_gpu_type gpu) {
 
 
 #if defined(CEW)
-void getcew_quad(_gpu_type gpu) {
-    QUICK_SAFE_CALL((getcew_quad_kernel<<< gpu->blocks, gpu->xc_threadsPerBlock>>>()));
+void getcew_quad(_gpu_type gpu)
+{
+    QUICK_SAFE_CALL((k_getcew_quad <<<gpu->blocks, gpu->xc_threadsPerBlock>>>
+                (gpu->gpu_sim.nbasis, gpu->gpu_sim.npoints,
+                 gpu->gpu_sim.gridx, gpu->gpu_sim.gridy, gpu->gpu_sim.gridz,
+                 gpu->gpu_sim.weight, gpu->gpu_sim.basf, gpu->gpu_sim.primf,
+                 gpu->gpu_sim.basf_locator, gpu->gpu_sim.primf_locator, gpu->gpu_sim.bin_locator,
+#if defined(USE_LEGACY_ATOMICS)
+                 gpu->gpu_sim.oULL,
+#else
+                 gpu->gpu_sim.o,
+#endif
+                 gpu->gpu_sim.DMCutoff, gpu->gpu_sim.cew_vrecip)));
 }
 
 
-void getcew_quad_grad(_gpu_type gpu) {
+void getcew_quad_grad(_gpu_type gpu)
+{
     if (gpu->gpu_sim.is_oshell == true) {
-        QUICK_SAFE_CALL((get_oshell_density_kernel<<<gpu->blocks, gpu->xc_threadsPerBlock>>>()));
-        QUICK_SAFE_CALL((oshell_getcew_quad_grad_kernel<<< gpu->blocks, gpu->xc_threadsPerBlock, gpu->gpu_xcq->smem_size>>>()));
+        QUICK_SAFE_CALL((k_get_density_oshell <<<gpu->blocks, gpu->xc_threadsPerBlock>>>
+                    (gpu->gpu_sim.natom, gpu->gpu_sim.nbasis, gpu->gpu_sim.npoints, gpu->gpu_sim.maxcontract,
+                     gpu->gpu_sim.gridx, gpu->gpu_sim.gridy, gpu->gpu_sim.gridz,
+                     gpu->gpu_sim.densa, gpu->gpu_sim.densb,
+                     gpu->gpu_sim.gax, gpu->gpu_sim.gbx, gpu->gpu_sim.gay, gpu->gpu_sim.gby,
+                     gpu->gpu_sim.gaz, gpu->gpu_sim.gbz,
+                     gpu->gpu_sim.basf, gpu->gpu_sim.primf, gpu->gpu_sim.basf_locator,
+                     gpu->gpu_sim.primf_locator, gpu->gpu_sim.bin_locator,
+                     gpu->gpu_sim.itype, gpu->gpu_sim.aexp, gpu->gpu_sim.dcoeff, gpu->gpu_sim.xyz,
+                     gpu->gpu_sim.ncenter, gpu->gpu_sim.dense, gpu->gpu_sim.denseb, gpu->gpu_sim.XCCutoff)));
+        QUICK_SAFE_CALL((k_getcew_quad_grad_oshell <<<gpu->blocks, gpu->xc_threadsPerBlock, gpu->gpu_xcq->smem_size>>>
+                    (gpu->gpu_sim.natom, gpu->gpu_sim.nbasis, gpu->gpu_sim.npoints,
+                     gpu->gpu_sim.gridx, gpu->gpu_sim.gridy, gpu->gpu_sim.gridz,
+                     gpu->gpu_sim.sswt, gpu->gpu_sim.weight, gpu->gpu_sim.densa,
+                     gpu->gpu_sim.densb, gpu->gpu_sim.exc, gpu->gpu_sim.gatm, gpu->gpu_sim.dweight_ssd,
+                     gpu->gpu_sim.basf, gpu->gpu_sim.primf,
+                     gpu->gpu_sim.basf_locator, gpu->gpu_sim.primf_locator, gpu->gpu_sim.bin_locator,
+                     gpu->gpu_sim.ncenter, gpu->gpu_sim.dense, gpu->gpu_sim.denseb, gpu->gpu_sim.DMCutoff, 
+#if defined(USE_LEGACY_ATOMICS)
+                     gradULL,
+#else
+                     grad,
+#endif
+                     cew_vrecip)));
     } else {
-        QUICK_SAFE_CALL((get_cshell_density_kernel<<<gpu->blocks, gpu->xc_threadsPerBlock>>>()));
-        QUICK_SAFE_CALL((cshell_getcew_quad_grad_kernel<<< gpu->blocks, gpu->xc_threadsPerBlock, gpu->gpu_xcq->smem_size>>>()));
+        QUICK_SAFE_CALL((k_get_density_cshell <<<gpu->blocks, gpu->xc_threadsPerBlock>>>
+                    (gpu->gpu_sim.natom, gpu->gpu_sim.nbasis, gpu->gpu_sim.npoints, gpu->gpu_sim.maxcontract,
+                     gpu->gpu_sim.gridx, gpu->gpu_sim.gridy, gpu->gpu_sim.gridz,
+                     gpu->gpu_sim.densa, gpu->gpu_sim.densb,
+                     gpu->gpu_sim.gax, gpu->gpu_sim.gbx, gpu->gpu_sim.gay, gpu->gpu_sim.gby,
+                     gpu->gpu_sim.gaz, gpu->gpu_sim.gbz,
+                     gpu->gpu_sim.basf, gpu->gpu_sim.primf, gpu->gpu_sim.basf_locator,
+                     gpu->gpu_sim.primf_locator, gpu->gpu_sim.bin_locator,
+                     gpu->gpu_sim.itype, gpu->gpu_sim.aexp, gpu->gpu_sim.dcoeff, gpu->gpu_sim.xyz,
+                     gpu->gpu_sim.ncenter, gpu->gpu_sim.dense, gpu->gpu_sim.XCCutoff)));
+        QUICK_SAFE_CALL((k_getcew_quad_grad_cshell <<<gpu->blocks, gpu->xc_threadsPerBlock, gpu->gpu_xcq->smem_size>>>
+                    (gpu->gpu_sim.natom, gpu->gpu_sim.nbasis, gpu->gpu_sim.npoints,
+                     gpu->gpu_sim.gridx, gpu->gpu_sim.gridy, gpu->gpu_sim.gridz,
+                     gpu->gpu_sim.sswt, gpu->gpu_sim.weight, gpu->gpu_sim.densa,
+                     gpu->gpu_sim.exc, gpu->gpu_sim.gatm, gpu->gpu_sim.dweight_ssd,
+                     gpu->gpu_sim.basf, gpu->gpu_sim.primf,
+                     gpu->gpu_sim.basf_locator, gpu->gpu_sim.primf_locator, gpu->gpu_sim.bin_locator,
+                     gpu->gpu_sim.ncenter, gpu->gpu_sim.dense, gpu->gpu_sim.DMCutoff, 
+#if defined(USE_LEGACY_ATOMICS)
+                     gradULL,
+#else
+                     grad,
+#endif
+                     cew_vrecip)));
     }
 
     get_cew_accdens(gpu);

@@ -17,47 +17,56 @@
    */
 
 #if !defined(OSHELL)
-__global__ void getcew_quad_kernel()
+__global__ void k_getcew_quad(uint32_t nbasis, int npoints,
+        QUICKDouble const * const gridx, QUICKDouble const * const gridy, QUICKDouble const * const gridz,
+        QUICKDouble const * const weight, int const * const basf, int const * const primf,
+        int const * const basf_locator, int const * const primf_locator, int const * const bin_locator,
+#if defined(USE_LEGACY_ATOMICS)
+        QUICKULL * const oULL,
+#else
+        QUICKDouble * const o,
+#endif
+        QUICKDouble DMCutoff, QUICKDouble const * const cew_vrecip)
 {
     unsigned int offset = blockIdx.x * blockDim.x + threadIdx.x;
     int totalThreads = blockDim.x * gridDim.x;
 
-    for (QUICKULL gid = offset; gid < devSim_dft.npoints; gid += totalThreads) {
-        int bin_id = devSim_dft.bin_locator[gid];
-        int bfloc_st = devSim_dft.basf_locator[bin_id];
-        int bfloc_end = devSim_dft.basf_locator[bin_id+1];
+    for (QUICKULL gid = offset; gid < npoints; gid += totalThreads) {
+        int bin_id = bin_locator[gid];
+        int bfloc_st = basf_locator[bin_id];
+        int bfloc_end = basf_locator[bin_id + 1];
 
-        QUICKDouble gridx = devSim_dft.gridx[gid];
-        QUICKDouble gridy = devSim_dft.gridy[gid];
-        QUICKDouble gridz = devSim_dft.gridz[gid];
+        QUICKDouble gridx = gridx[gid];
+        QUICKDouble gridy = gridy[gid];
+        QUICKDouble gridz = gridz[gid];
 
-        QUICKDouble weight = devSim_dft.weight[gid];
+        QUICKDouble weight = weight[gid];
 
-        QUICKDouble dfdr = devSim_dft.cew_vrecip[gid];
+        QUICKDouble dfdr = cew_vrecip[gid];
 
         for (int i = bfloc_st; i < bfloc_end; ++i) {
-            int ibas = devSim_dft.basf[i];
+            int ibas = basf[i];
             QUICKDouble phi, dphidx, dphidy, dphidz;
 
             pteval_new(gridx, gridy, gridz,
                     &phi, &dphidx, &dphidy, &dphidz,
-                    devSim_dft.primf, devSim_dft.primf_locator, ibas, i);
+                    primf, primf_locator, ibas, i);
 
-            if (abs(phi + dphidx + dphidy + dphidz) > devSim_dft.DMCutoff) {
+            if (abs(phi + dphidx + dphidy + dphidz) > DMCutoff) {
                 for (int j = bfloc_st; j < bfloc_end; j++) {
-                    int jbas = devSim_dft.basf[j];
+                    int jbas = basf[j];
                     QUICKDouble phi2, dphidx2, dphidy2, dphidz2;
 
                     pteval_new(gridx, gridy, gridz,
                             &phi2, &dphidx2, &dphidy2, &dphidz2,
-                            devSim_dft.primf, devSim_dft.primf_locator, jbas, j);
+                            primf, primf_locator, jbas, j);
 
                     QUICKDouble _tmp = phi * phi2 * dfdr * weight;
 
 #if defined(USE_LEGACY_ATOMICS)
-                    GPUATOMICADD(&LOC2(devSim_dft.oULL, jbas, ibas, devSim_dft.nbasis, devSim_dft.nbasis), _tmp, OSCALE);
+                    GPUATOMICADD(&LOC2(oULL, jbas, ibas, nbasis, nbasis), _tmp, OSCALE);
 #else
-                    atomicAdd(&LOC2(devSim_dft.o, jbas, ibas, devSim_dft.nbasis, devSim_dft.nbasis), _tmp);
+                    atomicAdd(&LOC2(o, jbas, ibas, nbasis, nbasis), _tmp);
 #endif
                 }
             }
@@ -68,10 +77,32 @@ __global__ void getcew_quad_kernel()
 
 
 #if defined(OSHELL)
-__global__ void oshell_getcew_quad_grad_kernel()
+__global__ void k_getcew_quad_grad_oshell
 #else
-__global__ void cshell_getcew_quad_grad_kernel()
+__global__ void k_getcew_quad_grad_cshell
 #endif
+    (uint32_t natom, uint32_t nbasis, int npoints,
+     QUICKDouble const * const gridx, QUICKDouble const * const gridy, QUICKDouble const * const gridz,
+     QUICKDouble const * const sswt, QUICKDouble const * const weight, QUICKDouble const * const densa,
+#if defined(OSHELL)
+     QUICKDouble const * const densb,
+#endif
+     QUICKDouble * const exc, int const * const gatm, int * const dweight_ssd,
+     int const * const basf, int const * const primf,
+     int const * const basf_locator, int const * const primf_locator, int const * const bin_locator,
+     int const * const ncenter,
+     QUICKDouble const * const dense,
+#if defined(OSHELL)
+     QUICKDouble const * const denseb,
+#endif
+     QUICKDouble DMCutoff, 
+#if defined(USE_LEGACY_ATOMICS)
+     QUICKULL * const gradULL,
+#else
+     QUICKDouble * const grad,
+#endif
+     QUICKDouble const * const cew_vrecip)
+
 {
 #if defined(USE_LEGACY_ATOMICS)
     //declare smem grad vector
@@ -79,7 +110,7 @@ __global__ void cshell_getcew_quad_grad_kernel()
     QUICKULL* smemGrad = (QUICKULL *) smem_buffer;
 
     // initialize smem grad
-    for (int i = threadIdx.x; i < devSim_dft.natom * 3; i += blockDim.x) {
+    for (int i = threadIdx.x; i < natom * 3; i += blockDim.x) {
         smemGrad[i] = 0ull;
     }
 #else
@@ -88,7 +119,7 @@ __global__ void cshell_getcew_quad_grad_kernel()
     QUICKDouble* smemGrad = (QUICKDouble *) smem_buffer;
 
     // initialize smem grad
-    for (int i = threadIdx.x; i < devSim_dft.natom * 3; i += blockDim.x) {
+    for (int i = threadIdx.x; i < natom * 3; i += blockDim.x) {
         smemGrad[i] = 0.0;
     }
 #endif
@@ -98,57 +129,57 @@ __global__ void cshell_getcew_quad_grad_kernel()
     unsigned int offset = blockIdx.x * blockDim.x + threadIdx.x;
     int totalThreads = blockDim.x * gridDim.x;
 
-    for (QUICKULL gid = offset; gid < devSim_dft.npoints; gid += totalThreads) {
-        int bin_id = devSim_dft.bin_locator[gid];
-        int bfloc_st = devSim_dft.basf_locator[bin_id];
-        int bfloc_end = devSim_dft.basf_locator[bin_id+1];
+    for (QUICKULL gid = offset; gid < npoints; gid += totalThreads) {
+        int bin_id = bin_locator[gid];
+        int bfloc_st = basf_locator[bin_id];
+        int bfloc_end = basf_locator[bin_id + 1];
 
-        QUICKDouble gridx = devSim_dft.gridx[gid];
-        QUICKDouble gridy = devSim_dft.gridy[gid];
-        QUICKDouble gridz = devSim_dft.gridz[gid];
-        QUICKDouble weight = devSim_dft.weight[gid];
+        QUICKDouble gridx = gridx[gid];
+        QUICKDouble gridy = gridy[gid];
+        QUICKDouble gridz = gridz[gid];
+        QUICKDouble weight = weight[gid];
 #if defined(OSHELL)
-        QUICKDouble densitysum = devSim_dft.densa[gid] + devSim_dft.densb[gid];
+        QUICKDouble densitysum = densa[gid] + densb[gid];
 #else
-        QUICKDouble densitysum = 2 * devSim_dft.densa[gid];
+        QUICKDouble densitysum = 2 * densa[gid];
 #endif
 
-        QUICKDouble dfdr = devSim_dft.cew_vrecip[gid];
+        QUICKDouble dfdr = cew_vrecip[gid];
 
-        if (densitysum > devSim_dft.DMCutoff) {
+        if (densitysum > DMCutoff) {
             QUICKDouble _tmp = (QUICKDouble) (dfdr * densitysum);
 
-            devSim_dft.exc[gid] = _tmp;
+            exc[gid] = _tmp;
 
             QUICKDouble sumGradx = 0.0;
             QUICKDouble sumGrady = 0.0;
             QUICKDouble sumGradz = 0.0;
 
             for (int i = bfloc_st; i < bfloc_end; i++) {
-                int ibas = devSim_dft.basf[i];
+                int ibas = basf[i];
                 QUICKDouble phi, dphidx, dphidy, dphidz;
                 pteval_new(gridx, gridy, gridz,
                         &phi, &dphidx, &dphidy, &dphidz,
-                        devSim_dft.primf, devSim_dft.primf_locator, ibas, i);
+                        primf, primf_locator, ibas, i);
 
-                if (abs(phi + dphidx + dphidy + dphidz) > devSim_dft.DMCutoff) {
+                if (abs(phi + dphidx + dphidy + dphidz) > DMCutoff) {
                     //QUICKDouble dxdx, dxdy, dxdz, dydy, dydz, dzdz;
-                    //pt2der_new(gridx, gridy, gridz, &dxdx, &dxdy, &dxdz, &dydy, &dydz, &dzdz, devSim_dft.primf, devSim_dft.primf_locator, ibas, i);
+                    //pt2der_new(gridx, gridy, gridz, &dxdx, &dxdy, &dxdz, &dydy, &dydz, &dzdz, primf, primf_locator, ibas, i);
 
-                    int Istart = (devSim_dft.ncenter[ibas] - 1) * 3;
+                    int Istart = (ncenter[ibas] - 1) * 3;
 
                     for (int j = bfloc_st; j < bfloc_end; j++) {
-                        int jbas = devSim_dft.basf[j];
+                        int jbas = basf[j];
                         QUICKDouble phi2, dphidx2, dphidy2, dphidz2;
 
                         pteval_new(gridx, gridy, gridz,
                                 &phi2, &dphidx2, &dphidy2, &dphidz2,
-                                devSim_dft.primf, devSim_dft.primf_locator, jbas, j);
+                                primf, primf_locator, jbas, j);
 
-                        QUICKDouble denseij = (QUICKDouble) LOC2(devSim_dft.dense, ibas, jbas, devSim_dft.nbasis, devSim_dft.nbasis);
+                        QUICKDouble denseij = (QUICKDouble) LOC2(dense, ibas, jbas, nbasis, nbasis);
 
 #if defined(OSHELL)
-                        denseij += (QUICKDouble) LOC2(devSim_dft.denseb, ibas, jbas, devSim_dft.nbasis, devSim_dft.nbasis);
+                        denseij += (QUICKDouble) LOC2(denseb, ibas, jbas, nbasis, nbasis);
 #endif
 
                         QUICKDouble Gradx = -2.0 * denseij * weight * (dfdr * dphidx * phi2);
@@ -166,7 +197,7 @@ __global__ void cshell_getcew_quad_grad_kernel()
                 }
             }
 
-            int Istart = (devSim_dft.gatm[gid] - 1) * 3;
+            int Istart = (gatm[gid] - 1) * 3;
 
             GPUATOMICADD(&smemGrad[Istart], -sumGradx, GRADSCALE);
             GPUATOMICADD(&smemGrad[Istart + 1], -sumGrady, GRADSCALE);
@@ -174,23 +205,23 @@ __global__ void cshell_getcew_quad_grad_kernel()
         }
 
         //Set weights for sswder calculation
-        if (densitysum < devSim_dft.DMCutoff) {
-            devSim_dft.dweight_ssd[gid] = 0;
+        if (densitysum < DMCutoff) {
+            dweight_ssd[gid] = 0;
         }
 
-        if (devSim_dft.sswt[gid] == 1) {
-            devSim_dft.dweight_ssd[gid] = 0;
+        if (sswt[gid] == 1) {
+            dweight_ssd[gid] = 0;
         }
     }
 
     __syncthreads();
 
     // update gmem grad vector
-    for (int i = threadIdx.x; i < devSim_dft.natom * 3; i += blockDim.x) {
+    for (int i = threadIdx.x; i < natom * 3; i += blockDim.x) {
 #if defined(USE_LEGACY_ATOMICS)
-        atomicAdd(&devSim_dft.gradULL[i], smemGrad[i]);
+        atomicAdd(&gradULL[i], smemGrad[i]);
 #else
-        atomicAdd(&devSim_dft.grad[i], smemGrad[i]);
+        atomicAdd(&grad[i], smemGrad[i]);
 #endif
     }
 

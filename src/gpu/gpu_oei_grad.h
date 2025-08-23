@@ -27,7 +27,26 @@
 
 
 __device__ static inline void iclass_oei_grad(uint8_t I, uint8_t J, uint32_t II, uint32_t JJ,
-        uint32_t iatom) {
+        uint32_t iatom, bool is_oshell, uint32_t natom, uint32_t nextatom, uint32_t nbasis,
+        uint32_t nshell, uint32_t jbasis,
+        QUICKDouble const * const allchg, QUICKDouble const * const allxyz,
+        uint32_t const * const kstart, uint32_t const * const katom,
+        uint32_t const * const kprim, uint32_t const * const Ksumtype, uint32_t const * const Qstart,
+        uint32_t const * const Qsbasis, uint32_t const * const Qfbasis,
+        QUICKDouble const * const cons, QUICKDouble const * const gcexpo, uint8_t const * const KLMN,
+        uint32_t prim_total, uint32_t const * const prim_start,
+        QUICKDouble const * const dense, QUICKDouble const * const denseb, 
+        QUICKDouble const * const Xcoeff_oei, QUICKDouble const * const expoSum,
+        QUICKDouble const * const weightedCenterX, QUICKDouble const * const weightedCenterY,
+        QUICKDouble const * const weightedCenterZ, QUICKDouble coreIntegralCutoff,
+#if defined(USE_LEGACY_ATOMICS)
+        QUICKULL * const gradULL, QUICKULL * const ptchg_gradULL,
+#else
+        QUICKDouble * const grad, QUICKDouble * const ptchg_grad,
+#endif
+        QUICKDouble * const store, QUICKDouble * const store2,
+        QUICKDouble * const storeAA, QUICKDouble * const storeBB)
+{
     /*
        kAtom A, B  is the coresponding atom for shell II, JJ
        and be careful with the index difference between Fortran and C++,
@@ -35,24 +54,22 @@ __device__ static inline void iclass_oei_grad(uint8_t I, uint8_t J, uint32_t II,
        Ai, Bi, Ci are the coordinates for atom katomA, katomB, katomC,
        which means they are corrosponding coorinates for shell II, JJ and nuclei.
     */
-    const QUICKDouble Ax = LOC2(devSim.allxyz, 0, devSim.katom[II], 3, devSim.natom + devSim.nextatom);
-    const QUICKDouble Ay = LOC2(devSim.allxyz, 1, devSim.katom[II], 3, devSim.natom + devSim.nextatom);
-    const QUICKDouble Az = LOC2(devSim.allxyz, 2, devSim.katom[II], 3, devSim.natom + devSim.nextatom);
-    const QUICKDouble Bx = LOC2(devSim.allxyz, 0, devSim.katom[JJ], 3, devSim.natom + devSim.nextatom);
-    const QUICKDouble By = LOC2(devSim.allxyz, 1, devSim.katom[JJ], 3, devSim.natom + devSim.nextatom);
-    const QUICKDouble Bz = LOC2(devSim.allxyz, 2, devSim.katom[JJ], 3, devSim.natom + devSim.nextatom);
+    const QUICKDouble Ax = LOC2(allxyz, 0, katom[II], 3, natom + nextatom);
+    const QUICKDouble Ay = LOC2(allxyz, 1, katom[II], 3, natom + nextatom);
+    const QUICKDouble Az = LOC2(allxyz, 2, katom[II], 3, natom + nextatom);
+    const QUICKDouble Bx = LOC2(allxyz, 0, katom[JJ], 3, natom + nextatom);
+    const QUICKDouble By = LOC2(allxyz, 1, katom[JJ], 3, natom + nextatom);
+    const QUICKDouble Bz = LOC2(allxyz, 2, katom[JJ], 3, natom + nextatom);
 
     /*
        kPrimI and kPrimJ indicates the number of primitives in shell II and JJ.
        kStartI, J indicates the starting guassian function for shell II, JJ.
        We retrieve from global memory and save them to register to avoid multiple retrieve.
     */
-    const uint32_t kPrimI = devSim.kprim[II];
-    const uint32_t kPrimJ = devSim.kprim[JJ];
-    const uint32_t kStartI = devSim.kstart[II];
-    const uint32_t kStartJ = devSim.kstart[JJ];
-
-    const uint32_t nbasis = devSim.nbasis;
+    const uint32_t kPrimI = kprim[II];
+    const uint32_t kPrimJ = kprim[JJ];
+    const uint32_t kStartI = kstart[II];
+    const uint32_t kStartJ = kstart[JJ];
 
     /*
        At this point, we will need 3 arrays. The first, store2, will keep the sum of primitive integral
@@ -69,7 +86,7 @@ __device__ static inline void iclass_oei_grad(uint8_t I, uint8_t J, uint32_t II,
     for (uint8_t i = Sumindex[J]; i < Sumindex[J + 2]; ++i) {
         for (uint8_t j = Sumindex[I]; j < Sumindex[I + 2]; ++j) {
             if (i < STOREDIM && j < STOREDIM) {
-                LOCSTORE(&devSim.store2[blockIdx.x * blockDim.x + threadIdx.x], j, i, STOREDIM, STOREDIM) = 0.0;
+                LOCSTORE(&store2[blockIdx.x * blockDim.x + threadIdx.x], j, i, STOREDIM, STOREDIM) = 0.0;
             }
         }
     }
@@ -77,7 +94,7 @@ __device__ static inline void iclass_oei_grad(uint8_t I, uint8_t J, uint32_t II,
     for (uint8_t i = Sumindex[J]; i < Sumindex[J + 2]; ++i) {
         for (uint8_t j = Sumindex[I + 1]; j < Sumindex[I + 3]; ++j) {
             if (i < STOREDIM && j < STOREDIM) {
-                LOCSTORE(&devSim.storeAA[blockIdx.x * blockDim.x + threadIdx.x], j, i, STOREDIM, STOREDIM) = 0.0;
+                LOCSTORE(&storeAA[blockIdx.x * blockDim.x + threadIdx.x], j, i, STOREDIM, STOREDIM) = 0.0;
             }
         }
     }
@@ -85,7 +102,7 @@ __device__ static inline void iclass_oei_grad(uint8_t I, uint8_t J, uint32_t II,
     for (uint8_t i = Sumindex[J + 1]; i < Sumindex[J + 3]; ++i) {
         for (uint8_t j = Sumindex[I]; j < Sumindex[I + 2]; ++j) {
             if (i < STOREDIM && j < STOREDIM) {
-                LOCSTORE(&devSim.storeBB[blockIdx.x * blockDim.x + threadIdx.x], j, i, STOREDIM, STOREDIM) = 0.0;
+                LOCSTORE(&storeBB[blockIdx.x * blockDim.x + threadIdx.x], j, i, STOREDIM, STOREDIM) = 0.0;
             }
         }
     }
@@ -106,26 +123,26 @@ __device__ static inline void iclass_oei_grad(uint8_t I, uint8_t J, uint32_t II,
            Those two are pre-calculated in CPU stage.
         */
 
-        uint32_t ii_start = devSim.prim_start[II];
-        uint32_t jj_start = devSim.prim_start[JJ];
+        uint32_t ii_start = prim_start[II];
+        uint32_t jj_start = prim_start[JJ];
 
-        const QUICKDouble Zeta = LOC2(devSim.expoSum, ii_start + III, jj_start + JJJ, devSim.prim_total, devSim.prim_total);
-        const QUICKDouble Px = LOC2(devSim.weightedCenterX, ii_start + III, jj_start + JJJ, devSim.prim_total, devSim.prim_total);
-        const QUICKDouble Py = LOC2(devSim.weightedCenterY, ii_start + III, jj_start + JJJ, devSim.prim_total, devSim.prim_total);
-        const QUICKDouble Pz = LOC2(devSim.weightedCenterZ, ii_start + III, jj_start + JJJ, devSim.prim_total, devSim.prim_total);
+        const QUICKDouble Zeta = LOC2(expoSum, ii_start + III, jj_start + JJJ, prim_total, prim_total);
+        const QUICKDouble Px = LOC2(weightedCenterX, ii_start + III, jj_start + JJJ, prim_total, prim_total);
+        const QUICKDouble Py = LOC2(weightedCenterY, ii_start + III, jj_start + JJJ, prim_total, prim_total);
+        const QUICKDouble Pz = LOC2(weightedCenterZ, ii_start + III, jj_start + JJJ, prim_total, prim_total);
 
-        const QUICKDouble AA = LOC2(devSim.gcexpo, III, devSim.Ksumtype[II], MAXPRIM, nbasis);
-        const QUICKDouble BB = LOC2(devSim.gcexpo, JJJ, devSim.Ksumtype[JJ], MAXPRIM, nbasis);
+        const QUICKDouble AA = LOC2(gcexpo, III, Ksumtype[II], MAXPRIM, nbasis);
+        const QUICKDouble BB = LOC2(gcexpo, JJJ, Ksumtype[JJ], MAXPRIM, nbasis);
 
         // get Xcoeff, which is a product of overlap prefactor and contraction coefficients
-        const QUICKDouble Xcoeff_oei = LOC4(devSim.Xcoeff_oei, kStartI + III, kStartJ + JJJ,
-                I - devSim.Qstart[II], J - devSim.Qstart[JJ], devSim.jbasis, devSim.jbasis, 2, 2);
+        const QUICKDouble Xcoeff = LOC4(Xcoeff_oei, kStartI + III, kStartJ + JJJ,
+                I - Qstart[II], J - Qstart[JJ], jbasis, jbasis, 2, 2);
 
-        if (abs(Xcoeff_oei) > devSim.coreIntegralCutoff) {
-            const QUICKDouble Cx = LOC2(devSim.allxyz, 0, iatom, 3, devSim.natom + devSim.nextatom);
-            const QUICKDouble Cy = LOC2(devSim.allxyz, 1, iatom, 3, devSim.natom + devSim.nextatom);
-            const QUICKDouble Cz = LOC2(devSim.allxyz, 2, iatom, 3, devSim.natom + devSim.nextatom);
-            const QUICKDouble chg = -1.0 * devSim.allchg[iatom];
+        if (abs(Xcoeff) > coreIntegralCutoff) {
+            const QUICKDouble Cx = LOC2(allxyz, 0, iatom, 3, natom + nextatom);
+            const QUICKDouble Cy = LOC2(allxyz, 1, iatom, 3, natom + nextatom);
+            const QUICKDouble Cz = LOC2(allxyz, 2, iatom, 3, natom + nextatom);
+            const QUICKDouble chg = -1.0 * allchg[iatom];
 
             // compute boys function values, the third term of OS A20
             double YVerticalTemp[PRIM_INT_OEI_GRAD_LEN];
@@ -134,7 +151,7 @@ __device__ static inline void iclass_oei_grad(uint8_t I, uint8_t J, uint32_t II,
 
             // compute all auxilary integrals and store
             for (uint32_t n = 0; n <= I + J + 2; n++) {
-                VY(0, 0, n) = VY(0, 0, n) * Xcoeff_oei * chg;
+                VY(0, 0, n) = VY(0, 0, n) * Xcoeff * chg;
                 //printf("aux: %d %f \n", i, VY(0, 0, i));
             }
 
@@ -147,15 +164,15 @@ __device__ static inline void iclass_oei_grad(uint8_t I, uint8_t J, uint32_t II,
                     Px - Bx, Py - By, Pz - Bz,
                     Px - Cx, Py - Cy, Pz - Cz,
                     1.0 / (2.0 * Zeta),
-                    &devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
+                    &store[blockIdx.x * blockDim.x + threadIdx.x],
                     YVerticalTemp);
 
             // sum up primitive integral values into store array
             for (uint8_t i = Sumindex[J]; i < Sumindex[J + 2]; ++i) {
                 for (uint8_t j = Sumindex[I]; j < Sumindex[I + 2]; ++j) {
                     if (i < STOREDIM && j < STOREDIM) {
-                        LOCSTORE(&devSim.store2[blockIdx.x * blockDim.x + threadIdx.x], j, i, STOREDIM, STOREDIM)
-                            += LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x], j, i, STOREDIM, STOREDIM);
+                        LOCSTORE(&store2[blockIdx.x * blockDim.x + threadIdx.x], j, i, STOREDIM, STOREDIM)
+                            += LOCSTORE(&store[blockIdx.x * blockDim.x + threadIdx.x], j, i, STOREDIM, STOREDIM);
                     }
                 }
             }
@@ -164,8 +181,8 @@ __device__ static inline void iclass_oei_grad(uint8_t I, uint8_t J, uint32_t II,
             for (uint8_t i = Sumindex[J]; i < Sumindex[J + 2]; ++i) {
                 for (uint8_t j = Sumindex[I + 1]; j < Sumindex[I + 3]; ++j) {
                     if (i < STOREDIM && j < STOREDIM) {
-                        LOCSTORE(&devSim.storeAA[blockIdx.x * blockDim.x + threadIdx.x], j, i, STOREDIM, STOREDIM)
-                            += LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x], j, i, STOREDIM, STOREDIM) * AA * 2.0;
+                        LOCSTORE(&storeAA[blockIdx.x * blockDim.x + threadIdx.x], j, i, STOREDIM, STOREDIM)
+                            += LOCSTORE(&store[blockIdx.x * blockDim.x + threadIdx.x], j, i, STOREDIM, STOREDIM) * AA * 2.0;
                     }
                 }
             }
@@ -174,8 +191,8 @@ __device__ static inline void iclass_oei_grad(uint8_t I, uint8_t J, uint32_t II,
             for (uint8_t i = Sumindex[J + 1]; i < Sumindex[J + 3]; ++i) {
                 for (uint8_t j = Sumindex[I]; j < Sumindex[I + 2]; ++j) {
                     if (i < STOREDIM && j < STOREDIM) {
-                        LOCSTORE(&devSim.storeBB[blockIdx.x * blockDim.x + threadIdx.x], j, i, STOREDIM, STOREDIM)
-                            += LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x], j, i, STOREDIM, STOREDIM) * BB * 2.0;
+                        LOCSTORE(&storeBB[blockIdx.x * blockDim.x + threadIdx.x], j, i, STOREDIM, STOREDIM)
+                            += LOCSTORE(&store[blockIdx.x * blockDim.x + threadIdx.x], j, i, STOREDIM, STOREDIM) * BB * 2.0;
                     }
                 }
             }
@@ -186,10 +203,10 @@ __device__ static inline void iclass_oei_grad(uint8_t I, uint8_t J, uint32_t II,
     
     // obtain the start and final basis function indices for given shells II and JJ. They will help us to save the integral
     // contribution into correct location in Fock matrix.
-    const uint32_t III1 = LOC2(devSim.Qsbasis, II, I, devSim.nshell, 4);
-    const uint32_t III2 = LOC2(devSim.Qfbasis, II, I, devSim.nshell, 4);
-    const uint32_t JJJ1 = LOC2(devSim.Qsbasis, JJ, J, devSim.nshell, 4);
-    const uint32_t JJJ2 = LOC2(devSim.Qfbasis, JJ, J, devSim.nshell, 4);
+    const uint32_t III1 = LOC2(Qsbasis, II, I, nshell, 4);
+    const uint32_t III2 = LOC2(Qfbasis, II, I, nshell, 4);
+    const uint32_t JJJ1 = LOC2(Qsbasis, JJ, J, nshell, 4);
+    const uint32_t JJJ2 = LOC2(Qfbasis, JJ, J, nshell, 4);
 
     QUICKDouble AGradx = 0.0;
     QUICKDouble AGrady = 0.0;
@@ -200,221 +217,255 @@ __device__ static inline void iclass_oei_grad(uint8_t I, uint8_t J, uint32_t II,
 
     for (uint32_t III = III1; III <= III2; III++) {
         const uint8_t i = LOC3(devTrans,
-                LOC2(devSim.KLMN, 0, III, 3, nbasis),
-                LOC2(devSim.KLMN, 1, III, 3, nbasis),
-                LOC2(devSim.KLMN, 2, III, 3, nbasis),
+                LOC2(KLMN, 0, III, 3, nbasis),
+                LOC2(KLMN, 1, III, 3, nbasis),
+                LOC2(KLMN, 2, III, 3, nbasis),
                 TRANSDIM, TRANSDIM, TRANSDIM);
 
         for (uint32_t JJJ = MAX(III, JJJ1); JJJ <= JJJ2; JJJ++) {
-            QUICKDouble DENSEJI = (QUICKDouble) LOC2(devSim.dense, JJJ, III, nbasis, nbasis);
+            QUICKDouble DENSEJI = (QUICKDouble) LOC2(dense, JJJ, III, nbasis, nbasis);
 
-            if (devSim.is_oshell)
-                DENSEJI += (QUICKDouble) LOC2(devSim.denseb, JJJ, III, nbasis, nbasis);
+            if (is_oshell)
+                DENSEJI += (QUICKDouble) LOC2(denseb, JJJ, III, nbasis, nbasis);
 
             if (III != JJJ)
                 DENSEJI *= 2.0;
 
-            const QUICKDouble constant = devSim.cons[III] * devSim.cons[JJJ] * DENSEJI;
+            const QUICKDouble constant = cons[III] * cons[JJJ] * DENSEJI;
 
             // devTrans maps a basis function with certain angular momentum to store2 array. Get the correct indices now.
             uint8_t j = LOC3(devTrans,
-                    LOC2(devSim.KLMN, 0, JJJ, 3, nbasis),
-                    LOC2(devSim.KLMN, 1, JJJ, 3, nbasis),
-                    LOC2(devSim.KLMN, 2, JJJ, 3, nbasis),
+                    LOC2(KLMN, 0, JJJ, 3, nbasis),
+                    LOC2(KLMN, 1, JJJ, 3, nbasis),
+                    LOC2(KLMN, 2, JJJ, 3, nbasis),
                     TRANSDIM, TRANSDIM, TRANSDIM);
 
             // sum up gradient wrt x-coordinate of first center
             uint8_t itemp = LOC3(devTrans,
-                    LOC2(devSim.KLMN, 0, III, 3, nbasis) + 1,
-                    LOC2(devSim.KLMN, 1, III, 3, nbasis),
-                    LOC2(devSim.KLMN, 2, III, 3, nbasis),
+                    LOC2(KLMN, 0, III, 3, nbasis) + 1,
+                    LOC2(KLMN, 1, III, 3, nbasis),
+                    LOC2(KLMN, 2, III, 3, nbasis),
                     TRANSDIM, TRANSDIM, TRANSDIM);
 
-            AGradx += constant * LOCSTORE(&devSim.storeAA[blockIdx.x * blockDim.x + threadIdx.x], itemp, j, STOREDIM, STOREDIM);
+            AGradx += constant * LOCSTORE(&storeAA[blockIdx.x * blockDim.x + threadIdx.x], itemp, j, STOREDIM, STOREDIM);
 
-            if (LOC2(devSim.KLMN, 0, III, 3, nbasis) >= 1) {
+            if (LOC2(KLMN, 0, III, 3, nbasis) >= 1) {
                 itemp = LOC3(devTrans,
-                        LOC2(devSim.KLMN, 0, III, 3, nbasis) - 1,
-                        LOC2(devSim.KLMN, 1, III, 3, nbasis),
-                        LOC2(devSim.KLMN, 2, III, 3, nbasis),
+                        LOC2(KLMN, 0, III, 3, nbasis) - 1,
+                        LOC2(KLMN, 1, III, 3, nbasis),
+                        LOC2(KLMN, 2, III, 3, nbasis),
                         TRANSDIM, TRANSDIM, TRANSDIM);
 
-                AGradx -= constant * LOC2(devSim.KLMN, 0, III, 3, nbasis)
-                    * LOCSTORE(&devSim.store2[blockIdx.x * blockDim.x + threadIdx.x], itemp, j, STOREDIM, STOREDIM);
+                AGradx -= constant * LOC2(KLMN, 0, III, 3, nbasis)
+                    * LOCSTORE(&store2[blockIdx.x * blockDim.x + threadIdx.x], itemp, j, STOREDIM, STOREDIM);
             }
 
             // sum up gradient wrt y-coordinate of first center
             itemp = LOC3(devTrans,
-                    LOC2(devSim.KLMN, 0, III, 3, nbasis),
-                    LOC2(devSim.KLMN, 1, III, 3, nbasis) + 1,
-                    LOC2(devSim.KLMN, 2, III, 3, nbasis),
+                    LOC2(KLMN, 0, III, 3, nbasis),
+                    LOC2(KLMN, 1, III, 3, nbasis) + 1,
+                    LOC2(KLMN, 2, III, 3, nbasis),
                     TRANSDIM, TRANSDIM, TRANSDIM);
 
-            AGrady += constant * LOCSTORE(&devSim.storeAA[blockIdx.x * blockDim.x + threadIdx.x], itemp, j, STOREDIM, STOREDIM);
+            AGrady += constant * LOCSTORE(&storeAA[blockIdx.x * blockDim.x + threadIdx.x], itemp, j, STOREDIM, STOREDIM);
 
-            if (LOC2(devSim.KLMN, 1, III, 3, nbasis) >= 1) {
+            if (LOC2(KLMN, 1, III, 3, nbasis) >= 1) {
                 itemp = LOC3(devTrans,
-                        LOC2(devSim.KLMN, 0, III, 3, nbasis),
-                        LOC2(devSim.KLMN, 1, III, 3, nbasis) - 1,
-                        LOC2(devSim.KLMN, 2, III, 3, nbasis),
+                        LOC2(KLMN, 0, III, 3, nbasis),
+                        LOC2(KLMN, 1, III, 3, nbasis) - 1,
+                        LOC2(KLMN, 2, III, 3, nbasis),
                         TRANSDIM, TRANSDIM, TRANSDIM);
 
-                AGrady -= constant * LOC2(devSim.KLMN, 1, III, 3, nbasis)
-                    * LOCSTORE(&devSim.store2[blockIdx.x * blockDim.x + threadIdx.x], itemp, j, STOREDIM, STOREDIM);
+                AGrady -= constant * LOC2(KLMN, 1, III, 3, nbasis)
+                    * LOCSTORE(&store2[blockIdx.x * blockDim.x + threadIdx.x], itemp, j, STOREDIM, STOREDIM);
             }
 
             // sum up gradient wrt z-coordinate of first center
             itemp = LOC3(devTrans,
-                    LOC2(devSim.KLMN, 0, III, 3, nbasis),
-                    LOC2(devSim.KLMN, 1, III, 3, nbasis),
-                    LOC2(devSim.KLMN, 2, III, 3, nbasis) + 1,
+                    LOC2(KLMN, 0, III, 3, nbasis),
+                    LOC2(KLMN, 1, III, 3, nbasis),
+                    LOC2(KLMN, 2, III, 3, nbasis) + 1,
                     TRANSDIM, TRANSDIM, TRANSDIM);
 
-            AGradz += constant * LOCSTORE(&devSim.storeAA[blockIdx.x * blockDim.x + threadIdx.x], itemp, j, STOREDIM, STOREDIM);
+            AGradz += constant * LOCSTORE(&storeAA[blockIdx.x * blockDim.x + threadIdx.x], itemp, j, STOREDIM, STOREDIM);
 
-            if (LOC2(devSim.KLMN, 2, III, 3, nbasis) >= 1) {
+            if (LOC2(KLMN, 2, III, 3, nbasis) >= 1) {
                 itemp = LOC3(devTrans,
-                        LOC2(devSim.KLMN, 0, III, 3, nbasis),
-                        LOC2(devSim.KLMN, 1, III, 3, nbasis),
-                        LOC2(devSim.KLMN, 2, III, 3, nbasis) - 1,
+                        LOC2(KLMN, 0, III, 3, nbasis),
+                        LOC2(KLMN, 1, III, 3, nbasis),
+                        LOC2(KLMN, 2, III, 3, nbasis) - 1,
                         TRANSDIM, TRANSDIM, TRANSDIM);
 
-                AGradz -= constant * LOC2(devSim.KLMN, 2, III, 3, nbasis)
-                    * LOCSTORE(&devSim.store2[blockIdx.x * blockDim.x + threadIdx.x], itemp, j, STOREDIM, STOREDIM);
+                AGradz -= constant * LOC2(KLMN, 2, III, 3, nbasis)
+                    * LOCSTORE(&store2[blockIdx.x * blockDim.x + threadIdx.x], itemp, j, STOREDIM, STOREDIM);
             }
 
             // sum up gradient wrt x-coordinate of second center
             j = LOC3(devTrans,
-                    LOC2(devSim.KLMN, 0, JJJ, 3, nbasis) + 1,
-                    LOC2(devSim.KLMN, 1, JJJ, 3, nbasis),
-                    LOC2(devSim.KLMN, 2, JJJ, 3, nbasis),
+                    LOC2(KLMN, 0, JJJ, 3, nbasis) + 1,
+                    LOC2(KLMN, 1, JJJ, 3, nbasis),
+                    LOC2(KLMN, 2, JJJ, 3, nbasis),
                     TRANSDIM, TRANSDIM, TRANSDIM);
 
-            BGradx += constant * LOCSTORE(&devSim.storeBB[blockIdx.x * blockDim.x + threadIdx.x], i, j, STOREDIM, STOREDIM);
+            BGradx += constant * LOCSTORE(&storeBB[blockIdx.x * blockDim.x + threadIdx.x], i, j, STOREDIM, STOREDIM);
 
-            if (LOC2(devSim.KLMN, 0, JJJ, 3, nbasis) >= 1) {
+            if (LOC2(KLMN, 0, JJJ, 3, nbasis) >= 1) {
                 j = LOC3(devTrans,
-                        LOC2(devSim.KLMN, 0, JJJ, 3, nbasis) - 1,
-                        LOC2(devSim.KLMN, 1, JJJ, 3, nbasis),
-                        LOC2(devSim.KLMN, 2, JJJ, 3, nbasis),
+                        LOC2(KLMN, 0, JJJ, 3, nbasis) - 1,
+                        LOC2(KLMN, 1, JJJ, 3, nbasis),
+                        LOC2(KLMN, 2, JJJ, 3, nbasis),
                         TRANSDIM, TRANSDIM, TRANSDIM);
 
-                BGradx -= constant * LOC2(devSim.KLMN, 0, JJJ, 3, nbasis)
-                    * LOCSTORE(&devSim.store2[blockIdx.x * blockDim.x + threadIdx.x], i, j, STOREDIM, STOREDIM);
+                BGradx -= constant * LOC2(KLMN, 0, JJJ, 3, nbasis)
+                    * LOCSTORE(&store2[blockIdx.x * blockDim.x + threadIdx.x], i, j, STOREDIM, STOREDIM);
             }
 
             // sum up gradient wrt y-coordinate of second center
             j = LOC3(devTrans,
-                    LOC2(devSim.KLMN, 0, JJJ, 3, nbasis),
-                    LOC2(devSim.KLMN, 1, JJJ, 3, nbasis) + 1,
-                    LOC2(devSim.KLMN, 2, JJJ, 3, nbasis),
+                    LOC2(KLMN, 0, JJJ, 3, nbasis),
+                    LOC2(KLMN, 1, JJJ, 3, nbasis) + 1,
+                    LOC2(KLMN, 2, JJJ, 3, nbasis),
                     TRANSDIM, TRANSDIM, TRANSDIM);
 
-            BGrady += constant * LOCSTORE(&devSim.storeBB[blockIdx.x * blockDim.x + threadIdx.x], i, j, STOREDIM, STOREDIM);
+            BGrady += constant * LOCSTORE(&storeBB[blockIdx.x * blockDim.x + threadIdx.x], i, j, STOREDIM, STOREDIM);
 
-            if (LOC2(devSim.KLMN, 1, JJJ, 3, nbasis) >= 1) {
+            if (LOC2(KLMN, 1, JJJ, 3, nbasis) >= 1) {
                 j = LOC3(devTrans,
-                        LOC2(devSim.KLMN, 0, JJJ, 3, nbasis),
-                        LOC2(devSim.KLMN, 1, JJJ, 3, nbasis) - 1,
-                        LOC2(devSim.KLMN, 2, JJJ, 3, nbasis),
+                        LOC2(KLMN, 0, JJJ, 3, nbasis),
+                        LOC2(KLMN, 1, JJJ, 3, nbasis) - 1,
+                        LOC2(KLMN, 2, JJJ, 3, nbasis),
                         TRANSDIM, TRANSDIM, TRANSDIM);
 
-                BGrady -= constant * LOC2(devSim.KLMN, 1, JJJ, 3, nbasis)
-                    * LOCSTORE(&devSim.store2[blockIdx.x * blockDim.x + threadIdx.x], i, j, STOREDIM, STOREDIM);
+                BGrady -= constant * LOC2(KLMN, 1, JJJ, 3, nbasis)
+                    * LOCSTORE(&store2[blockIdx.x * blockDim.x + threadIdx.x], i, j, STOREDIM, STOREDIM);
             }
 
             // sum up gradient wrt z-coordinate of second center
             j = LOC3(devTrans,
-                    LOC2(devSim.KLMN, 0, JJJ, 3, nbasis),
-                    LOC2(devSim.KLMN, 1, JJJ, 3, nbasis),
-                    LOC2(devSim.KLMN, 2, JJJ, 3, nbasis) + 1,
+                    LOC2(KLMN, 0, JJJ, 3, nbasis),
+                    LOC2(KLMN, 1, JJJ, 3, nbasis),
+                    LOC2(KLMN, 2, JJJ, 3, nbasis) + 1,
                     TRANSDIM, TRANSDIM, TRANSDIM);
 
-            BGradz += constant * LOCSTORE(&devSim.storeBB[blockIdx.x * blockDim.x + threadIdx.x], i, j, STOREDIM, STOREDIM);
+            BGradz += constant * LOCSTORE(&storeBB[blockIdx.x * blockDim.x + threadIdx.x], i, j, STOREDIM, STOREDIM);
 
-            if (LOC2(devSim.KLMN, 2, JJJ, 3, nbasis) >= 1) {
+            if (LOC2(KLMN, 2, JJJ, 3, nbasis) >= 1) {
                 j = LOC3(devTrans,
-                        LOC2(devSim.KLMN, 0, JJJ, 3, nbasis),
-                        LOC2(devSim.KLMN, 1, JJJ, 3, nbasis),
-                        LOC2(devSim.KLMN, 2, JJJ, 3, nbasis) - 1,
+                        LOC2(KLMN, 0, JJJ, 3, nbasis),
+                        LOC2(KLMN, 1, JJJ, 3, nbasis),
+                        LOC2(KLMN, 2, JJJ, 3, nbasis) - 1,
                         TRANSDIM, TRANSDIM, TRANSDIM);
 
-                BGradz -= constant * LOC2(devSim.KLMN, 2, JJJ, 3, nbasis)
-                    * LOCSTORE(&devSim.store2[blockIdx.x * blockDim.x + threadIdx.x], i, j, STOREDIM, STOREDIM);
+                BGradz -= constant * LOC2(KLMN, 2, JJJ, 3, nbasis)
+                    * LOCSTORE(&store2[blockIdx.x * blockDim.x + threadIdx.x], i, j, STOREDIM, STOREDIM);
             }
         }
     }
 
-    const uint32_t AStart = devSim.katom[II] * 3;
-    const uint32_t BStart = devSim.katom[JJ] * 3;
-    const uint32_t CStart = (iatom < devSim.natom) ? iatom * 3 : (iatom - devSim.natom) * 3;
+    const uint32_t AStart = katom[II] * 3;
+    const uint32_t BStart = katom[JJ] * 3;
+    const uint32_t CStart = (iatom < natom) ? iatom * 3 : (iatom - natom) * 3;
 
 #if defined(USE_LEGACY_ATOMICS)
-    GPUATOMICADD(&devSim.gradULL[AStart], AGradx, GRADSCALE);
-    GPUATOMICADD(&devSim.gradULL[AStart + 1], AGrady, GRADSCALE);
-    GPUATOMICADD(&devSim.gradULL[AStart + 2], AGradz, GRADSCALE);
+    GPUATOMICADD(&gradULL[AStart], AGradx, GRADSCALE);
+    GPUATOMICADD(&gradULL[AStart + 1], AGrady, GRADSCALE);
+    GPUATOMICADD(&gradULL[AStart + 2], AGradz, GRADSCALE);
 
-    GPUATOMICADD(&devSim.gradULL[BStart], BGradx, GRADSCALE);
-    GPUATOMICADD(&devSim.gradULL[BStart + 1], BGrady, GRADSCALE);
-    GPUATOMICADD(&devSim.gradULL[BStart + 2], BGradz, GRADSCALE);
+    GPUATOMICADD(&gradULL[BStart], BGradx, GRADSCALE);
+    GPUATOMICADD(&gradULL[BStart + 1], BGrady, GRADSCALE);
+    GPUATOMICADD(&gradULL[BStart + 2], BGradz, GRADSCALE);
 
-    if (iatom < devSim.natom) {
-        GPUATOMICADD(&devSim.gradULL[CStart], -AGradx - BGradx, GRADSCALE);
-        GPUATOMICADD(&devSim.gradULL[CStart + 1], -AGrady - BGrady, GRADSCALE);
-        GPUATOMICADD(&devSim.gradULL[CStart + 2], -AGradz - BGradz, GRADSCALE);
+    if (iatom < natom) {
+        GPUATOMICADD(&gradULL[CStart], -AGradx - BGradx, GRADSCALE);
+        GPUATOMICADD(&gradULL[CStart + 1], -AGrady - BGrady, GRADSCALE);
+        GPUATOMICADD(&gradULL[CStart + 2], -AGradz - BGradz, GRADSCALE);
     } else {
-        GPUATOMICADD(&devSim.ptchg_gradULL[CStart], -AGradx - BGradx, GRADSCALE);
-        GPUATOMICADD(&devSim.ptchg_gradULL[CStart + 1], -AGrady - BGrady, GRADSCALE);
-        GPUATOMICADD(&devSim.ptchg_gradULL[CStart + 2], -AGradz - BGradz, GRADSCALE);
+        GPUATOMICADD(&ptchg_gradULL[CStart], -AGradx - BGradx, GRADSCALE);
+        GPUATOMICADD(&ptchg_gradULL[CStart + 1], -AGrady - BGrady, GRADSCALE);
+        GPUATOMICADD(&ptchg_gradULL[CStart + 2], -AGradz - BGradz, GRADSCALE);
     }
 #else
-    atomicAdd(&devSim.grad[AStart], AGradx);
-    atomicAdd(&devSim.grad[AStart + 1], AGrady);
-    atomicAdd(&devSim.grad[AStart + 2], AGradz);
+    atomicAdd(&grad[AStart], AGradx);
+    atomicAdd(&grad[AStart + 1], AGrady);
+    atomicAdd(&grad[AStart + 2], AGradz);
 
-    atomicAdd(&devSim.grad[BStart], BGradx);
-    atomicAdd(&devSim.grad[BStart + 1], BGrady);
-    atomicAdd(&devSim.grad[BStart + 2], BGradz);
+    atomicAdd(&grad[BStart], BGradx);
+    atomicAdd(&grad[BStart + 1], BGrady);
+    atomicAdd(&grad[BStart + 2], BGradz);
 
-    if (iatom < devSim.natom) {
-        atomicAdd(&devSim.grad[CStart], -AGradx - BGradx);
-        atomicAdd(&devSim.grad[CStart + 1], -AGrady - BGrady);
-        atomicAdd(&devSim.grad[CStart + 2], -AGradz - BGradz);
+    if (iatom < natom) {
+        atomicAdd(&grad[CStart], -AGradx - BGradx);
+        atomicAdd(&grad[CStart + 1], -AGrady - BGrady);
+        atomicAdd(&grad[CStart + 2], -AGradz - BGradz);
     } else {
-        atomicAdd(&devSim.ptchg_grad[CStart], -AGradx - BGradx);
-        atomicAdd(&devSim.ptchg_grad[CStart + 1], -AGrady - BGrady);
-        atomicAdd(&devSim.ptchg_grad[CStart + 2], -AGradz - BGradz);
+        atomicAdd(&ptchg_grad[CStart], -AGradx - BGradx);
+        atomicAdd(&ptchg_grad[CStart + 1], -AGrady - BGrady);
+        atomicAdd(&ptchg_grad[CStart + 2], -AGradz - BGradz);
     }
 #endif
 }
 
 
-__global__ void k_oei_grad() {
-    const QUICKULL jshell = (QUICKULL) devSim.Qshell;
+__global__ void k_oei_grad(bool is_oshell, uint32_t natom, uint32_t nextatom, uint32_t nbasis,
+        uint32_t nshell, uint32_t jbasis, uint32_t Qshell,
+        QUICKDouble const * const allchg, QUICKDouble const * const allxyz,
+        uint32_t const * const kstart, uint32_t const * const katom,
+        uint32_t const * const kprim, uint32_t const * const Ksumtype, uint32_t const * const Qstart,
+        uint32_t const * const Qsbasis, uint32_t const * const Qfbasis,
+        uint8_t const * const sorted_Qnumber, uint32_t const * const sorted_Q,
+        QUICKDouble const * const cons, QUICKDouble const * const gcexpo, uint8_t const * const KLMN,
+        uint32_t prim_total, uint32_t const * const prim_start,
+        QUICKDouble const * const dense, QUICKDouble const * const denseb, 
+        QUICKDouble const * const Xcoeff_oei, QUICKDouble const * const expoSum,
+        QUICKDouble const * const weightedCenterX, QUICKDouble const * const weightedCenterY,
+        QUICKDouble const * const weightedCenterZ, QUICKDouble coreIntegralCutoff,
+        int2 const * const sorted_OEICutoffIJ,
+#if defined(USE_LEGACY_ATOMICS)
+        QUICKULL * const gradULL, QUICKULL * const ptchg_gradULL,
+#else
+        QUICKDouble * const grad, QUICKDouble * const ptchg_grad,
+#endif
+#if defined(MPIV_GPU)
+        unsigned char const * const mpi_boeicompute,
+#endif
+        QUICKDouble * const store, QUICKDouble * const store2,
+        QUICKDouble * const storeAA, QUICKDouble * const storeBB)
+{
+    const QUICKULL jshell = (QUICKULL) Qshell;
 
     for (QUICKULL i = blockIdx.x * blockDim.x + threadIdx.x;
-            i < jshell * jshell * (devSim.natom + devSim.nextatom); i += blockDim.x * gridDim.x) {
+            i < jshell * jshell * (natom + nextatom); i += blockDim.x * gridDim.x) {
         // use the global index to obtain shell pair. Note that here we obtain a couple of indices that helps us to obtain
         // shell number (ii and jj) and quantum numbers (iii, jjj).
         const uint32_t iatom = i / (jshell * jshell);
         const uint32_t idx = i - iatom * jshell * jshell;
 
 #ifdef MPIV_GPU
-        if (devSim.mpi_boeicompute[idx] > 0) {
+        if (mpi_boeicompute[idx] > 0) {
 #endif
-        const int II = devSim.sorted_OEICutoffIJ[idx].x;
-        const int JJ = devSim.sorted_OEICutoffIJ[idx].y;
+        const int II = sorted_OEICutoffIJ[idx].x;
+        const int JJ = sorted_OEICutoffIJ[idx].y;
 
         // get the shell numbers of selected shell pair
-        const uint32_t ii = devSim.sorted_Q[II];
-        const uint32_t jj = devSim.sorted_Q[JJ];
+        const uint32_t ii = sorted_Q[II];
+        const uint32_t jj = sorted_Q[JJ];
 
         // get the quantum number (or angular momentum of shells, s=0, p=1 and so on.)
-        const uint8_t iii = devSim.sorted_Qnumber[II];
-        const uint8_t jjj = devSim.sorted_Qnumber[JJ];
+        const uint8_t iii = sorted_Qnumber[II];
+        const uint8_t jjj = sorted_Qnumber[JJ];
 
         // compute coulomb attraction for the selected shell pair.
-        iclass_oei_grad(iii, jjj, ii, jj, iatom);
+        iclass_oei_grad(iii, jjj, ii, jj, iatom, is_oshell, natom, nextatom, nbasis, nshell, jbasis,
+                allchg, allxyz, kstart, katom, kprim, Ksumtype, Qstart, Qsbasis, Qfbasis,
+                cons, gcexpo, KLMN, prim_total, prim_start, dense, denseb,
+                Xcoeff_oei, expoSum, weightedCenterX, weightedCenterY, weightedCenterZ,
+                coreIntegralCutoff,
+#if defined(USE_LEGACY_ATOMICS)
+                gradULL, ptchg_gradULL,
+#else
+                grad, ptchg_grad,
+#endif
+                store, store2, storeAA, storeBB);
 #ifdef MPIV_GPU
         }
 #endif

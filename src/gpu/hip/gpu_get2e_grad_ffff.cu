@@ -21,12 +21,8 @@
 /*
  * Constant Memory in GPU is fast but quite limited and hard to operate, usually not allocatable and
  * readonly. So we put the following variables into constant memory:
- * devSim: a gpu simluation type variable. which is to store to location of basic information about molecule and basis
- *         set. Note it only store the location, so it's mostly a set of pointer to GPU memory. and with some non-pointer
- *         value like the number of basis set. See gpu_type.h for details.
  * devTrans: arrays to save the mapping index, will be elimited by hand writing unrolling code.
  */
-static __constant__ gpu_simulation_type devSim;
 static __constant__ uint8_t devTrans[TRANSDIM * TRANSDIM * TRANSDIM];
 
 
@@ -656,11 +652,4 @@ void upload_para_to_const_ffff()
 
     gpuMemcpyToSymbol((const void *) devTrans, (const void *) trans,
             sizeof(uint8_t) * TRANSDIM * TRANSDIM * TRANSDIM);
-}
-
-
-void upload_sim_to_constant_ffff(_gpu_type gpu) {
-    gpuMemcpyToSymbol((const void *) &devSim, (const void *) &gpu->gpu_sim, sizeof(gpu_simulation_type));
-
-    upload_para_to_const_ffff();
 }

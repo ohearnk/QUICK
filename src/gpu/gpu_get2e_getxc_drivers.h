@@ -28,7 +28,6 @@ extern "C" void gpu_get_cshell_eri_(bool *deltaO, QUICKDouble* o)
 #endif
 {
     PRINTDEBUG("BEGIN TO RUN GET ERI");
-    upload_sim_to_constant(gpu);
     PRINTDEBUG("BEGIN TO RUN KERNEL");
 
 #if defined(OSHELL)
@@ -128,22 +127,19 @@ extern "C" void gpu_get_cshell_eri_grad_(QUICKDouble* grad)
 #endif
 {
     PRINTDEBUG("BEGIN TO RUN GRAD");
-    upload_sim_to_constant(gpu);
     PRINTDEBUG("BEGIN TO RUN KERNEL");
 
-    if(gpu -> gpu_sim.is_oshell == true){
+    if (gpu->gpu_sim.is_oshell == true) {
         get_oshell_eri_grad(gpu);
-    }else{
+    } else {
         getGrad(gpu);
     }
 
 #if defined(GPU_SPDF)
     if (gpu->maxL >= 3) {
-        upload_sim_to_constant_ffff(gpu);
-
-        if(gpu -> gpu_sim.is_oshell == true){
+        if(gpu -> gpu_sim.is_oshell == true) {
             get_oshell_eri_grad_ffff(gpu);
-        }else{
+        } else {
             getGrad_ffff(gpu);
         }
     }
@@ -205,7 +201,6 @@ extern "C" void gpu_get_cshell_xc_(QUICKDouble* Eelxc, QUICKDouble* aelec, QUICK
     gpu->DFT_calculated->Upload();
     gpu->gpu_sim.DFT_calculated = gpu->DFT_calculated->_devData;
 
-    upload_sim_to_constant_dft(gpu);
     PRINTDEBUG("BEGIN TO RUN KERNEL");
 
     getxc(gpu);
@@ -298,8 +293,6 @@ extern "C" void gpu_get_cshell_xcgrad_(QUICKDouble *grad)
     // calculate smem size
     gpu->gpu_xcq->smem_size = sizeof(QUICKULL) * 3u * gpu->natom;
 
-    upload_sim_to_constant_dft(gpu);
-
     memset(gpu->grad->_hostData, 0, gpu->gpu_xcq->smem_size);
 
     getxc_grad(gpu);
@@ -335,7 +328,6 @@ extern "C" void gpu_get_cshell_xcgrad_(QUICKDouble *grad)
 #if !defined(OSHELL)
 extern "C" void gpu_get_oeprop_(QUICKDouble* esp_electronic)
 {
-    upload_sim_to_constant_oeprop(gpu);
     upload_para_to_const_oeprop();
 
     getOEPROP(gpu);
@@ -359,7 +351,6 @@ extern "C" void gpu_get_oeprop_(QUICKDouble* esp_electronic)
 
 extern "C" void gpu_get_oei_(QUICKDouble* o)
 {
-    upload_sim_to_constant_oei(gpu);
     upload_para_to_const_oei();
 
     getOEI(gpu);
@@ -408,8 +399,6 @@ extern "C" void gpu_get_oei_grad_(QUICKDouble* grad, QUICKDouble* ptchg_grad)
         gpu->gpu_sim.ptchg_grad =  gpu->ptchg_grad->_devData;
 #endif
     }
-
-    upload_sim_to_constant_oei(gpu);
 
     get_oei_grad(gpu);
 
@@ -480,14 +469,11 @@ extern "C" void gpu_get_lri_(QUICKDouble* o)
 #endif
 */
 
-    upload_sim_to_constant_lri(gpu);
-
     upload_para_to_const_lri();
 
     get_lri(gpu);
 
     //compute xc quad potential
-    upload_sim_to_constant_dft(gpu);
     getcew_quad(gpu);
 
 #if defined(USE_LEGACY_ATOMICS)
@@ -533,8 +519,6 @@ extern "C" void gpu_get_lri_(QUICKDouble* o)
 
 extern "C" void gpu_get_lri_grad_(QUICKDouble* grad, QUICKDouble* ptchg_grad)
 {
-    upload_sim_to_constant_lri(gpu);
-
     upload_para_to_const_lri();
 
     get_lri_grad(gpu);
@@ -599,7 +583,6 @@ extern "C" void gpu_getcew_grad_quad_(QUICKDouble* grad)
     gpu->gpu_xcq->smem_size = sizeof(QUICKULL) * 3u * gpu->natom;
 
     //compute xc quad potential
-    upload_sim_to_constant_dft(gpu);
 
     getcew_quad_grad(gpu);
 

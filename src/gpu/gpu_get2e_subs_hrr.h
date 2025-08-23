@@ -679,46 +679,48 @@ __device__ static inline QUICKDouble hrrwhole_sp(uint8_t I, uint8_t J, uint8_t K
         QUICKDouble RAx, QUICKDouble RAy, QUICKDouble RAz,
         QUICKDouble RBx, QUICKDouble RBy, QUICKDouble RBz,
         QUICKDouble RCx, QUICKDouble RCy, QUICKDouble RCz,
-        QUICKDouble RDx, QUICKDouble RDy, QUICKDouble RDz)
+        QUICKDouble RDx, QUICKDouble RDy, QUICKDouble RDz,
+        uint32_t nbasis, QUICKDouble const * const cons, uint8_t const * const KLMN,
+        QUICKDouble * const store)
 {
     QUICKDouble Y = 0.0;
     QUICKDouble coefAngularL[2], coefAngularR[2];
     uint8_t angularL[2], angularR[2];
 
     uint8_t numAngularL = lefthrr_sp(RAx, RAy, RAz, RBx, RBy, RBz,
-            LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
+            LOC2(KLMN, 0, III, 3, nbasis),
+            LOC2(KLMN, 1, III, 3, nbasis),
+            LOC2(KLMN, 2, III, 3, nbasis),
+            LOC2(KLMN, 0, JJJ, 3, nbasis),
+            LOC2(KLMN, 1, JJJ, 3, nbasis),
+            LOC2(KLMN, 2, JJJ, 3, nbasis),
             J, coefAngularL, angularL);
     uint8_t numAngularR = lefthrr_sp(RCx, RCy, RCz, RDx, RDy, RDz,
-            LOC2(devSim.KLMN, 0, KKK, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 1, KKK, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 2, KKK, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 0, LLL, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 1, LLL, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 2, LLL, 3, devSim.nbasis),
+            LOC2(KLMN, 0, KKK, 3, nbasis),
+            LOC2(KLMN, 1, KKK, 3, nbasis),
+            LOC2(KLMN, 2, KKK, 3, nbasis),
+            LOC2(KLMN, 0, LLL, 3, nbasis),
+            LOC2(KLMN, 1, LLL, 3, nbasis),
+            LOC2(KLMN, 2, LLL, 3, nbasis),
             L, coefAngularR, angularR);
 
     for (uint8_t i = 0; i < numAngularL; i++) {
         for (uint8_t j = 0; j < numAngularR; j++) {
             if (angularL[i] < STOREDIM && angularR[j] < STOREDIM) {
                 Y += coefAngularL[i] * coefAngularR[j]
-                    * LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
+                    * LOCSTORE(&store[blockIdx.x * blockDim.x + threadIdx.x],
                             angularL[i], angularR[j], STOREDIM, STOREDIM);
 
 //                printf("I %d J %d K %d L %d III %d JJJ %d KKK %d LLL %d i %d j %d store: %f \n",
 //                        I, J, K, L, III, JJJ, KKK, LLL,
 //                        angularL[i], angularR[j],
-//                        LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
+//                        LOCSTORE(&store[blockIdx.x * blockDim.x + threadIdx.x],
 //                            angularL[i], angularR[j], STOREDIM, STOREDIM));
             }
         }
     }
 
-    Y *= devSim.cons[III] * devSim.cons[JJJ] * devSim.cons[KKK] * devSim.cons[LLL];
+    Y *= cons[III] * cons[JJJ] * cons[KKK] * cons[LLL];
 
     return Y;
 }
@@ -944,40 +946,42 @@ __device__ static inline QUICKDouble hrrwhole(uint8_t I, uint8_t J, uint8_t K, u
         QUICKDouble RAx, QUICKDouble RAy, QUICKDouble RAz,
         QUICKDouble RBx, QUICKDouble RBy, QUICKDouble RBz,
         QUICKDouble RCx, QUICKDouble RCy, QUICKDouble RCz,
-        QUICKDouble RDx, QUICKDouble RDy, QUICKDouble RDz)
+        QUICKDouble RDx, QUICKDouble RDy, QUICKDouble RDz,
+        uint32_t nbasis, QUICKDouble const * const cons, uint8_t const * const KLMN,
+        QUICKDouble * const store)
 {
     QUICKDouble Y = 0.0;
     QUICKDouble coefAngularL[8], coefAngularR[8];
     uint8_t angularL[8], angularR[8];
 
     uint8_t numAngularL = lefthrr_spd(RAx, RAy, RAz, RBx, RBy, RBz,
-            LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
+            LOC2(KLMN, 0, III, 3, nbasis),
+            LOC2(KLMN, 1, III, 3, nbasis),
+            LOC2(KLMN, 2, III, 3, nbasis),
+            LOC2(KLMN, 0, JJJ, 3, nbasis),
+            LOC2(KLMN, 1, JJJ, 3, nbasis),
+            LOC2(KLMN, 2, JJJ, 3, nbasis),
             J, coefAngularL, angularL);
     uint8_t numAngularR = lefthrr_spd(RCx, RCy, RCz, RDx, RDy, RDz,
-            LOC2(devSim.KLMN, 0, KKK, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 1, KKK, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 2, KKK, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 0, LLL, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 1, LLL, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 2, LLL, 3, devSim.nbasis),
+            LOC2(KLMN, 0, KKK, 3, nbasis),
+            LOC2(KLMN, 1, KKK, 3, nbasis),
+            LOC2(KLMN, 2, KKK, 3, nbasis),
+            LOC2(KLMN, 0, LLL, 3, nbasis),
+            LOC2(KLMN, 1, LLL, 3, nbasis),
+            LOC2(KLMN, 2, LLL, 3, nbasis),
             L, coefAngularR, angularR);
 
     for (uint8_t i = 0; i < numAngularL; i++) {
         for (uint8_t j = 0; j < numAngularR; j++) {
             if (angularL[i] < STOREDIM && angularR[j] < STOREDIM) {
                 Y += coefAngularL[i] * coefAngularR[j]
-                    * LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
+                    * LOCSTORE(&store[blockIdx.x * blockDim.x + threadIdx.x],
                             angularL[i], angularR[j], STOREDIM, STOREDIM);
             }
         }
     }
 
-    Y *= devSim.cons[III] * devSim.cons[JJJ] * devSim.cons[KKK] * devSim.cons[LLL];
+    Y *= cons[III] * cons[JJJ] * cons[KKK] * cons[LLL];
 
     return Y;
 }
@@ -990,40 +994,42 @@ __device__ static inline QUICKDouble hrrwhole2(uint8_t I, uint8_t J, uint8_t K, 
         QUICKDouble RAx, QUICKDouble RAy, QUICKDouble RAz,
         QUICKDouble RBx, QUICKDouble RBy, QUICKDouble RBz,
         QUICKDouble RCx, QUICKDouble RCy, QUICKDouble RCz,
-        QUICKDouble RDx, QUICKDouble RDy, QUICKDouble RDz)
+        QUICKDouble RDx, QUICKDouble RDy, QUICKDouble RDz,
+        uint32_t nbasis, QUICKDouble const * const cons, uint8_t const * const KLMN,
+        QUICKDouble * const store)
 {
     QUICKDouble Y = 0.0;
     QUICKDouble coefAngularL[12], coefAngularR[12];
     uint8_t angularL[12], angularR[12];
 
     uint8_t numAngularL = lefthrr(RAx, RAy, RAz, RBx, RBy, RBz,
-            LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
+            LOC2(KLMN, 0, III, 3, nbasis),
+            LOC2(KLMN, 1, III, 3, nbasis),
+            LOC2(KLMN, 2, III, 3, nbasis),
+            LOC2(KLMN, 0, JJJ, 3, nbasis),
+            LOC2(KLMN, 1, JJJ, 3, nbasis),
+            LOC2(KLMN, 2, JJJ, 3, nbasis),
             J, coefAngularL, angularL);
     uint8_t numAngularR = lefthrr(RCx, RCy, RCz, RDx, RDy, RDz,
-            LOC2(devSim.KLMN, 0, KKK, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 1, KKK, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 2, KKK, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 0, LLL, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 1, LLL, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 2, LLL, 3, devSim.nbasis),
+            LOC2(KLMN, 0, KKK, 3, nbasis),
+            LOC2(KLMN, 1, KKK, 3, nbasis),
+            LOC2(KLMN, 2, KKK, 3, nbasis),
+            LOC2(KLMN, 0, LLL, 3, nbasis),
+            LOC2(KLMN, 1, LLL, 3, nbasis),
+            LOC2(KLMN, 2, LLL, 3, nbasis),
             L, coefAngularR, angularR);
 
     for (uint8_t i = 0; i < numAngularL; i++) {
         for (uint8_t j = 0; j < numAngularR; j++) {
             if (angularL[i] < STOREDIM && angularR[j] < STOREDIM) {
                 Y += coefAngularL[i] * coefAngularR[j]
-                    * LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
+                    * LOCSTORE(&store[blockIdx.x * blockDim.x + threadIdx.x],
                             angularL[i], angularR[j], STOREDIM, STOREDIM);
             }
         }
     }
 
-    Y *= devSim.cons[III] * devSim.cons[JJJ] * devSim.cons[KKK] * devSim.cons[LLL];
+    Y *= cons[III] * cons[JJJ] * cons[KKK] * cons[LLL];
 
     return Y;
 }
@@ -1034,56 +1040,58 @@ __device__ static inline QUICKDouble hrrwhole2_1(uint8_t I, uint8_t J, uint8_t K
         QUICKDouble RAx, QUICKDouble RAy, QUICKDouble RAz,
         QUICKDouble RBx, QUICKDouble RBy, QUICKDouble RBz,
         QUICKDouble RCx, QUICKDouble RCy, QUICKDouble RCz,
-        QUICKDouble RDx, QUICKDouble RDy, QUICKDouble RDz)
+        QUICKDouble RDx, QUICKDouble RDy, QUICKDouble RDz,
+        uint32_t nbasis, QUICKDouble const * const cons, uint8_t const * const KLMN,
+        QUICKDouble * const store)
 {
     QUICKDouble Y = 0.0;
     QUICKDouble coefAngularL[12], coefAngularR[12];
     uint8_t angularL[12], angularR[12];
 
     uint8_t numAngularL = lefthrr(RAx, RAy, RAz, RBx, RBy, RBz,
-            LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
+            LOC2(KLMN, 0, III, 3, nbasis),
+            LOC2(KLMN, 1, III, 3, nbasis),
+            LOC2(KLMN, 2, III, 3, nbasis),
+            LOC2(KLMN, 0, JJJ, 3, nbasis),
+            LOC2(KLMN, 1, JJJ, 3, nbasis),
+            LOC2(KLMN, 2, JJJ, 3, nbasis),
             J, coefAngularL, angularL);
 
     if (L == 2) {
         for (uint8_t i = 0; i < numAngularL; i++) {
             if (angularL[i] < STOREDIM ) {
-                Y += coefAngularL[i] * LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
+                Y += coefAngularL[i] * LOCSTORE(&store[blockIdx.x * blockDim.x + threadIdx.x],
                         angularL[i],
                         LOC3(devTrans,
-                            LOC2(devSim.KLMN, 0, KKK, 3, devSim.nbasis) + LOC2(devSim.KLMN, 0, LLL, 3, devSim.nbasis),
-                            LOC2(devSim.KLMN, 1, KKK, 3, devSim.nbasis) + LOC2(devSim.KLMN, 1, LLL, 3, devSim.nbasis),
-                            LOC2(devSim.KLMN, 2, KKK, 3, devSim.nbasis) + LOC2(devSim.KLMN, 2, LLL, 3, devSim.nbasis),
+                            LOC2(KLMN, 0, KKK, 3, nbasis) + LOC2(KLMN, 0, LLL, 3, nbasis),
+                            LOC2(KLMN, 1, KKK, 3, nbasis) + LOC2(KLMN, 1, LLL, 3, nbasis),
+                            LOC2(KLMN, 2, KKK, 3, nbasis) + LOC2(KLMN, 2, LLL, 3, nbasis),
                             TRANSDIM, TRANSDIM, TRANSDIM),
                         STOREDIM, STOREDIM);
             }
         }
     } else {
         uint8_t numAngularR = lefthrr23(RCx, RCy, RCz, RDx, RDy, RDz,
-                LOC2(devSim.KLMN, 0, KKK, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, KKK, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, KKK, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 0, LLL, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, LLL, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, LLL, 3, devSim.nbasis),
+                LOC2(KLMN, 0, KKK, 3, nbasis),
+                LOC2(KLMN, 1, KKK, 3, nbasis),
+                LOC2(KLMN, 2, KKK, 3, nbasis),
+                LOC2(KLMN, 0, LLL, 3, nbasis),
+                LOC2(KLMN, 1, LLL, 3, nbasis),
+                LOC2(KLMN, 2, LLL, 3, nbasis),
                 coefAngularR, angularR);
 
         for (uint8_t i = 0; i < numAngularL; i++) {
             for (uint8_t j = 0; j < numAngularR; j++) {
                 if (angularL[i] < STOREDIM && angularR[j] < STOREDIM) {
                     Y += coefAngularL[i] * coefAngularR[j]
-                        * LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
+                        * LOCSTORE(&store[blockIdx.x * blockDim.x + threadIdx.x],
                                 angularL[i], angularR[j], STOREDIM, STOREDIM);
                 }
             }
         }
     }
 
-    Y *= devSim.cons[III] * devSim.cons[JJJ] * devSim.cons[KKK] * devSim.cons[LLL];
+    Y *= cons[III] * cons[JJJ] * cons[KKK] * cons[LLL];
 
     return Y;
 }
@@ -1094,55 +1102,57 @@ __device__ static inline QUICKDouble hrrwhole2_2(uint8_t I, uint8_t J, uint8_t K
         QUICKDouble RAx, QUICKDouble RAy, QUICKDouble RAz,
         QUICKDouble RBx, QUICKDouble RBy, QUICKDouble RBz,
         QUICKDouble RCx, QUICKDouble RCy, QUICKDouble RCz,
-        QUICKDouble RDx, QUICKDouble RDy, QUICKDouble RDz)
+        QUICKDouble RDx, QUICKDouble RDy, QUICKDouble RDz,
+        uint32_t nbasis, QUICKDouble const * const cons, uint8_t const * const KLMN,
+        QUICKDouble * const store)
 {
     QUICKDouble Y = 0.0;
     QUICKDouble coefAngularL[12], coefAngularR[12];
     uint8_t angularL[12], angularR[12];
 
     uint8_t numAngularR = lefthrr(RCx, RCy, RCz, RDx, RDy, RDz,
-            LOC2(devSim.KLMN, 0, KKK, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 1, KKK, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 2, KKK, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 0, LLL, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 1, LLL, 3, devSim.nbasis),
-            LOC2(devSim.KLMN, 2, LLL, 3, devSim.nbasis),
+            LOC2(KLMN, 0, KKK, 3, nbasis),
+            LOC2(KLMN, 1, KKK, 3, nbasis),
+            LOC2(KLMN, 2, KKK, 3, nbasis),
+            LOC2(KLMN, 0, LLL, 3, nbasis),
+            LOC2(KLMN, 1, LLL, 3, nbasis),
+            LOC2(KLMN, 2, LLL, 3, nbasis),
             L, coefAngularR, angularR);
 
     if (J == 2) {
         for (uint8_t j = 0; j < numAngularR; j++) {
             if (angularR[j] < STOREDIM) {
-                Y += coefAngularR[j] * LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
+                Y += coefAngularR[j] * LOCSTORE(&store[blockIdx.x * blockDim.x + threadIdx.x],
                         LOC3(devTrans,
-                            LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis) + LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-                            LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis) + LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
-                            LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis) + LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
+                            LOC2(KLMN, 0, III, 3, nbasis) + LOC2(KLMN, 0, JJJ, 3, nbasis),
+                            LOC2(KLMN, 1, III, 3, nbasis) + LOC2(KLMN, 1, JJJ, 3, nbasis),
+                            LOC2(KLMN, 2, III, 3, nbasis) + LOC2(KLMN, 2, JJJ, 3, nbasis),
                             TRANSDIM, TRANSDIM, TRANSDIM),
                         angularR[j], STOREDIM, STOREDIM);
             }
         }
     } else {
         uint8_t numAngularL = lefthrr23(RAx, RAy, RAz, RBx, RBy, RBz,
-                LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
+                LOC2(KLMN, 0, III, 3, nbasis),
+                LOC2(KLMN, 1, III, 3, nbasis),
+                LOC2(KLMN, 2, III, 3, nbasis),
+                LOC2(KLMN, 0, JJJ, 3, nbasis),
+                LOC2(KLMN, 1, JJJ, 3, nbasis),
+                LOC2(KLMN, 2, JJJ, 3, nbasis),
                 coefAngularL, angularL);
 
         for (uint8_t i = 0; i < numAngularL; i++) {
             for (uint8_t j = 0; j < numAngularR; j++) {
                 if (angularL[i] < STOREDIM && angularR[j] < STOREDIM) {
                     Y += coefAngularL[i] * coefAngularR[j]
-                        * LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
+                        * LOCSTORE(&store[blockIdx.x * blockDim.x + threadIdx.x],
                                 angularL[i], angularR[j], STOREDIM, STOREDIM);
                 }
             }
         }
     }
 
-    Y *= devSim.cons[III] * devSim.cons[JJJ] * devSim.cons[KKK] * devSim.cons[LLL];
+    Y *= cons[III] * cons[JJJ] * cons[KKK] * cons[LLL];
 
     return Y;
 }
@@ -1157,23 +1167,25 @@ __device__ static inline QUICKDouble hrrwhole2_5(uint8_t I, uint8_t J, uint8_t K
         QUICKDouble RAx, QUICKDouble RAy, QUICKDouble RAz,
         QUICKDouble RBx, QUICKDouble RBy, QUICKDouble RBz,
         QUICKDouble RCx, QUICKDouble RCy, QUICKDouble RCz,
-        QUICKDouble RDx, QUICKDouble RDy, QUICKDouble RDz)
+        QUICKDouble RDx, QUICKDouble RDy, QUICKDouble RDz,
+        uint32_t nbasis, QUICKDouble const * const cons, uint8_t const * const KLMN,
+        QUICKDouble * const store)
 {
     QUICKDouble Y;
 
     if (K + L == 6 && I + J == 4) {
-        Y = LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
+        Y = LOCSTORE(&store[blockIdx.x * blockDim.x + threadIdx.x],
                 LOC3(devTrans,
-                    LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis) + LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-                    LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis) + LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
-                    LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis) + LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
+                    LOC2(KLMN, 0, III, 3, nbasis) + LOC2(KLMN, 0, JJJ, 3, nbasis),
+                    LOC2(KLMN, 1, III, 3, nbasis) + LOC2(KLMN, 1, JJJ, 3, nbasis),
+                    LOC2(KLMN, 2, III, 3, nbasis) + LOC2(KLMN, 2, JJJ, 3, nbasis),
                     TRANSDIM, TRANSDIM, TRANSDIM),
                 LOC3(devTrans,
-                    LOC2(devSim.KLMN, 0, KKK, 3, devSim.nbasis) + LOC2(devSim.KLMN, 0, LLL, 3, devSim.nbasis),
-                    LOC2(devSim.KLMN, 1, KKK, 3, devSim.nbasis) + LOC2(devSim.KLMN, 1, LLL, 3, devSim.nbasis),
-                    LOC2(devSim.KLMN, 2, KKK, 3, devSim.nbasis) + LOC2(devSim.KLMN, 2, LLL, 3, devSim.nbasis),
+                    LOC2(KLMN, 0, KKK, 3, nbasis) + LOC2(KLMN, 0, LLL, 3, nbasis),
+                    LOC2(KLMN, 1, KKK, 3, nbasis) + LOC2(KLMN, 1, LLL, 3, nbasis),
+                    LOC2(KLMN, 2, KKK, 3, nbasis) + LOC2(KLMN, 2, LLL, 3, nbasis),
                     TRANSDIM, TRANSDIM, TRANSDIM),
-                STOREDIM, STOREDIM) * devSim.cons[III] * devSim.cons[JJJ] * devSim.cons[KKK] * devSim.cons[LLL];
+                STOREDIM, STOREDIM) * cons[III] * cons[JJJ] * cons[KKK] * cons[LLL];
     } else {
         // else case, j can be 2 or 3, and k = 3 and l = 3
         uint8_t angularL[12];
@@ -1181,28 +1193,28 @@ __device__ static inline QUICKDouble hrrwhole2_5(uint8_t I, uint8_t J, uint8_t K
         Y = 0.0;
 
         uint8_t numAngularL = lefthrr(RAx, RAy, RAz, RBx, RBy, RBz,
-                LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
+                LOC2(KLMN, 0, III, 3, nbasis),
+                LOC2(KLMN, 1, III, 3, nbasis),
+                LOC2(KLMN, 2, III, 3, nbasis),
+                LOC2(KLMN, 0, JJJ, 3, nbasis),
+                LOC2(KLMN, 1, JJJ, 3, nbasis),
+                LOC2(KLMN, 2, JJJ, 3, nbasis),
                 J, coefAngularL, angularL);
 
         for (uint8_t i = 0; i < numAngularL; i++) {
             if (angularL[i] < STOREDIM) {
-                Y += coefAngularL[i] * LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
+                Y += coefAngularL[i] * LOCSTORE(&store[blockIdx.x * blockDim.x + threadIdx.x],
                         angularL[i],
                         LOC3(devTrans,
-                            LOC2(devSim.KLMN, 0, KKK, 3, devSim.nbasis) + LOC2(devSim.KLMN, 0, LLL, 3, devSim.nbasis),
-                            LOC2(devSim.KLMN, 1, KKK, 3, devSim.nbasis) + LOC2(devSim.KLMN, 1, LLL, 3, devSim.nbasis),
-                            LOC2(devSim.KLMN, 2, KKK, 3, devSim.nbasis) + LOC2(devSim.KLMN, 2, LLL, 3, devSim.nbasis),
+                            LOC2(KLMN, 0, KKK, 3, nbasis) + LOC2(KLMN, 0, LLL, 3, nbasis),
+                            LOC2(KLMN, 1, KKK, 3, nbasis) + LOC2(KLMN, 1, LLL, 3, nbasis),
+                            LOC2(KLMN, 2, KKK, 3, nbasis) + LOC2(KLMN, 2, LLL, 3, nbasis),
                             TRANSDIM, TRANSDIM, TRANSDIM),
                         STOREDIM, STOREDIM);
             }
         }
 
-        Y *= devSim.cons[III] * devSim.cons[JJJ] * devSim.cons[KKK] * devSim.cons[LLL];
+        Y *= cons[III] * cons[JJJ] * cons[KKK] * cons[LLL];
     }
 
     return Y;
@@ -1218,23 +1230,25 @@ __device__ static inline QUICKDouble hrrwhole2_6(uint8_t I, uint8_t J, uint8_t K
         QUICKDouble RAx, QUICKDouble RAy, QUICKDouble RAz,
         QUICKDouble RBx, QUICKDouble RBy, QUICKDouble RBz,
         QUICKDouble RCx, QUICKDouble RCy, QUICKDouble RCz,
-        QUICKDouble RDx, QUICKDouble RDy, QUICKDouble RDz)
+        QUICKDouble RDx, QUICKDouble RDy, QUICKDouble RDz,
+        uint32_t nbasis, QUICKDouble const * const cons, uint8_t const * const KLMN,
+        QUICKDouble * const store)
 {
     QUICKDouble Y;
 
     if (K + L == 4 && I + J == 6) {
-        Y = LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
+        Y = LOCSTORE(&store[blockIdx.x * blockDim.x + threadIdx.x],
                 LOC3(devTrans,
-                    LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis) + LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-                    LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis) + LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
-                    LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis) + LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
+                    LOC2(KLMN, 0, III, 3, nbasis) + LOC2(KLMN, 0, JJJ, 3, nbasis),
+                    LOC2(KLMN, 1, III, 3, nbasis) + LOC2(KLMN, 1, JJJ, 3, nbasis),
+                    LOC2(KLMN, 2, III, 3, nbasis) + LOC2(KLMN, 2, JJJ, 3, nbasis),
                     TRANSDIM, TRANSDIM, TRANSDIM),
                 LOC3(devTrans,
-                    LOC2(devSim.KLMN, 0, KKK, 3, devSim.nbasis) + LOC2(devSim.KLMN, 0, LLL, 3, devSim.nbasis),
-                    LOC2(devSim.KLMN, 1, KKK, 3, devSim.nbasis) + LOC2(devSim.KLMN, 1, LLL, 3, devSim.nbasis),
-                    LOC2(devSim.KLMN, 2, KKK, 3, devSim.nbasis) + LOC2(devSim.KLMN, 2, LLL, 3, devSim.nbasis),
+                    LOC2(KLMN, 0, KKK, 3, nbasis) + LOC2(KLMN, 0, LLL, 3, nbasis),
+                    LOC2(KLMN, 1, KKK, 3, nbasis) + LOC2(KLMN, 1, LLL, 3, nbasis),
+                    LOC2(KLMN, 2, KKK, 3, nbasis) + LOC2(KLMN, 2, LLL, 3, nbasis),
                     TRANSDIM, TRANSDIM, TRANSDIM),
-                STOREDIM, STOREDIM) * devSim.cons[III] * devSim.cons[JJJ] * devSim.cons[KKK] * devSim.cons[LLL];
+                STOREDIM, STOREDIM) * cons[III] * cons[JJJ] * cons[KKK] * cons[LLL];
     } else {
         uint8_t angularR[12];
         QUICKDouble coefAngularR[12];
@@ -1242,27 +1256,27 @@ __device__ static inline QUICKDouble hrrwhole2_6(uint8_t I, uint8_t J, uint8_t K
 
         // For hrr, only k+l need hrr, but can be simplified to only consider k+l=5 contibution
         uint8_t numAngularR = lefthrr(RCx, RCy, RCz, RDx, RDy, RDz,
-                LOC2(devSim.KLMN, 0, KKK, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, KKK, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, KKK, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 0, LLL, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, LLL, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, LLL, 3, devSim.nbasis),
+                LOC2(KLMN, 0, KKK, 3, nbasis),
+                LOC2(KLMN, 1, KKK, 3, nbasis),
+                LOC2(KLMN, 2, KKK, 3, nbasis),
+                LOC2(KLMN, 0, LLL, 3, nbasis),
+                LOC2(KLMN, 1, LLL, 3, nbasis),
+                LOC2(KLMN, 2, LLL, 3, nbasis),
                 L, coefAngularR, angularR);
 
         for (uint8_t j = 0; j < numAngularR; j++) {
             if (angularR[j] < STOREDIM) {
-                Y += coefAngularR[j] * LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
+                Y += coefAngularR[j] * LOCSTORE(&store[blockIdx.x * blockDim.x + threadIdx.x],
                         LOC3(devTrans,
-                            LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis) + LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-                            LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis) + LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
-                            LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis) + LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
+                            LOC2(KLMN, 0, III, 3, nbasis) + LOC2(KLMN, 0, JJJ, 3, nbasis),
+                            LOC2(KLMN, 1, III, 3, nbasis) + LOC2(KLMN, 1, JJJ, 3, nbasis),
+                            LOC2(KLMN, 2, III, 3, nbasis) + LOC2(KLMN, 2, JJJ, 3, nbasis),
                             TRANSDIM, TRANSDIM, TRANSDIM),
                         angularR[j], STOREDIM, STOREDIM);
             }
         }
 
-        Y *= devSim.cons[III] * devSim.cons[JJJ] * devSim.cons[KKK] * devSim.cons[LLL];
+        Y *= cons[III] * cons[JJJ] * cons[KKK] * cons[LLL];
     }
 
     return Y;
@@ -1277,111 +1291,113 @@ __device__ static inline QUICKDouble hrrwhole2_3(uint8_t I, uint8_t J, uint8_t K
         QUICKDouble RAx, QUICKDouble RAy, QUICKDouble RAz,
         QUICKDouble RBx, QUICKDouble RBy, QUICKDouble RBz,
         QUICKDouble RCx, QUICKDouble RCy, QUICKDouble RCz,
-        QUICKDouble RDx, QUICKDouble RDy, QUICKDouble RDz)
+        QUICKDouble RDx, QUICKDouble RDy, QUICKDouble RDz,
+        uint32_t nbasis, QUICKDouble const * const cons, uint8_t const * const KLMN,
+        QUICKDouble * const store)
 {
     QUICKDouble Y;
 
     if (K + L == 5 && I + J == 5) {
-        Y = LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
+        Y = LOCSTORE(&store[blockIdx.x * blockDim.x + threadIdx.x],
                 LOC3(devTrans,
-                    LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis) + LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-                    LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis) + LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
-                    LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis) + LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
+                    LOC2(KLMN, 0, III, 3, nbasis) + LOC2(KLMN, 0, JJJ, 3, nbasis),
+                    LOC2(KLMN, 1, III, 3, nbasis) + LOC2(KLMN, 1, JJJ, 3, nbasis),
+                    LOC2(KLMN, 2, III, 3, nbasis) + LOC2(KLMN, 2, JJJ, 3, nbasis),
                     TRANSDIM, TRANSDIM, TRANSDIM),
                 LOC3(devTrans,
-                    LOC2(devSim.KLMN, 0, KKK, 3, devSim.nbasis) + LOC2(devSim.KLMN, 0, LLL, 3, devSim.nbasis),
-                    LOC2(devSim.KLMN, 1, KKK, 3, devSim.nbasis) + LOC2(devSim.KLMN, 1, LLL, 3, devSim.nbasis),
-                    LOC2(devSim.KLMN, 2, KKK, 3, devSim.nbasis) + LOC2(devSim.KLMN, 2, LLL, 3, devSim.nbasis),
+                    LOC2(KLMN, 0, KKK, 3, nbasis) + LOC2(KLMN, 0, LLL, 3, nbasis),
+                    LOC2(KLMN, 1, KKK, 3, nbasis) + LOC2(KLMN, 1, LLL, 3, nbasis),
+                    LOC2(KLMN, 2, KKK, 3, nbasis) + LOC2(KLMN, 2, LLL, 3, nbasis),
                     TRANSDIM, TRANSDIM, TRANSDIM),
-                STOREDIM, STOREDIM) * devSim.cons[III] * devSim.cons[JJJ] * devSim.cons[KKK] * devSim.cons[LLL];
+                STOREDIM, STOREDIM) * cons[III] * cons[JJJ] * cons[KKK] * cons[LLL];
     } else if (K + L == 5 && I + J == 6) {
         uint8_t angularL[12];
         QUICKDouble coefAngularL[12];
         Y = 0.0;
 
         uint8_t numAngularL = lefthrr(RAx, RAy, RAz, RBx, RBy, RBz,
-                LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
+                LOC2(KLMN, 0, III, 3, nbasis),
+                LOC2(KLMN, 1, III, 3, nbasis),
+                LOC2(KLMN, 2, III, 3, nbasis),
+                LOC2(KLMN, 0, JJJ, 3, nbasis),
+                LOC2(KLMN, 1, JJJ, 3, nbasis),
+                LOC2(KLMN, 2, JJJ, 3, nbasis),
                 3, coefAngularL, angularL);
 
         for (uint8_t i = 0; i < numAngularL; i++) {
             if (angularL[i] < STOREDIM) {
-                Y += coefAngularL[i] * LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
+                Y += coefAngularL[i] * LOCSTORE(&store[blockIdx.x * blockDim.x + threadIdx.x],
                         angularL[i],
                         LOC3(devTrans,
-                            LOC2(devSim.KLMN, 0, KKK, 3, devSim.nbasis) + LOC2(devSim.KLMN, 0, LLL, 3, devSim.nbasis),
-                            LOC2(devSim.KLMN, 1, KKK, 3, devSim.nbasis) + LOC2(devSim.KLMN, 1, LLL, 3, devSim.nbasis),
-                            LOC2(devSim.KLMN, 2, KKK, 3, devSim.nbasis) + LOC2(devSim.KLMN, 2, LLL, 3, devSim.nbasis),
+                            LOC2(KLMN, 0, KKK, 3, nbasis) + LOC2(KLMN, 0, LLL, 3, nbasis),
+                            LOC2(KLMN, 1, KKK, 3, nbasis) + LOC2(KLMN, 1, LLL, 3, nbasis),
+                            LOC2(KLMN, 2, KKK, 3, nbasis) + LOC2(KLMN, 2, LLL, 3, nbasis),
                             TRANSDIM, TRANSDIM, TRANSDIM),
                         STOREDIM, STOREDIM);
             }
         }
 
-        Y *= devSim.cons[III] * devSim.cons[JJJ] * devSim.cons[KKK] * devSim.cons[LLL];
+        Y *= cons[III] * cons[JJJ] * cons[KKK] * cons[LLL];
     } else if (I + J == 5 && K + L == 6) {
         uint8_t angularR[12];
         QUICKDouble coefAngularR[12];
         Y = 0.0;
 
         uint8_t numAngularR = lefthrr(RCx, RCy, RCz, RDx, RDy, RDz,
-                LOC2(devSim.KLMN, 0, KKK, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, KKK, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, KKK, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 0, LLL, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, LLL, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, LLL, 3, devSim.nbasis),
+                LOC2(KLMN, 0, KKK, 3, nbasis),
+                LOC2(KLMN, 1, KKK, 3, nbasis),
+                LOC2(KLMN, 2, KKK, 3, nbasis),
+                LOC2(KLMN, 0, LLL, 3, nbasis),
+                LOC2(KLMN, 1, LLL, 3, nbasis),
+                LOC2(KLMN, 2, LLL, 3, nbasis),
                 3, coefAngularR, angularR);
 
         for (uint8_t j = 0; j < numAngularR; j++) {
             if (angularR[j] < STOREDIM) {
-                Y += coefAngularR[j] * LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
+                Y += coefAngularR[j] * LOCSTORE(&store[blockIdx.x * blockDim.x + threadIdx.x],
                         LOC3(devTrans,
-                            LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis) + LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-                            LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis) + LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
-                            LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis) + LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
+                            LOC2(KLMN, 0, III, 3, nbasis) + LOC2(KLMN, 0, JJJ, 3, nbasis),
+                            LOC2(KLMN, 1, III, 3, nbasis) + LOC2(KLMN, 1, JJJ, 3, nbasis),
+                            LOC2(KLMN, 2, III, 3, nbasis) + LOC2(KLMN, 2, JJJ, 3, nbasis),
                             TRANSDIM, TRANSDIM, TRANSDIM),
                         angularR[j], STOREDIM, STOREDIM);
             }
         }
 
-        Y *= devSim.cons[III] * devSim.cons[JJJ] * devSim.cons[KKK] * devSim.cons[LLL];
+        Y *= cons[III] * cons[JJJ] * cons[KKK] * cons[LLL];
     } else if (I + J == 6 && K + L == 6) {
         uint8_t angularL[12], angularR[12];
         QUICKDouble coefAngularL[12], coefAngularR[12];
         Y = 0.0;
 
         uint8_t numAngularL = lefthrr(RAx, RAy, RAz, RBx, RBy, RBz,
-                LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
+                LOC2(KLMN, 0, III, 3, nbasis),
+                LOC2(KLMN, 1, III, 3, nbasis),
+                LOC2(KLMN, 2, III, 3, nbasis),
+                LOC2(KLMN, 0, JJJ, 3, nbasis),
+                LOC2(KLMN, 1, JJJ, 3, nbasis),
+                LOC2(KLMN, 2, JJJ, 3, nbasis),
                 3, coefAngularL, angularL);
         uint8_t numAngularR = lefthrr(RCx, RCy, RCz, RDx, RDy, RDz,
-                LOC2(devSim.KLMN, 0, KKK, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, KKK, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, KKK, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 0, LLL, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, LLL, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, LLL, 3, devSim.nbasis),
+                LOC2(KLMN, 0, KKK, 3, nbasis),
+                LOC2(KLMN, 1, KKK, 3, nbasis),
+                LOC2(KLMN, 2, KKK, 3, nbasis),
+                LOC2(KLMN, 0, LLL, 3, nbasis),
+                LOC2(KLMN, 1, LLL, 3, nbasis),
+                LOC2(KLMN, 2, LLL, 3, nbasis),
                 3, coefAngularR, angularR);
 
         for (uint8_t i = 0; i < numAngularL; i++) {
             for (uint8_t j = 0; j < numAngularR; j++) {
                 if (angularL[i] < STOREDIM && angularR[j] < STOREDIM) {
                     Y += coefAngularL[i] * coefAngularR[j]
-                        * LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
+                        * LOCSTORE(&store[blockIdx.x * blockDim.x + threadIdx.x],
                                 angularL[i], angularR[j], STOREDIM, STOREDIM);
                 }
             }
         }
 
-        Y *= devSim.cons[III] * devSim.cons[JJJ] * devSim.cons[KKK] * devSim.cons[LLL];
+        Y *= cons[III] * cons[JJJ] * cons[KKK] * cons[LLL];
     } else {
         Y = 0.0;
     }
@@ -1401,23 +1417,25 @@ __device__ static inline QUICKDouble hrrwhole2_4(uint8_t I, uint8_t J, uint8_t K
         QUICKDouble RAx, QUICKDouble RAy, QUICKDouble RAz,
         QUICKDouble RBx, QUICKDouble RBy, QUICKDouble RBz,
         QUICKDouble RCx, QUICKDouble RCy, QUICKDouble RCz,
-        QUICKDouble RDx, QUICKDouble RDy, QUICKDouble RDz)
+        QUICKDouble RDx, QUICKDouble RDy, QUICKDouble RDz,
+        uint32_t nbasis, QUICKDouble const * const cons, uint8_t const * const KLMN,
+        QUICKDouble * const store)
 {
     QUICKDouble Y;
 
     if (K + L == 5) {
-        Y = LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
+        Y = LOCSTORE(&store[blockIdx.x * blockDim.x + threadIdx.x],
                 LOC3(devTrans,
-                    LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis) + LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-                    LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis) + LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
-                    LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis) + LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
+                    LOC2(KLMN, 0, III, 3, nbasis) + LOC2(KLMN, 0, JJJ, 3, nbasis),
+                    LOC2(KLMN, 1, III, 3, nbasis) + LOC2(KLMN, 1, JJJ, 3, nbasis),
+                    LOC2(KLMN, 2, III, 3, nbasis) + LOC2(KLMN, 2, JJJ, 3, nbasis),
                     TRANSDIM, TRANSDIM, TRANSDIM),
                 LOC3(devTrans,
-                    LOC2(devSim.KLMN, 0, KKK, 3, devSim.nbasis) + LOC2(devSim.KLMN, 0, LLL, 3, devSim.nbasis),
-                    LOC2(devSim.KLMN, 1, KKK, 3, devSim.nbasis) + LOC2(devSim.KLMN, 1, LLL, 3, devSim.nbasis),
-                    LOC2(devSim.KLMN, 2, KKK, 3, devSim.nbasis) + LOC2(devSim.KLMN, 2, LLL, 3, devSim.nbasis),
+                    LOC2(KLMN, 0, KKK, 3, nbasis) + LOC2(KLMN, 0, LLL, 3, nbasis),
+                    LOC2(KLMN, 1, KKK, 3, nbasis) + LOC2(KLMN, 1, LLL, 3, nbasis),
+                    LOC2(KLMN, 2, KKK, 3, nbasis) + LOC2(KLMN, 2, LLL, 3, nbasis),
                     TRANSDIM, TRANSDIM, TRANSDIM),
-                STOREDIM, STOREDIM) * devSim.cons[III] * devSim.cons[JJJ] * devSim.cons[KKK] * devSim.cons[LLL];
+                STOREDIM, STOREDIM) * cons[III] * cons[JJJ] * cons[KKK] * cons[LLL];
     } else {
         //k=3 and l = 3, for i and j , i = 3 and j = 3
         uint8_t angularR[12];
@@ -1426,27 +1444,27 @@ __device__ static inline QUICKDouble hrrwhole2_4(uint8_t I, uint8_t J, uint8_t K
 
         // For hrr, only k+l need hrr, but can be simplified to only consider k+l=5 contibution
         uint8_t numAngularR = lefthrr(RCx, RCy, RCz, RDx, RDy, RDz,
-                LOC2(devSim.KLMN, 0, KKK, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, KKK, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, KKK, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 0, LLL, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, LLL, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, LLL, 3, devSim.nbasis),
+                LOC2(KLMN, 0, KKK, 3, nbasis),
+                LOC2(KLMN, 1, KKK, 3, nbasis),
+                LOC2(KLMN, 2, KKK, 3, nbasis),
+                LOC2(KLMN, 0, LLL, 3, nbasis),
+                LOC2(KLMN, 1, LLL, 3, nbasis),
+                LOC2(KLMN, 2, LLL, 3, nbasis),
                 3, coefAngularR, angularR);
 
         for (uint8_t j = 0; j < numAngularR; j++) {
             if (angularR[j] < STOREDIM) {
-                Y += coefAngularR[j] * LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
+                Y += coefAngularR[j] * LOCSTORE(&store[blockIdx.x * blockDim.x + threadIdx.x],
                         LOC3(devTrans,
-                            LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis) + LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-                            LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis) + LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis), 
-                            LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis) + LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
+                            LOC2(KLMN, 0, III, 3, nbasis) + LOC2(KLMN, 0, JJJ, 3, nbasis),
+                            LOC2(KLMN, 1, III, 3, nbasis) + LOC2(KLMN, 1, JJJ, 3, nbasis), 
+                            LOC2(KLMN, 2, III, 3, nbasis) + LOC2(KLMN, 2, JJJ, 3, nbasis),
                             TRANSDIM, TRANSDIM, TRANSDIM),
                         angularR[j], STOREDIM, STOREDIM);
             }
         }
 
-        Y *= devSim.cons[III] * devSim.cons[JJJ] * devSim.cons[KKK] * devSim.cons[LLL];
+        Y *= cons[III] * cons[JJJ] * cons[KKK] * cons[LLL];
     }
 
     return Y;
@@ -1459,51 +1477,53 @@ __device__ static inline QUICKDouble hrrwhole2_7(uint8_t I, uint8_t J, uint8_t K
         QUICKDouble RAx, QUICKDouble RAy, QUICKDouble RAz,
         QUICKDouble RBx, QUICKDouble RBy, QUICKDouble RBz,
         QUICKDouble RCx, QUICKDouble RCy, QUICKDouble RCz,
-        QUICKDouble RDx, QUICKDouble RDy, QUICKDouble RDz)
+        QUICKDouble RDx, QUICKDouble RDy, QUICKDouble RDz,
+        uint32_t nbasis, QUICKDouble const * const cons, uint8_t const * const KLMN,
+        QUICKDouble * const store)
 {
     QUICKDouble Y;
 
     if (I + J == 5) {
-        Y = LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
+        Y = LOCSTORE(&store[blockIdx.x * blockDim.x + threadIdx.x],
                 LOC3(devTrans,
-                    LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis) + LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-                    LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis) + LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
-                    LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis) + LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
+                    LOC2(KLMN, 0, III, 3, nbasis) + LOC2(KLMN, 0, JJJ, 3, nbasis),
+                    LOC2(KLMN, 1, III, 3, nbasis) + LOC2(KLMN, 1, JJJ, 3, nbasis),
+                    LOC2(KLMN, 2, III, 3, nbasis) + LOC2(KLMN, 2, JJJ, 3, nbasis),
                     TRANSDIM, TRANSDIM, TRANSDIM),
                 LOC3(devTrans,
-                    LOC2(devSim.KLMN, 0, KKK, 3, devSim.nbasis) + LOC2(devSim.KLMN, 0, LLL, 3, devSim.nbasis),
-                    LOC2(devSim.KLMN, 1, KKK, 3, devSim.nbasis) + LOC2(devSim.KLMN, 1, LLL, 3, devSim.nbasis),
-                    LOC2(devSim.KLMN, 2, KKK, 3, devSim.nbasis) + LOC2(devSim.KLMN, 2, LLL, 3, devSim.nbasis),
+                    LOC2(KLMN, 0, KKK, 3, nbasis) + LOC2(KLMN, 0, LLL, 3, nbasis),
+                    LOC2(KLMN, 1, KKK, 3, nbasis) + LOC2(KLMN, 1, LLL, 3, nbasis),
+                    LOC2(KLMN, 2, KKK, 3, nbasis) + LOC2(KLMN, 2, LLL, 3, nbasis),
                     TRANSDIM, TRANSDIM, TRANSDIM),
-                STOREDIM, STOREDIM) * devSim.cons[III] * devSim.cons[JJJ] * devSim.cons[KKK] * devSim.cons[LLL];
+                STOREDIM, STOREDIM) * cons[III] * cons[JJJ] * cons[KKK] * cons[LLL];
     } else {
         uint8_t angularL[12];
         QUICKDouble coefAngularL[12];
         Y = 0.0;
 
         uint8_t numAngularL = lefthrr(RAx, RAy, RAz, RBx, RBy, RBz,
-                LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
+                LOC2(KLMN, 0, III, 3, nbasis),
+                LOC2(KLMN, 1, III, 3, nbasis),
+                LOC2(KLMN, 2, III, 3, nbasis),
+                LOC2(KLMN, 0, JJJ, 3, nbasis),
+                LOC2(KLMN, 1, JJJ, 3, nbasis),
+                LOC2(KLMN, 2, JJJ, 3, nbasis),
                 3, coefAngularL, angularL);
 
         for (uint8_t i = 0; i < numAngularL; i++) {
             if (angularL[i] < STOREDIM) {
-                Y += coefAngularL[i] * LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
+                Y += coefAngularL[i] * LOCSTORE(&store[blockIdx.x * blockDim.x + threadIdx.x],
                         angularL[i],
                         LOC3(devTrans,
-                            LOC2(devSim.KLMN, 0, KKK, 3, devSim.nbasis) + LOC2(devSim.KLMN, 0, LLL, 3, devSim.nbasis),
-                            LOC2(devSim.KLMN, 1, KKK, 3, devSim.nbasis) + LOC2(devSim.KLMN, 1, LLL, 3, devSim.nbasis),
-                            LOC2(devSim.KLMN, 2, KKK, 3, devSim.nbasis) + LOC2(devSim.KLMN, 2, LLL, 3, devSim.nbasis),
+                            LOC2(KLMN, 0, KKK, 3, nbasis) + LOC2(KLMN, 0, LLL, 3, nbasis),
+                            LOC2(KLMN, 1, KKK, 3, nbasis) + LOC2(KLMN, 1, LLL, 3, nbasis),
+                            LOC2(KLMN, 2, KKK, 3, nbasis) + LOC2(KLMN, 2, LLL, 3, nbasis),
                             TRANSDIM, TRANSDIM, TRANSDIM),
                         STOREDIM, STOREDIM);
             }
         }
 
-        Y *= devSim.cons[III] * devSim.cons[JJJ] * devSim.cons[KKK] * devSim.cons[LLL];
+        Y *= cons[III] * cons[JJJ] * cons[KKK] * cons[LLL];
     }
 
     return Y;
@@ -1516,20 +1536,22 @@ __device__ static inline QUICKDouble hrrwhole2_8(uint8_t I, uint8_t J, uint8_t K
         QUICKDouble RAx, QUICKDouble RAy, QUICKDouble RAz,
         QUICKDouble RBx, QUICKDouble RBy, QUICKDouble RBz,
         QUICKDouble RCx, QUICKDouble RCy, QUICKDouble RCz,
-        QUICKDouble RDx, QUICKDouble RDy, QUICKDouble RDz)
+        QUICKDouble RDx, QUICKDouble RDy, QUICKDouble RDz,
+        uint32_t nbasis, QUICKDouble const * const cons, uint8_t const * const KLMN,
+        QUICKDouble * const store)
 {
-    return LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
+    return LOCSTORE(&store[blockIdx.x * blockDim.x + threadIdx.x],
             LOC3(devTrans,
-                LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis) + LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis) + LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis) + LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
+                LOC2(KLMN, 0, III, 3, nbasis) + LOC2(KLMN, 0, JJJ, 3, nbasis),
+                LOC2(KLMN, 1, III, 3, nbasis) + LOC2(KLMN, 1, JJJ, 3, nbasis),
+                LOC2(KLMN, 2, III, 3, nbasis) + LOC2(KLMN, 2, JJJ, 3, nbasis),
                 TRANSDIM, TRANSDIM, TRANSDIM),
             LOC3(devTrans,
-                LOC2(devSim.KLMN, 0, KKK, 3, devSim.nbasis) + LOC2(devSim.KLMN, 0, LLL, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, KKK, 3, devSim.nbasis) + LOC2(devSim.KLMN, 1, LLL, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, KKK, 3, devSim.nbasis) + LOC2(devSim.KLMN, 2, LLL, 3, devSim.nbasis),
+                LOC2(KLMN, 0, KKK, 3, nbasis) + LOC2(KLMN, 0, LLL, 3, nbasis),
+                LOC2(KLMN, 1, KKK, 3, nbasis) + LOC2(KLMN, 1, LLL, 3, nbasis),
+                LOC2(KLMN, 2, KKK, 3, nbasis) + LOC2(KLMN, 2, LLL, 3, nbasis),
                 TRANSDIM, TRANSDIM, TRANSDIM),
-            STOREDIM, STOREDIM) * devSim.cons[III] * devSim.cons[JJJ] * devSim.cons[KKK] * devSim.cons[LLL];
+            STOREDIM, STOREDIM) * cons[III] * cons[JJJ] * cons[KKK] * cons[LLL];
 }
 
 
@@ -1538,20 +1560,22 @@ __device__ static inline QUICKDouble hrrwhole2_9(uint8_t I, uint8_t J, uint8_t K
         QUICKDouble RAx, QUICKDouble RAy, QUICKDouble RAz,
         QUICKDouble RBx, QUICKDouble RBy, QUICKDouble RBz,
         QUICKDouble RCx, QUICKDouble RCy, QUICKDouble RCz,
-        QUICKDouble RDx, QUICKDouble RDy, QUICKDouble RDz)
+        QUICKDouble RDx, QUICKDouble RDy, QUICKDouble RDz,
+        uint32_t nbasis, QUICKDouble const * const cons, uint8_t const * const KLMN,
+        QUICKDouble * const store)
 {
-    return LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
+    return LOCSTORE(&store[blockIdx.x * blockDim.x + threadIdx.x],
             LOC3(devTrans,
-                LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis) + LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis) + LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis) + LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
+                LOC2(KLMN, 0, III, 3, nbasis) + LOC2(KLMN, 0, JJJ, 3, nbasis),
+                LOC2(KLMN, 1, III, 3, nbasis) + LOC2(KLMN, 1, JJJ, 3, nbasis),
+                LOC2(KLMN, 2, III, 3, nbasis) + LOC2(KLMN, 2, JJJ, 3, nbasis),
                 TRANSDIM, TRANSDIM, TRANSDIM),
             LOC3(devTrans,
-                LOC2(devSim.KLMN, 0, KKK, 3, devSim.nbasis) + LOC2(devSim.KLMN, 0, LLL, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, KKK, 3, devSim.nbasis) + LOC2(devSim.KLMN, 1, LLL, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, KKK, 3, devSim.nbasis) + LOC2(devSim.KLMN, 2, LLL, 3, devSim.nbasis),
+                LOC2(KLMN, 0, KKK, 3, nbasis) + LOC2(KLMN, 0, LLL, 3, nbasis),
+                LOC2(KLMN, 1, KKK, 3, nbasis) + LOC2(KLMN, 1, LLL, 3, nbasis),
+                LOC2(KLMN, 2, KKK, 3, nbasis) + LOC2(KLMN, 2, LLL, 3, nbasis),
                 TRANSDIM, TRANSDIM, TRANSDIM),
-            STOREDIM, STOREDIM) * devSim.cons[III] * devSim.cons[JJJ] * devSim.cons[KKK] * devSim.cons[LLL];
+            STOREDIM, STOREDIM) * cons[III] * cons[JJJ] * cons[KKK] * cons[LLL];
 }
 
 
@@ -1560,19 +1584,21 @@ __device__ static inline QUICKDouble hrrwhole2_10(uint8_t I, uint8_t J, uint8_t 
         QUICKDouble RAx, QUICKDouble RAy, QUICKDouble RAz,
         QUICKDouble RBx, QUICKDouble RBy, QUICKDouble RBz,
         QUICKDouble RCx, QUICKDouble RCy, QUICKDouble RCz,
-        QUICKDouble RDx, QUICKDouble RDy, QUICKDouble RDz)
+        QUICKDouble RDx, QUICKDouble RDy, QUICKDouble RDz,
+        uint32_t nbasis, QUICKDouble const * const cons, uint8_t const * const KLMN,
+        QUICKDouble * const store)
 {
-    return LOCSTORE(&devSim.store[blockIdx.x * blockDim.x + threadIdx.x],
+    return LOCSTORE(&store[blockIdx.x * blockDim.x + threadIdx.x],
             LOC3(devTrans,
-                LOC2(devSim.KLMN, 0, III, 3, devSim.nbasis) + LOC2(devSim.KLMN, 0, JJJ, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, III, 3, devSim.nbasis) + LOC2(devSim.KLMN, 1, JJJ, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, III, 3, devSim.nbasis) + LOC2(devSim.KLMN, 2, JJJ, 3, devSim.nbasis),
+                LOC2(KLMN, 0, III, 3, nbasis) + LOC2(KLMN, 0, JJJ, 3, nbasis),
+                LOC2(KLMN, 1, III, 3, nbasis) + LOC2(KLMN, 1, JJJ, 3, nbasis),
+                LOC2(KLMN, 2, III, 3, nbasis) + LOC2(KLMN, 2, JJJ, 3, nbasis),
                 TRANSDIM, TRANSDIM, TRANSDIM),
             LOC3(devTrans,
-                LOC2(devSim.KLMN, 0, KKK, 3, devSim.nbasis) + LOC2(devSim.KLMN, 0, LLL, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 1, KKK, 3, devSim.nbasis) + LOC2(devSim.KLMN, 1, LLL, 3, devSim.nbasis),
-                LOC2(devSim.KLMN, 2, KKK, 3, devSim.nbasis) + LOC2(devSim.KLMN, 2, LLL, 3, devSim.nbasis),
+                LOC2(KLMN, 0, KKK, 3, nbasis) + LOC2(KLMN, 0, LLL, 3, nbasis),
+                LOC2(KLMN, 1, KKK, 3, nbasis) + LOC2(KLMN, 1, LLL, 3, nbasis),
+                LOC2(KLMN, 2, KKK, 3, nbasis) + LOC2(KLMN, 2, LLL, 3, nbasis),
                 TRANSDIM, TRANSDIM, TRANSDIM),
-            STOREDIM, STOREDIM) * devSim.cons[III] * devSim.cons[JJJ] * devSim.cons[KKK] * devSim.cons[LLL];
+            STOREDIM, STOREDIM) * cons[III] * cons[JJJ] * cons[KKK] * cons[LLL];
 }
 #endif

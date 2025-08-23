@@ -47,8 +47,27 @@ __device__ static inline void iclass_lri
 #elif defined(int_spdf2)
 __device__ static inline void iclass_lri_spdf2
 #endif
-(uint8_t I, uint8_t J, uint32_t II, uint32_t JJ, uint32_t iatom,
- uint32_t totalatom, QUICKDouble * const store)
+    (uint8_t I, uint8_t J, uint32_t II, uint32_t JJ, uint32_t iatom,
+     uint32_t totalatom, uint32_t natom, uint32_t nbasis,
+     uint32_t nshell, uint32_t jbasis, QUICKDouble const * const xyz,
+     QUICKDouble const * const allxyz, uint32_t const * const kstart, uint32_t const * const katom,
+     uint32_t const * const kprim, uint32_t const * const Qstart,
+     uint32_t const * const Qsbasis, uint32_t const * const Qfbasis,
+     uint8_t const * const sorted_Qnumber, uint32_t const * const sorted_Q,
+     QUICKDouble const * const cons, uint8_t const * const KLMN,
+     uint32_t prim_total, uint32_t const * const prim_start,
+#if defined(USE_LEGACY_ATOMICS)
+     QUICKULL * const oULL,
+#else
+     QUICKDouble * const o,
+#endif
+     QUICKDouble const * const Xcoeff, QUICKDouble const * const expoSum,
+     QUICKDouble const * const weightedCenterX, QUICKDouble const * const weightedCenterY,
+     QUICKDouble const * const weightedCenterZ, uint32_t sqrQshell, int2 const * const sorted_YCutoffIJ,
+#if defined(MPIV_GPU)
+     unsigned char const * const mpi_bcompute,
+#endif
+     QUICKDouble * const store)
 {
     /*
        kAtom A, B, C ,D is the coresponding atom for shell ii, jj, kk, ll
@@ -60,24 +79,24 @@ __device__ static inline void iclass_lri_spdf2
        which means they are corrosponding coorinates for shell II, JJ, KK, and LL.
        And we don't need the coordinates now, so we will not retrieve the data now.
    */
-    QUICKDouble RAx = LOC2(devSim.xyz, 0, devSim.katom[II], 3, devSim.natom);
-    QUICKDouble RAy = LOC2(devSim.xyz, 1, devSim.katom[II], 3, devSim.natom);
-    QUICKDouble RAz = LOC2(devSim.xyz, 2, devSim.katom[II], 3, devSim.natom);
+    QUICKDouble RAx = LOC2(xyz, 0, katom[II], 3, natom);
+    QUICKDouble RAy = LOC2(xyz, 1, katom[II], 3, natom);
+    QUICKDouble RAz = LOC2(xyz, 2, katom[II], 3, natom);
 
-    QUICKDouble RCx = LOC2(devSim.allxyz, 0, iatom, 3, totalatom);
-    QUICKDouble RCy = LOC2(devSim.allxyz, 1, iatom, 3, totalatom);
-    QUICKDouble RCz = LOC2(devSim.allxyz, 2, iatom, 3, totalatom);
+    QUICKDouble RCx = LOC2(allxyz, 0, iatom, 3, totalatom);
+    QUICKDouble RCy = LOC2(allxyz, 1, iatom, 3, totalatom);
+    QUICKDouble RCz = LOC2(allxyz, 2, iatom, 3, totalatom);
 
     /*
        kPrimI, J, K and L indicates the primtive gaussian function number
        kStartI, J, K, and L indicates the starting guassian function for shell I, J, K, and L.
        We retrieve from global memory and save them to register to avoid multiple retrieve.
        */
-    uint32_t kPrimI = devSim.kprim[II];
-    uint32_t kPrimJ = devSim.kprim[JJ];
+    uint32_t kPrimI = kprim[II];
+    uint32_t kPrimJ = kprim[JJ];
 
-    uint32_t kStartI = devSim.kstart[II];
-    uint32_t kStartJ = devSim.kstart[JJ];
+    uint32_t kStartI = kstart[II];
+    uint32_t kStartJ = kstart[JJ];
 
     /*
        store saves temp contracted integral as [as|bs] type. the dimension should be allocatable but because
@@ -121,31 +140,31 @@ __device__ static inline void iclass_lri_spdf2
            Those two are pre-calculated in CPU stage.
 
         */
-        uint32_t ii_start = devSim.prim_start[II];
-        uint32_t jj_start = devSim.prim_start[JJ];
+        uint32_t ii_start = prim_start[II];
+        uint32_t jj_start = prim_start[JJ];
 
-        QUICKDouble AB = LOC2(devSim.expoSum, ii_start+III, jj_start+JJJ, devSim.prim_total, devSim.prim_total);
-        QUICKDouble Px = LOC2(devSim.weightedCenterX, ii_start+III, jj_start+JJJ, devSim.prim_total, devSim.prim_total);
-        QUICKDouble Py = LOC2(devSim.weightedCenterY, ii_start+III, jj_start+JJJ, devSim.prim_total, devSim.prim_total);
-        QUICKDouble Pz = LOC2(devSim.weightedCenterZ, ii_start+III, jj_start+JJJ, devSim.prim_total, devSim.prim_total);
+        QUICKDouble AB = LOC2(expoSum, ii_start+III, jj_start+JJJ, prim_total, prim_total);
+        QUICKDouble Px = LOC2(weightedCenterX, ii_start+III, jj_start+JJJ, prim_total, prim_total);
+        QUICKDouble Py = LOC2(weightedCenterY, ii_start+III, jj_start+JJJ, prim_total, prim_total);
+        QUICKDouble Pz = LOC2(weightedCenterZ, ii_start+III, jj_start+JJJ, prim_total, prim_total);
 
         /*
            X1 is the contracted coeffecient, which is pre-calcuated in CPU stage as well.
            cutoffprim is used to cut too small prim gaussian function when bring density matrix into consideration.
            */
-        // QUICKDouble cutoffPrim = DNMax * LOC2(devSim.cutPrim, kStartI+III, kStartJ+JJJ, devSim.jbasis, devSim.jbasis);
-        QUICKDouble X1 = LOC4(devSim.Xcoeff, kStartI+III, kStartJ+JJJ,
-                I - devSim.Qstart[II], J - devSim.Qstart[JJ], devSim.jbasis, devSim.jbasis, 2, 2);
+        // QUICKDouble cutoffPrim = DNMax * LOC2(cutPrim, kStartI+III, kStartJ+JJJ, jbasis, jbasis);
+        QUICKDouble X1 = LOC4(Xcoeff, kStartI+III, kStartJ+JJJ,
+                I - Qstart[II], J - Qstart[JJ], jbasis, jbasis, 2, 2);
 
-        QUICKDouble CD = devSim.lri_zeta;
+        QUICKDouble CD = lri_zeta;
 
         QUICKDouble ABCD = 1.0 / (AB + CD);
 
         /*
            X2 is the multiplication of four indices normalized coeffecient
            */
-        QUICKDouble X2 = sqrt(ABCD) * X1 * X0 * (1.0 / devSim.lri_zeta)
-            * devSim.lri_cc[iatom] * pow(devSim.lri_zeta / PI, 1.5);
+        QUICKDouble X2 = sqrt(ABCD) * X1 * X0 * (1.0 / lri_zeta)
+            * lri_cc[iatom] * pow(lri_zeta / PI, 1.5);
 
         /*
            Q' is the weighting center of K and L
@@ -196,24 +215,24 @@ __device__ static inline void iclass_lri_spdf2
 
     QUICKDouble RBx, RBy, RBz;
 
-    RBx = LOC2(devSim.xyz, 0, devSim.katom[JJ], 3, devSim.natom);
-    RBy = LOC2(devSim.xyz, 1, devSim.katom[JJ], 3, devSim.natom);
-    RBz = LOC2(devSim.xyz, 2, devSim.katom[JJ], 3, devSim.natom);
+    RBx = LOC2(xyz, 0, katom[JJ], 3, natom);
+    RBy = LOC2(xyz, 1, katom[JJ], 3, natom);
+    RBz = LOC2(xyz, 2, katom[JJ], 3, natom);
 
-    uint32_t III1 = LOC2(devSim.Qsbasis, II, I, devSim.nshell, 4);
-    uint32_t III2 = LOC2(devSim.Qfbasis, II, I, devSim.nshell, 4);
-    uint32_t JJJ1 = LOC2(devSim.Qsbasis, JJ, J, devSim.nshell, 4);
-    uint32_t JJJ2 = LOC2(devSim.Qfbasis, JJ, J, devSim.nshell, 4);
+    uint32_t III1 = LOC2(Qsbasis, II, I, nshell, 4);
+    uint32_t III2 = LOC2(Qfbasis, II, I, nshell, 4);
+    uint32_t JJJ1 = LOC2(Qsbasis, JJ, J, nshell, 4);
+    uint32_t JJJ2 = LOC2(Qfbasis, JJ, J, nshell, 4);
 
     /*QUICKDouble hybrid_coeff = 0.0;
-      if (devSim.method == HF){
+      if (method == HF){
       hybrid_coeff = 1.0;
-      }else if (devSim.method == B3LYP){
+      }else if (method == B3LYP){
       hybrid_coeff = 0.2;
-      }else if (devSim.method == DFT){
+      }else if (method == DFT){
       hybrid_coeff = 0.0;
-      }else if(devSim.method == LIBXC){
-      hybrid_coeff = devSim.hyb_coeff;
+      }else if(method == LIBXC){
+      hybrid_coeff = hyb_coeff;
       }*/
 
     for (uint32_t III = III1; III <= III2; III++) {
@@ -225,22 +244,22 @@ __device__ static inline void iclass_lri_spdf2
 #else
             QUICKDouble Y = (QUICKDouble) hrrwhole_lri_2
 #endif
-                (I, J, 0, 0,
-                 III, JJJ, 0, 0, store,
+                (I, J, 0, 0, III, JJJ, 0, 0,
                  RAx, RAy, RAz, RBx, RBy, RBz,
-                 RCx, RCy, RCz, 0.0, 0.0, 0.0);
+                 RCx, RCy, RCz, 0.0, 0.0, 0.0,
+                 nbasis, cons, KLMN, store);
 
             //printf("II JJ III JJJ Y %d %d %d %d %f \n", II, JJ, III, JJJ, Y);
 #if defined(int_spd)
             if (abs(Y) > 0.0e0)
 #else
-            if (abs(Y) > devSim.coreIntegralCutoff)
+            if (abs(Y) > coreIntegralCutoff)
 #endif
             {
 #if defined(USE_LEGACY_ATOMICS)
-                GPUATOMICADD(&LOC2(devSim.oULL, JJJ, III, devSim.nbasis, devSim.nbasis), Y, OSCALE);    
+                GPUATOMICADD(&LOC2(oULL, JJJ, III, nbasis, nbasis), Y, OSCALE);    
 #else
-                atomicAdd(&LOC2(devSim.o, JJJ, III, devSim.nbasis, devSim.nbasis), Y);
+                atomicAdd(&LOC2(o, JJJ, III, nbasis, nbasis), Y);
 #endif
             }
         }
@@ -299,19 +318,39 @@ __device__ static inline void iclass_lri_spdf2
   zone 3: kernel 0,1,2,3
   zone 4: kernel 0,1,2,3,4
   
-  so first, kernel 0: zone 0,1,2,3,4 (get_lri_kernel()), if no f, then that's it.
-  second,   kernel 1: zone 1,3,4(get_lri_kernel_spdf())
-  then,     kernel 2: zone 2,3,4(get_lri_kernel_spdf2())
-  then,     kernel 3: zone 3,4(get_lri_kernel_spdf3())
-  finally,  kernel 4: zone 4(get_lri_kernel_spdf4())
+  so first, kernel 0: zone 0,1,2,3,4 (k_get_lri()), if no f, then that's it.
+  second,   kernel 1: zone 1,3,4(k_get_lri_spdf())
+  then,     kernel 2: zone 2,3,4(k_get_lri_spdf2())
+  then,     kernel 3: zone 3,4(k_get_lri_spdf3())
+  finally,  kernel 4: zone 4(k_get_lri_spdf4())
 */
 #if defined(int_spd)
 __global__ void
-__launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) get_lri_kernel()
+__launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_get_lri
 #elif defined(int_spdf2)
 __global__ void
-__launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) get_lri_kernel_spdf2()
+__launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_get_lri_spdf2
 #endif
+    (uint32_t natom, uint32_t nbasis, uint32_t nshell, uint32_t jbasis,
+     QUICKDouble const * const xyz, QUICKDouble const * const allxyz,
+     uint32_t const * const kstart, uint32_t const * const katom,
+     uint32_t const * const kprim, uint32_t const * const Qstart,
+     uint32_t const * const Qsbasis, uint32_t const * const Qfbasis,
+     uint8_t const * const sorted_Qnumber, uint32_t const * const sorted_Q,
+     QUICKDouble const * const cons, uint8_t const * const KLMN,
+     uint32_t prim_total, uint32_t const * const prim_start,
+#if defined(USE_LEGACY_ATOMICS)
+     QUICKULL * const oULL,
+#else
+     QUICKDouble * const o,
+#endif
+     QUICKDouble const * const Xcoeff, QUICKDouble const * const expoSum,
+     QUICKDouble const * const weightedCenterX, QUICKDouble const * const weightedCenterY,
+     QUICKDouble const * const weightedCenterZ, uint32_t sqrQshell, int2 const * const sorted_YCutoffIJ,
+#if defined(MPIV_GPU)
+     unsigned char const * const mpi_bcompute,
+#endif
+     QUICKDouble * const store)
 {
     unsigned int offset = blockIdx.x * blockDim.x + threadIdx.x;
     int totalThreads = blockDim.x * gridDim.x;
@@ -333,12 +372,12 @@ __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) get_lri_kernel_spdf2()
        |_____________|  |
 
 */
-    QUICKULL jshell = (QUICKULL) devSim.sqrQshell;
+    QUICKULL jshell = (QUICKULL) sqrQshell;
 #elif defined(int_spdf2)
-    QUICKULL jshell = (QUICKULL) devSim.sqrQshell;
+    QUICKULL jshell = (QUICKULL) sqrQshell;
 #endif
 
-    uint32_t totalatom = devSim.natom + devSim.nextatom;
+    uint32_t totalatom = natom + nextatom;
 
     for (QUICKULL i = offset; i < jshell * totalatom; i+= totalThreads) {
 #if defined(int_spd)
@@ -349,33 +388,42 @@ __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) get_lri_kernel_spdf2()
         // Zone 2
         QUICKULL iatom = (QUICKULL) i / jshell;
         QUICKULL b = (QUICKULL) (i - iatom * jshell);
-        //a = a + devSim.fStart;
+        //a = a + fStart;
 #endif
 
 #if defined(MPIV_GPU)
-        if (devSim.mpi_bcompute[b] > 0) {
+        if (mpi_bcompute[b] > 0) {
 #endif
-            int II = devSim.sorted_YCutoffIJ[b].x;
-            int JJ = devSim.sorted_YCutoffIJ[b].y;
+            int II = sorted_YCutoffIJ[b].x;
+            int JJ = sorted_YCutoffIJ[b].y;
 
-            uint32_t ii = devSim.sorted_Q[II];
-            uint32_t jj = devSim.sorted_Q[JJ];
+            uint32_t ii = sorted_Q[II];
+            uint32_t jj = sorted_Q[JJ];
 
 //            printf("b II JJ ii jj %lu %lu %d %d %d %d \n", jshell, b, II, JJ, ii, jj);
 
-            uint8_t iii = devSim.sorted_Qnumber[II];
-            uint8_t jjj = devSim.sorted_Qnumber[JJ];
+            uint8_t iii = sorted_Qnumber[II];
+            uint8_t jjj = sorted_Qnumber[JJ];
 
             // assign values to dummy variables, to be cleaned up eventually
 #if defined(int_spd)
-            iclass_lri(iii, jjj, ii, jj, iatom, totalatom,
-                    devSim.store + offset);
+            {
+                iclass_lri
 #elif defined(int_spdf2)
             if (iii + jjj > 4 && iii + jjj <= 6) {
-                iclass_lri_spdf2(iii, jjj, ii, jj, iatom, totalatom,
-                        devSim.store + offset);
-            }
+                iclass_lri_spdf2
 #endif
+                (iii, jjj, ii, jj, iatom, totalatom, natom, nbasis, nshell, jbasis,
+                 xyz, allxyz, kstart, katom, kprim, Qstart, Qsbasis, Qfbasis,
+                 cons, KLMN, prim_total, prim_start,
+#if defined(USE_LEGACY_ATOMICS)
+                 oULL,
+#else
+                 o,
+#endif
+                 Xcoeff, expoSum, weightedCenterX, weightedCenterY,
+                 weightedCenterZ, store + offset);
+            }
 #if defined(MPIV_GPU)
         }
 #endif
