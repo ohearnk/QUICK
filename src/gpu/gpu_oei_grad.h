@@ -432,6 +432,31 @@ __global__ void k_oei_grad(bool is_oshell, uint32_t natom, uint32_t nextatom, ui
         QUICKDouble * const storeAA, QUICKDouble * const storeBB)
 {
     const QUICKULL jshell = (QUICKULL) Qshell;
+#if defined(USE_LEGACY_ATOMICS)
+    extern __shared__ QUICKULL smem[];
+    QUICKULL *sgradULL = smem;
+    QUICKULL *sptchg_gradULL = &sgradULL[3u * natom];
+
+    for (int i = threadIdx.x; i < 3u * natom; i += blockDim.x) {
+      sgradULL[i] = 0ull;
+    }
+    for (int i = threadIdx.x; i < 3u * nextatom; i += blockDim.x) {
+      sptchg_gradULL[i] = 0ull;
+    }
+#else
+    extern __shared__ QUICKDouble smem[];
+    QUICKDouble *sgrad = smem;
+    QUICKDouble *sptchg_grad = &sgrad[3u * natom];
+
+    for (int i = threadIdx.x; i < 3u * natom; i += blockDim.x) {
+        sgrad[i] = 0.0;
+    }
+    for (int i = threadIdx.x; i < 3u * nextatom; i += blockDim.x) {
+        sptchg_grad[i] = 0.0;
+    }
+#endif
+
+    __syncthreads();
 
     for (QUICKULL i = blockIdx.x * blockDim.x + threadIdx.x;
             i < jshell * jshell * (natom + nextatom); i += blockDim.x * gridDim.x) {
@@ -461,13 +486,30 @@ __global__ void k_oei_grad(bool is_oshell, uint32_t natom, uint32_t nextatom, ui
                 Xcoeff_oei, expoSum, weightedCenterX, weightedCenterY, weightedCenterZ,
                 coreIntegralCutoff,
 #if defined(USE_LEGACY_ATOMICS)
-                gradULL, ptchg_gradULL,
+                sgradULL, sptchg_gradULL,
 #else
-                grad, ptchg_grad,
+                sgrad, sptchg_grad,
 #endif
                 store, store2, storeAA, storeBB);
 #ifdef MPIV_GPU
         }
+#endif
+    }
+
+    __syncthreads();
+
+    for (int i = threadIdx.x; i < 3u * natom; i += blockDim.x) {
+#if defined(USE_LEGACY_ATOMICS)
+        atomicAdd(&gradULL[i], sgradULL[i]);
+#else
+        atomicAdd(&grad[i], sgrad[i]);
+#endif
+    }
+    for (int i = threadIdx.x; i < 3u * nextatom; i += blockDim.x) {
+#if defined(USE_LEGACY_ATOMICS)
+        atomicAdd(&ptchg_gradULL[i], sptchg_gradULL[i]);
+#else
+        atomicAdd(&ptchg_grad[i], sptchg_grad[i]);
 #endif
     }
 }

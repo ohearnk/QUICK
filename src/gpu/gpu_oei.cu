@@ -208,7 +208,7 @@ void getOEI(_gpu_type gpu) {
 
 
 void get_oei_grad(_gpu_type gpu) {
-    QUICK_SAFE_CALL((k_oei_grad <<<gpu->blocks, gpu->twoEThreadsPerBlock>>>
+    QUICK_SAFE_CALL((k_oei_grad <<<gpu->blocks, gpu->twoEThreadsPerBlock, sizeof(QUICKDouble) * 3u * (gpu->natom + gpu->nextatom)>>>
                 (gpu->gpu_sim.is_oshell, gpu->gpu_sim.natom, gpu->gpu_sim.nextatom, gpu->gpu_sim.nbasis,
                  gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis, gpu->gpu_sim.Qshell, gpu->gpu_sim.allchg,
                  gpu->gpu_sim.allxyz, gpu->gpu_sim.kstart, gpu->gpu_sim.katom,

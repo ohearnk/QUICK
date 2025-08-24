@@ -1248,9 +1248,25 @@ k_get_lri_grad_spdf2
 {
     unsigned int offset = blockIdx.x * blockDim.x + threadIdx.x;
     int totalThreads = blockDim.x * gridDim.x;
-
     uint32_t totalatom = natom + nextatom;
     QUICKULL jshell = (QUICKULL) sqrQshell;
+#if defined(USE_LEGACY_ATOMICS)
+    extern __shared__ QUICKULL smem[];
+    QUICKULL *sgradULL = smem;
+
+    for (int i = threadIdx.x; i < 3u * natom; i += blockDim.x) {
+      sgradULL[i] = 0ull;
+    }
+#else
+    extern __shared__ QUICKDouble smem[];
+    QUICKDouble *sgrad = smem;
+
+    for (int i = threadIdx.x; i < 3u * natom; i += blockDim.x) {
+        sgrad[i] = 0.0;
+    }
+#endif
+
+    __syncthreads();
 
     for (QUICKULL i = offset; i < totalatom * jshell; i += totalThreads) {
         QUICKULL iatom = (QUICKULL) i / jshell;
@@ -1284,15 +1300,25 @@ k_get_lri_grad_spdf2
 #endif
                  Xcoeff, expoSum, weightedCenterX, weightedCenterY, weightedCenterZ,
 #if defined(USE_LEGACY_ATOMICS)
-                 gradULL,
+                 sgradULL,
 #else
-                 grad,
+                 sgrad,
 #endif
                  store + offset, store2 + offset,
                  storeAA + offset, storeBB + offset);
         }
 #if defined(MPIV_GPU)
         }
+#endif
+    }
+
+    __syncthreads();
+
+    for (int i = threadIdx.x; i < 3u * natom; i += blockDim.x) {
+#if defined(USE_LEGACY_ATOMICS)
+        atomicAdd(&gradULL[i], sgradULL[i]);
+#else
+        atomicAdd(&grad[i], sgrad[i]);
 #endif
     }
 }

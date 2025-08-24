@@ -1252,7 +1252,7 @@ void getAddInt(_gpu_type gpu, uint32_t bufferSize, ERI_entry* aoint_buffer)
 void getGrad(_gpu_type gpu)
 {
 //   nvtxRangePushA("Gradient 2e");
-    QUICK_SAFE_CALL((k_get_grad_cshell_sp <<<gpu->blocks, gpu->twoEThreadsPerBlock>>>
+    QUICK_SAFE_CALL((k_get_grad_cshell_sp <<<gpu->blocks, gpu->twoEThreadsPerBlock, sizeof(QUICKDouble) * 3u * gpu->natom>>>
                 (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
                  gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
                  gpu->gpu_sim.xyz, gpu->gpu_sim.kstart, gpu->gpu_sim.katom,
@@ -1276,7 +1276,7 @@ void getGrad(_gpu_type gpu)
                  gpu->gpu_sim.store, gpu->gpu_sim.store2,
                  gpu->gpu_sim.storeAA, gpu->gpu_sim.storeBB, gpu->gpu_sim.storeCC)));
 
-    QUICK_SAFE_CALL((k_get_grad_cshell_spd <<<gpu->blocks, gpu->twoEThreadsPerBlock>>>
+    QUICK_SAFE_CALL((k_get_grad_cshell_spd <<<gpu->blocks, gpu->twoEThreadsPerBlock, sizeof(QUICKDouble) * 3u * gpu->natom>>>
                 (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
                  gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
                  gpu->gpu_sim.xyz, gpu->gpu_sim.kstart, gpu->gpu_sim.katom,
@@ -1305,7 +1305,7 @@ void getGrad(_gpu_type gpu)
 
     if (gpu->maxL >= 2) {
         // Part f-1
-        QUICK_SAFE_CALL((k_get_grad_cshell_spdf <<<gpu->blocks, gpu->twoEThreadsPerBlock>>>
+        QUICK_SAFE_CALL((k_get_grad_cshell_spdf <<<gpu->blocks, gpu->twoEThreadsPerBlock, sizeof(QUICKDouble) * 3u * gpu->natom>>>
                     (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
                      gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
                      gpu->gpu_sim.xyz, gpu->gpu_sim.kstart, gpu->gpu_sim.katom,
@@ -1330,7 +1330,7 @@ void getGrad(_gpu_type gpu)
                      gpu->gpu_sim.storeAA, gpu->gpu_sim.storeBB, gpu->gpu_sim.storeCC)));
         
         // Part f-2
-        QUICK_SAFE_CALL((k_get_grad_cshell_spdf2 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>>
+        QUICK_SAFE_CALL((k_get_grad_cshell_spdf2 <<<gpu->blocks, gpu->twoEThreadsPerBlock, sizeof(QUICKDouble) * 3u * gpu->natom>>>
                     (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
                      gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
                      gpu->gpu_sim.xyz, gpu->gpu_sim.kstart, gpu->gpu_sim.katom,
@@ -1357,7 +1357,7 @@ void getGrad(_gpu_type gpu)
         if (gpu->maxL >= 3) {
 #ifdef GPU_SPDF
             // Part f-3
-            QUICK_SAFE_CALL((k_get_grad_cshell_spdf3 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>>
+            QUICK_SAFE_CALL((k_get_grad_cshell_spdf3 <<<gpu->blocks, gpu->twoEThreadsPerBlock, sizeof(QUICKDouble) * 3u * gpu->natom>>>
                     (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
                      gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
                      gpu->gpu_sim.xyz, gpu->gpu_sim.kstart, gpu->gpu_sim.katom,
@@ -1381,7 +1381,7 @@ void getGrad(_gpu_type gpu)
                      gpu->gpu_sim.store, gpu->gpu_sim.store2,
                      gpu->gpu_sim.storeAA, gpu->gpu_sim.storeBB, gpu->gpu_sim.storeCC)));
 
-//            QUICK_SAFE_CALL((k_get_grad_cshell_spdf4 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> ()))
+//            QUICK_SAFE_CALL((k_get_grad_cshell_spdf4 <<<gpu->blocks, gpu->twoEThreadsPerBlock, sizeof(QUICKDouble) * 3u * gpu->natom>>>
 //                    (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
 //                     gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
 //                     gpu->gpu_sim.xyz, gpu->gpu_sim.kstart, gpu->gpu_sim.katom,
@@ -1416,7 +1416,7 @@ void getGrad(_gpu_type gpu)
 void get_oshell_eri_grad(_gpu_type gpu)
 {
 //    nvtxRangePushA("Gradient 2e");
-    QUICK_SAFE_CALL((k_get_grad_oshell_sp <<<gpu->blocks, gpu->gradThreadsPerBlock>>>
+    QUICK_SAFE_CALL((k_get_grad_oshell_sp <<<gpu->blocks, gpu->gradThreadsPerBlock, sizeof(QUICKDouble) * 3u * gpu->natom>>>
                 (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
                  gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
                  gpu->gpu_sim.xyz, gpu->gpu_sim.kstart, gpu->gpu_sim.katom,
@@ -1440,7 +1440,7 @@ void get_oshell_eri_grad(_gpu_type gpu)
                  gpu->gpu_sim.store, gpu->gpu_sim.store2,
                  gpu->gpu_sim.storeAA, gpu->gpu_sim.storeBB, gpu->gpu_sim.storeCC)));
 
-    QUICK_SAFE_CALL((k_get_grad_oshell_spd <<<gpu->blocks, gpu->gradThreadsPerBlock>>>
+    QUICK_SAFE_CALL((k_get_grad_oshell_spd <<<gpu->blocks, gpu->gradThreadsPerBlock, sizeof(QUICKDouble) * 3u * gpu->natom>>>
                 (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
                  gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
                  gpu->gpu_sim.xyz, gpu->gpu_sim.kstart, gpu->gpu_sim.katom,
@@ -1470,7 +1470,7 @@ void get_oshell_eri_grad(_gpu_type gpu)
     if (gpu->maxL >= 2) {
 //#ifdef GPU_SPDF
         // Part f-1
-        QUICK_SAFE_CALL((k_get_grad_oshell_spdf <<<gpu->blocks, gpu->gradThreadsPerBlock>>>
+        QUICK_SAFE_CALL((k_get_grad_oshell_spdf <<<gpu->blocks, gpu->gradThreadsPerBlock, sizeof(QUICKDouble) * 3u * gpu->natom>>>
                 (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
                  gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
                  gpu->gpu_sim.xyz, gpu->gpu_sim.kstart, gpu->gpu_sim.katom,
@@ -1495,7 +1495,7 @@ void get_oshell_eri_grad(_gpu_type gpu)
                  gpu->gpu_sim.storeAA, gpu->gpu_sim.storeBB, gpu->gpu_sim.storeCC)));
 
         // Part f-2
-        QUICK_SAFE_CALL((k_get_grad_oshell_spdf2 <<<gpu->blocks, gpu->gradThreadsPerBlock>>>
+        QUICK_SAFE_CALL((k_get_grad_oshell_spdf2 <<<gpu->blocks, gpu->gradThreadsPerBlock, sizeof(QUICKDouble) * 3u * gpu->natom>>>
                 (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
                  gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
                  gpu->gpu_sim.xyz, gpu->gpu_sim.kstart, gpu->gpu_sim.katom,
@@ -1521,7 +1521,7 @@ void get_oshell_eri_grad(_gpu_type gpu)
 
         // Part f-3
 	if (gpu->maxL >= 3) {
-//            QUICK_SAFE_CALL((k_get_grad_oshell_spdf3 <<<gpu->blocks, gpu->gradThreadsPerBlock>>>
+//            QUICK_SAFE_CALL((k_get_grad_oshell_spdf3 <<<gpu->blocks, gpu->gradThreadsPerBlock, sizeof(QUICKDouble) * 3u * gpu->natom>>>
 //                    (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
 //                     gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
 //                     gpu->gpu_sim.xyz, gpu->gpu_sim.kstart, gpu->gpu_sim.katom,

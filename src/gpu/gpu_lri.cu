@@ -154,7 +154,7 @@ void get_lri(_gpu_type gpu)
 void get_lri_grad(_gpu_type gpu)
 {
 //   nvtxRangePushA("Gradient lri");
-    QUICK_SAFE_CALL((k_get_lri_grad <<<gpu->blocks, gpu->gradThreadsPerBlock>>>
+    QUICK_SAFE_CALL((k_get_lri_grad <<<gpu->blocks, gpu->gradThreadsPerBlock, sizeof(QUICKDouble) * 3u * gpu->natom>>>
                 (gpu->gpu_sim.natom, gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
                  gpu->gpu_sim.xyz, gpu->gpu_sim.allxyz, gpu->gpu_sim.kstart, gpu->gpu_sim.katom,
                  gpu->gpu_sim.kprim, gpu->gpu_sim.Ksumtype, gpu->gpu_sim.Qstart,
@@ -181,7 +181,7 @@ void get_lri_grad(_gpu_type gpu)
     if (gpu->maxL >= 2) {
 //#if defined(GPU_SPDF)
         // Part f-2
-        QUICK_SAFE_CALL((k_get_lri_grad_spdf2 <<<gpu->blocks, gpu->gradThreadsPerBlock>>>
+        QUICK_SAFE_CALL((k_get_lri_grad_spdf2 <<<gpu->blocks, gpu->gradThreadsPerBlock, sizeof(QUICKDouble) * 3u * gpu->natom>>>
                     (gpu->gpu_sim.natom, gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
                      gpu->gpu_sim.xyz, gpu->gpu_sim.allxyz, gpu->gpu_sim.kstart, gpu->gpu_sim.katom,
                      gpu->gpu_sim.kprim, gpu->gpu_sim.Ksumtype, gpu->gpu_sim.Qstart,

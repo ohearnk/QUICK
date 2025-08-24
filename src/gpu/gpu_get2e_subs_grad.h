@@ -2585,9 +2585,25 @@ __launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) k_get_grad_cshell_spdf8
 {
     unsigned int offset = blockIdx.x * blockDim.x + threadIdx.x;
     int totalThreads = blockDim.x * gridDim.x;
-
     QUICKULL jshell = (QUICKULL) sqrQshell;
     QUICKULL jshell2 = (QUICKULL) sqrQshell;
+#if defined(USE_LEGACY_ATOMICS)
+    extern __shared__ QUICKULL smem[];
+    QUICKULL *sgradULL = smem;
+
+    for (int i = threadIdx.x; i < 3u * natom; i += blockDim.x) {
+      sgradULL[i] = 0ull;
+    }
+#else
+    extern __shared__ QUICKDouble smem[];
+    QUICKDouble *sgrad = smem;
+
+    for (int i = threadIdx.x; i < 3u * natom; i += blockDim.x) {
+        sgrad[i] = 0.0;
+    }
+#endif
+
+    __syncthreads();
 
     for (QUICKULL i = offset; i < jshell2 * jshell; i += totalThreads) {
         QUICKULL a = (QUICKULL) i / jshell;
@@ -2712,9 +2728,9 @@ __launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) k_get_grad_cshell_spdf8
                              Xcoeff, expoSum, weightedCenterX, weightedCenterY, weightedCenterZ,
                              cutPrim, primLimit,
 #if defined(USE_LEGACY_ATOMICS)
-                             gradULL,
+                             sgradULL,
 #else
-                             grad,
+                             sgrad,
 #endif
                              store + offset,
                              store2 + offset,
@@ -2730,6 +2746,16 @@ __launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) k_get_grad_cshell_spdf8
         }
 #if defined(MPIV_GPU)
         }
+#endif
+    }
+
+    __syncthreads();
+
+    for (int i = threadIdx.x; i < 3u * natom; i += blockDim.x) {
+#if defined(USE_LEGACY_ATOMICS)
+        atomicAdd(&gradULL[i], sgradULL[i]);
+#else
+        atomicAdd(&grad[i], sgrad[i]);
 #endif
     }
 }

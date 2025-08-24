@@ -151,7 +151,7 @@ extern "C" void gpu_get_cshell_eri_grad_(QUICKDouble* grad)
 #if defined(USE_LEGACY_ATOMICS)
         gpu -> gradULL -> Download();
 
-        for (uint32_t i = 0; i < 3 * gpu->natom; i++) {
+        for (uint32_t i = 0; i < 3u * gpu->natom; i++) {
             gpu->grad->_hostData[i] = ULLTODOUBLE(gpu->gradULL->_hostData[i]) * ONEOVERGRADSCALE;
         }
 #else
@@ -299,7 +299,7 @@ extern "C" void gpu_get_cshell_xcgrad_(QUICKDouble *grad)
 #if defined(USE_LEGACY_ATOMICS)
     gpu->gradULL->Download();
 
-    for (uint32_t i = 0; i < 3 * gpu->natom; i++) {
+    for (uint32_t i = 0; i < 3u * gpu->natom; i++) {
         gpu->grad->_hostData[i] += ULLTODOUBLE(gpu->gradULL->_hostData[i]) * ONEOVERGRADSCALE;
     }
 #else
@@ -387,10 +387,10 @@ extern "C" void gpu_get_oei_grad_(QUICKDouble* grad, QUICKDouble* ptchg_grad)
 {
     // upload point charge grad vector
     if (gpu->nextatom > 0) {
-        gpu->ptchg_grad = new gpu_buffer_type<QUICKDouble>(3 * gpu->nextatom);
+        gpu->ptchg_grad = new gpu_buffer_type<QUICKDouble>(3u * gpu->nextatom);
 
 #if defined(USE_LEGACY_ATOMICS)
-        gpu->ptchg_gradULL = new gpu_buffer_type<QUICKULL>(3 * gpu->nextatom);
+        gpu->ptchg_gradULL = new gpu_buffer_type<QUICKULL>(3u * gpu->nextatom);
         gpu->ptchg_gradULL->Upload();
         gpu->gpu_sim.ptchg_gradULL = gpu->ptchg_gradULL->_devData;
         gpu->ptchg_grad->DeleteGPU();
@@ -405,14 +405,14 @@ extern "C" void gpu_get_oei_grad_(QUICKDouble* grad, QUICKDouble* ptchg_grad)
     // download gradients
 #if defined(USE_LEGACY_ATOMICS)
     gpu->gradULL->Download();
-    gpuMemsetAsync(gpu->gradULL->_devData, 0, sizeof(QUICKULL) * 3 * gpu->natom, 0);
+    gpuMemsetAsync(gpu->gradULL->_devData, 0, sizeof(QUICKULL) * 3 u* gpu->natom, 0);
 
-    for (uint32_t i = 0; i < 3 * gpu->natom; i++) {
+    for (uint32_t i = 0; i < 3u * gpu->natom; i++) {
         gpu->grad->_hostData[i] = ULLTODOUBLE(gpu->gradULL->_hostData[i]) * ONEOVERGRADSCALE;
     }
 #else
     gpu->grad->Download();
-    gpuMemsetAsync(gpu->grad->_devData, 0, sizeof(QUICKDouble) * 3 * gpu->natom, 0);
+    gpuMemsetAsync(gpu->grad->_devData, 0, sizeof(QUICKDouble) * 3u * gpu->natom, 0);
 #endif
 
     gpu->grad->DownloadSum(grad);
@@ -426,14 +426,14 @@ extern "C" void gpu_get_oei_grad_(QUICKDouble* grad, QUICKDouble* ptchg_grad)
     if (gpu -> nextatom > 0) {
 #if defined(USE_LEGACY_ATOMICS)
         gpu->ptchg_gradULL->Download();
-        gpuMemsetAsync(gpu->ptchg_gradULL->_devData, 0, sizeof(QUICKULL) * 3 * gpu->nextatom, 0);
+        gpuMemsetAsync(gpu->ptchg_gradULL->_devData, 0, sizeof(QUICKULL) * 3u * gpu->nextatom, 0);
 
-        for (uint32_t i = 0; i < 3 * gpu->nextatom; i++) {
+        for (uint32_t i = 0; i < 3u * gpu->nextatom; i++) {
             gpu->ptchg_grad->_hostData[i] = ULLTODOUBLE(gpu->ptchg_gradULL->_hostData[i]) * ONEOVERGRADSCALE;
         }
 #else
         gpu->ptchg_grad->Download();
-        gpuMemsetAsync(gpu->ptchg_grad->_devData, 0, sizeof(QUICKDouble) * 3 * gpu->nextatom, 0);
+        gpuMemsetAsync(gpu->ptchg_grad->_devData, 0, sizeof(QUICKDouble) * 3u * gpu->nextatom, 0);
 #endif
 
         /*      for(uint32_t i=0; i<3*gpu->nextatom; ++i){
@@ -526,13 +526,13 @@ extern "C" void gpu_get_lri_grad_(QUICKDouble* grad, QUICKDouble* ptchg_grad)
     // download gradients
 #if defined(USE_LEGACY_ATOMICS)
     gpu->gradULL->Download();
-    gpuMemsetAsync(gpu->gradULL->_devData, 0, sizeof(QUICKULL) * 3 * gpu->natom, 0);
-    for (uint32_t i = 0; i < 3 * gpu->natom; i++) {
+    gpuMemsetAsync(gpu->gradULL->_devData, 0, sizeof(QUICKULL) * 3u * gpu->natom, 0);
+    for (uint32_t i = 0; i < 3u * gpu->natom; i++) {
         gpu->grad->_hostData[i] = ULLTODOUBLE(gpu->gradULL->_hostData[i]) * ONEOVERGRADSCALE;
     }
 #else
     gpu->grad->Download();
-    gpuMemsetAsync(gpu->grad->_devData, 0, sizeof(QUICKDouble) * 3 * gpu->natom, 0);
+    gpuMemsetAsync(gpu->grad->_devData, 0, sizeof(QUICKDouble) * 3u * gpu->natom, 0);
 #endif
 
     gpu->grad->DownloadSum(grad);
@@ -547,7 +547,7 @@ extern "C" void gpu_get_lri_grad_(QUICKDouble* grad, QUICKDouble* ptchg_grad)
 #if defined(USE_LEGACY_ATOMICS)
         gpu->ptchg_gradULL->Download();
 
-        for (uint32_t i = 0; i < 3 * gpu->nextatom; i++) {
+        for (uint32_t i = 0; i < 3u * gpu->nextatom; i++) {
             gpu->ptchg_grad->_hostData[i] = ULLTODOUBLE(gpu->ptchg_gradULL->_hostData[i]) * ONEOVERGRADSCALE;
         }
 #else
@@ -589,16 +589,16 @@ extern "C" void gpu_getcew_grad_quad_(QUICKDouble* grad)
     // download gradients
 #if defined(USE_LEGACY_ATOMICS)
     gpu->gradULL->Download();
-    gpuMemsetAsync(gpu->gradULL->_devData, 0, sizeof(QUICKULL) * 3 * gpu->natom, 0);
+    gpuMemsetAsync(gpu->gradULL->_devData, 0, sizeof(QUICKULL) * 3u * gpu->natom, 0);
 
-    for (uint32_t i = 0; i < 3 * gpu->natom; i++) {
+    for (uint32_t i = 0; i < 3u * gpu->natom; i++) {
         // make sure to add rather than assign. we already computed one part of the cew
         // gradients on host asynchronously.
         gpu->grad->_hostData[i] += ULLTODOUBLE(gpu->gradULL->_hostData[i]) * ONEOVERGRADSCALE;
     }
 #else
     gpu->grad->Download();
-    gpuMemsetAsync(gpu->grad->_devData, 0, sizeof(QUICKDouble) * 3 * gpu->natom, 0);
+    gpuMemsetAsync(gpu->grad->_devData, 0, sizeof(QUICKDouble) * 3u * gpu->natom, 0);
 #endif
 
     gpu->grad->DownloadSum(grad);
