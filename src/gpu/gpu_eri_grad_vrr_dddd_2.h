@@ -21,7 +21,7 @@
 #define STORE_OPERATOR =
 
 
-__device__ static inline void ERint_grad_vertical_dddd_2(uint8_t I, uint8_t J, uint8_t K, uint8_t L,
+__device__ static inline void ERint_grad_vertical_dddd_2(uint32_t I, uint32_t J, uint32_t K, uint32_t L,
         const QUICKDouble Ptempx, const QUICKDouble Ptempy, const QUICKDouble Ptempz,
         const QUICKDouble WPtempx, const QUICKDouble WPtempy, const QUICKDouble WPtempz,
         const QUICKDouble Qtempx, const QUICKDouble Qtempy, const QUICKDouble Qtempz,
@@ -30,7 +30,7 @@ __device__ static inline void ERint_grad_vertical_dddd_2(uint8_t I, uint8_t J, u
         const QUICKDouble ABcom, const QUICKDouble CDcom,
         QUICKDouble * const store, QUICKDouble * const YVerticalTemp)
 {
-    if (I + J >= 5 && K + L >= 0) {
+    if (I + J >= 5) {
 #include "iclass_hsss.h"
         if (K + L >= 1) {
 #include "iclass_hsps.h"

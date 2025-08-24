@@ -19,7 +19,7 @@
 #define VY(a,b,c) (YVerticalTemp[c])
 
 
-__device__ static inline void ERint_vertical_sp(uint8_t I, uint8_t J, uint8_t K, uint8_t L,
+__device__ static inline void ERint_vertical_sp(uint32_t I, uint32_t J, uint32_t K, uint32_t L,
         QUICKDouble Ptempx, QUICKDouble Ptempy, QUICKDouble Ptempz,
         QUICKDouble WPtempx, QUICKDouble WPtempy, QUICKDouble WPtempz,
         QUICKDouble Qtempx, QUICKDouble Qtempy, QUICKDouble Qtempz,
@@ -28,7 +28,7 @@ __device__ static inline void ERint_vertical_sp(uint8_t I, uint8_t J, uint8_t K,
         QUICKDouble ABcom, QUICKDouble CDcom,
         QUICKDouble * const store, QUICKDouble * const YVerticalTemp) {
 #include "iclass_ssss.h"
-    if (I + J >= 0 && K + L >= 1) {
+    if (K + L >= 1) {
         if (K <= 1 && I == 0) {
 #include "iclass_ssps.h"
         }
@@ -38,7 +38,7 @@ __device__ static inline void ERint_vertical_sp(uint8_t I, uint8_t J, uint8_t K,
             }
         }
     }
-    if (I + J >= 1 && K + L >= 0) {
+    if (I + J >= 1) {
         if (I <= 1) {
 #include "iclass_psss.h"
         }

@@ -19,7 +19,7 @@
 #define VY(a,b,c) (YVerticalTemp[(c)])
 
 
-__device__ static inline void ERint_grad_vertical_spdf_7_2(uint8_t I, uint8_t J, uint8_t K, uint8_t L, uint8_t II,
+__device__ static inline void ERint_grad_vertical_spdf_7_2(uint32_t I, uint32_t J, uint32_t K, uint32_t L, uint32_t II,
         const QUICKDouble Ptempx, const QUICKDouble Ptempy, const QUICKDouble Ptempz,
         const QUICKDouble WPtempx, const QUICKDouble WPtempy, const QUICKDouble WPtempz,
         const QUICKDouble Qtempx, const QUICKDouble Qtempy, const QUICKDouble Qtempz,

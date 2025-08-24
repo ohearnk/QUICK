@@ -12,15 +12,6 @@
 #include "gpu.h"
 #include <cuda.h>
 
-/*
- Constant Memory in GPU is fast but quite limited and hard to operate, usually not allocatable and 
- readonly. So we put the following variables into constant memory:
- devTrans : arrays to save the mapping index, will be elimited by hand writing unrolling code.
- Sumindex: a array to store refect how many temp variable needed in VRR. can be elimited by hand writing code.
- */
-static __constant__ uint8_t devTrans[TRANSDIM * TRANSDIM * TRANSDIM];
-static __constant__ uint8_t Sumindex[10] = {0, 0, 1, 4, 10, 20, 35, 56, 84, 120};
-
 //#define USE_TEXTURE
 
 #if defined(USE_TEXTURE)
@@ -620,7 +611,8 @@ void get2e(_gpu_type gpu)
     bind_eri_texture(gpu);
 #endif
 
-    QUICK_SAFE_CALL((k_eri_cshell_sp <<<gpu->blocks, gpu->twoEThreadsPerBlock>>>
+    QUICK_SAFE_CALL((k_eri_cshell_sp <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u + 3u * gpu->nbasis)>>>
                 (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
                  gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
                  gpu->gpu_sim.xyz, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
@@ -642,9 +634,11 @@ void get2e(_gpu_type gpu)
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
 #endif
-                 gpu->gpu_sim.store)));
+                 gpu->gpu_sim.store, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
 
-    QUICK_SAFE_CALL((k_eri_cshell_spd <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
+    QUICK_SAFE_CALL((k_eri_cshell_spd <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u + 3u * gpu->nbasis)>>>
+                (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
                  gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
                  gpu->gpu_sim.xyz, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
                  gpu->gpu_sim.katom, gpu->gpu_sim.kprim, gpu->gpu_sim.Qstart,
@@ -665,12 +659,14 @@ void get2e(_gpu_type gpu)
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
 #endif
-                 gpu->gpu_sim.store)));
+                 gpu->gpu_sim.store, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
  
 #ifdef GPU_SPDF
     if (gpu->maxL >= 3) {
         // Part f-1
-        QUICK_SAFE_CALL((k_eri_cshell_spdf <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
+        QUICK_SAFE_CALL((k_eri_cshell_spdf <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u + 3u * gpu->nbasis)>>>
+                (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
                  gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
                  gpu->gpu_sim.xyz, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
                  gpu->gpu_sim.katom, gpu->gpu_sim.kprim, gpu->gpu_sim.Qstart,
@@ -691,9 +687,11 @@ void get2e(_gpu_type gpu)
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
 #endif
-                 gpu->gpu_sim.store)));
+                 gpu->gpu_sim.store, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
         // Part f-2
-        QUICK_SAFE_CALL((k_eri_cshell_spdf2 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
+        QUICK_SAFE_CALL((k_eri_cshell_spdf2 <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u + 3u * gpu->nbasis)>>>
+                (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
                  gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
                  gpu->gpu_sim.xyz, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
                  gpu->gpu_sim.katom, gpu->gpu_sim.kprim, gpu->gpu_sim.Qstart,
@@ -714,9 +712,11 @@ void get2e(_gpu_type gpu)
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
 #endif
-                 gpu->gpu_sim.store)));
+                 gpu->gpu_sim.store, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
         // Part f-3
-        QUICK_SAFE_CALL((k_eri_cshell_spdf3 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
+        QUICK_SAFE_CALL((k_eri_cshell_spdf3 <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u + 3u * gpu->nbasis)>>>
+                (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
                  gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
                  gpu->gpu_sim.xyz, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
                  gpu->gpu_sim.katom, gpu->gpu_sim.kprim, gpu->gpu_sim.Qstart,
@@ -737,9 +737,11 @@ void get2e(_gpu_type gpu)
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
 #endif
-                 gpu->gpu_sim.store)));
+                 gpu->gpu_sim.store, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
         // Part f-4
-        QUICK_SAFE_CALL((k_eri_cshell_spdf4 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
+        QUICK_SAFE_CALL((k_eri_cshell_spdf4 <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u + 3u * gpu->nbasis)>>>
+                (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
                  gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
                  gpu->gpu_sim.xyz, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
                  gpu->gpu_sim.katom, gpu->gpu_sim.kprim, gpu->gpu_sim.Qstart,
@@ -760,9 +762,11 @@ void get2e(_gpu_type gpu)
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
 #endif
-                 gpu->gpu_sim.store)));
+                 gpu->gpu_sim.store, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
         // Part f-5
-        QUICK_SAFE_CALL((k_eri_cshell_spdf5 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
+        QUICK_SAFE_CALL((k_eri_cshell_spdf5 <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u + 3u * gpu->nbasis)>>>
+                (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
                  gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
                  gpu->gpu_sim.xyz, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
                  gpu->gpu_sim.katom, gpu->gpu_sim.kprim, gpu->gpu_sim.Qstart,
@@ -783,9 +787,11 @@ void get2e(_gpu_type gpu)
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
 #endif
-                 gpu->gpu_sim.store)));
+                 gpu->gpu_sim.store, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
         // Part f-6
-        QUICK_SAFE_CALL((k_eri_cshell_spdf6 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
+        QUICK_SAFE_CALL((k_eri_cshell_spdf6 <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u + 3u * gpu->nbasis)>>>
+                (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
                  gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
                  gpu->gpu_sim.xyz, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
                  gpu->gpu_sim.katom, gpu->gpu_sim.kprim, gpu->gpu_sim.Qstart,
@@ -806,9 +812,11 @@ void get2e(_gpu_type gpu)
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
 #endif
-                 gpu->gpu_sim.store)));
+                 gpu->gpu_sim.store, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
         // Part f-7
-        QUICK_SAFE_CALL((k_eri_cshell_spdf7 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
+        QUICK_SAFE_CALL((k_eri_cshell_spdf7 <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u + 3u * gpu->nbasis)>>>
+                (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
                  gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
                  gpu->gpu_sim.xyz, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
                  gpu->gpu_sim.katom, gpu->gpu_sim.kprim, gpu->gpu_sim.Qstart,
@@ -829,9 +837,11 @@ void get2e(_gpu_type gpu)
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
 #endif
-                 gpu->gpu_sim.store)));
+                 gpu->gpu_sim.store, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
         // Part f-8
-        QUICK_SAFE_CALL((k_eri_cshell_spdf8 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
+        QUICK_SAFE_CALL((k_eri_cshell_spdf8 <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u + 3u * gpu->nbasis)>>>
+                (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
                  gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
                  gpu->gpu_sim.xyz, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
                  gpu->gpu_sim.katom, gpu->gpu_sim.kprim, gpu->gpu_sim.Qstart,
@@ -852,9 +862,11 @@ void get2e(_gpu_type gpu)
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
 #endif
-                 gpu->gpu_sim.store)));
+                 gpu->gpu_sim.store, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
         // Part f-9
-//        QUICK_SAFE_CALL((k_eri_cshell_spdf9 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
+//        QUICK_SAFE_CALL((k_eri_cshell_spdf9 <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+//                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u + 3u * gpu->nbasis)>>>
+//                (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
 //                 gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
 //                 gpu->gpu_sim.xyz, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
 //                 gpu->gpu_sim.katom, gpu->gpu_sim.kprim, gpu->gpu_sim.Qstart,
@@ -875,9 +887,11 @@ void get2e(_gpu_type gpu)
 //#if defined(MPIV_GPU)
 //                 gpu->gpu_sim.mpi_bcompute,
 //#endif
-//                 gpu->gpu_sim.store)));
+//                 gpu->gpu_sim.store, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
         // Part f-10
-//        QUICK_SAFE_CALL((k_eri_cshell_spdf10 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
+//        QUICK_SAFE_CALL((k_eri_cshell_spdf10 <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+//                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u + 3u * gpu->nbasis)>>>
+//                (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
 //                 gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
 //                 gpu->gpu_sim.xyz, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
 //                 gpu->gpu_sim.katom, gpu->gpu_sim.kprim, gpu->gpu_sim.Qstart,
@@ -898,7 +912,7 @@ void get2e(_gpu_type gpu)
 //#if defined(MPIV_GPU)
 //                 gpu->gpu_sim.mpi_bcompute,
 //#endif
-//                 gpu->gpu_sim.store)));
+//                 gpu->gpu_sim.store, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
     }
 #endif 
 
@@ -920,7 +934,8 @@ void get_oshell_eri(_gpu_type gpu)
     bind_eri_texture(gpu);
 #endif
 
-    QUICK_SAFE_CALL((k_eri_oshell_sp <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> 
+    QUICK_SAFE_CALL((k_eri_oshell_sp <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u + 3u * gpu->nbasis)>>> 
                 (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
                  gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
                  gpu->gpu_sim.xyz, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
@@ -942,9 +957,10 @@ void get_oshell_eri(_gpu_type gpu)
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
 #endif
-                 gpu->gpu_sim.store)));
+                 gpu->gpu_sim.store, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
 
-    QUICK_SAFE_CALL((k_eri_oshell_spd <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> 
+    QUICK_SAFE_CALL((k_eri_oshell_spd <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u + 3u * gpu->nbasis)>>> 
                 (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
                  gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
                  gpu->gpu_sim.xyz, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
@@ -966,12 +982,13 @@ void get_oshell_eri(_gpu_type gpu)
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
 #endif
-                 gpu->gpu_sim.store)));
+                 gpu->gpu_sim.store, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
 
 #ifdef GPU_SPDF
     if (gpu->maxL >= 3) {
         // Part f-1
-        QUICK_SAFE_CALL((k_eri_oshell_spdf <<<gpu->blocks, gpu->twoEThreadsPerBlock>>> 
+        QUICK_SAFE_CALL((k_eri_oshell_spdf <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u + 3u * gpu->nbasis)>>> 
                 (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
                  gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
                  gpu->gpu_sim.xyz, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
@@ -993,10 +1010,11 @@ void get_oshell_eri(_gpu_type gpu)
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
 #endif
-                 gpu->gpu_sim.store)));
+                 gpu->gpu_sim.store, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
 
         // Part f-2
-        QUICK_SAFE_CALL((k_eri_oshell_spdf2 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>>
+        QUICK_SAFE_CALL((k_eri_oshell_spdf2 <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u + 3u * gpu->nbasis)>>>
                 (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
                  gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
                  gpu->gpu_sim.xyz, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
@@ -1018,9 +1036,10 @@ void get_oshell_eri(_gpu_type gpu)
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
 #endif
-                 gpu->gpu_sim.store)));
+                 gpu->gpu_sim.store, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
         // Part f-3
-        QUICK_SAFE_CALL((k_eri_oshell_spdf3 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>>
+        QUICK_SAFE_CALL((k_eri_oshell_spdf3 <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u + 3u * gpu->nbasis)>>>
                 (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
                  gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
                  gpu->gpu_sim.xyz, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
@@ -1042,9 +1061,10 @@ void get_oshell_eri(_gpu_type gpu)
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
 #endif
-                 gpu->gpu_sim.store)));
+                 gpu->gpu_sim.store, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
         // Part f-4
-        QUICK_SAFE_CALL((k_eri_oshell_spdf4 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>>
+        QUICK_SAFE_CALL((k_eri_oshell_spdf4 <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u + 3u * gpu->nbasis)>>>
                 (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
                  gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
                  gpu->gpu_sim.xyz, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
@@ -1066,9 +1086,10 @@ void get_oshell_eri(_gpu_type gpu)
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
 #endif
-                 gpu->gpu_sim.store)));
+                 gpu->gpu_sim.store, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
         // Part f-5
-        QUICK_SAFE_CALL((k_eri_oshell_spdf5 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>>
+        QUICK_SAFE_CALL((k_eri_oshell_spdf5 <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u + 3u * gpu->nbasis)>>>
                 (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
                  gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
                  gpu->gpu_sim.xyz, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
@@ -1090,9 +1111,10 @@ void get_oshell_eri(_gpu_type gpu)
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
 #endif
-                 gpu->gpu_sim.store)));
+                 gpu->gpu_sim.store, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
         // Part f-6
-        QUICK_SAFE_CALL((k_eri_oshell_spdf6 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>>
+        QUICK_SAFE_CALL((k_eri_oshell_spdf6 <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u + 3u * gpu->nbasis)>>>
                 (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
                  gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
                  gpu->gpu_sim.xyz, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
@@ -1114,9 +1136,10 @@ void get_oshell_eri(_gpu_type gpu)
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
 #endif
-                 gpu->gpu_sim.store)));
+                 gpu->gpu_sim.store, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
         // Part f-7
-        QUICK_SAFE_CALL((k_eri_oshell_spdf7 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>>
+        QUICK_SAFE_CALL((k_eri_oshell_spdf7 <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u + 3u * gpu->nbasis)>>>
                 (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
                  gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
                  gpu->gpu_sim.xyz, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
@@ -1138,9 +1161,10 @@ void get_oshell_eri(_gpu_type gpu)
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
 #endif
-                 gpu->gpu_sim.store)));
+                 gpu->gpu_sim.store, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
         // Part f-8
-        QUICK_SAFE_CALL((k_eri_oshell_spdf8 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>>
+        QUICK_SAFE_CALL((k_eri_oshell_spdf8 <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u + 3u * gpu->nbasis)>>>
                 (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
                  gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
                  gpu->gpu_sim.xyz, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
@@ -1162,9 +1186,10 @@ void get_oshell_eri(_gpu_type gpu)
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
 #endif
-                 gpu->gpu_sim.store)));
+                 gpu->gpu_sim.store, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
         // Part f-9
-//        QUICK_SAFE_CALL((k_eri_oshell_spdf9 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>>
+//        QUICK_SAFE_CALL((k_eri_oshell_spdf9 <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+//                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u + 3u * gpu->nbasis)>>>
 //                (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
 //                 gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
 //                 gpu->gpu_sim.xyz, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
@@ -1186,9 +1211,10 @@ void get_oshell_eri(_gpu_type gpu)
 //#if defined(MPIV_GPU)
 //                 gpu->gpu_sim.mpi_bcompute,
 //#endif
-//                 gpu->gpu_sim.store)));
+//                 gpu->gpu_sim.store, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
         // Part f-10
-//        QUICK_SAFE_CALL((k_eri_oshell_spdf10 <<<gpu->blocks, gpu->twoEThreadsPerBlock>>>
+//        QUICK_SAFE_CALL((k_eri_oshell_spdf10 <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+//                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u + 3 * gpu->nbasis)>>>
 //                (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
 //                 gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
 //                 gpu->gpu_sim.xyz, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
@@ -1210,7 +1236,7 @@ void get_oshell_eri(_gpu_type gpu)
 //#if defined(MPIV_GPU)
 //                 gpu->gpu_sim.mpi_bcompute,
 //#endif
-//                 gpu->gpu_sim.store)));
+//                 gpu->gpu_sim.store, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
     }
 #endif
 
@@ -1252,7 +1278,13 @@ void getAddInt(_gpu_type gpu, uint32_t bufferSize, ERI_entry* aoint_buffer)
 void getGrad(_gpu_type gpu)
 {
 //   nvtxRangePushA("Gradient 2e");
-    QUICK_SAFE_CALL((k_get_grad_cshell_sp <<<gpu->blocks, gpu->twoEThreadsPerBlock, sizeof(QUICKDouble) * 3u * gpu->natom>>>
+    QUICK_SAFE_CALL((k_get_grad_cshell_sp <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u + 3u * gpu->nbasis)
+#if defined(USE_LEGACY_ATOMICS)
+                + sizeof(QUICKULL) * 3u * gpu->natom>>>
+#else
+                + sizeof(QUICKDouble) * 3u * gpu->natom>>>
+#endif
                 (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
                  gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
                  gpu->gpu_sim.xyz, gpu->gpu_sim.kstart, gpu->gpu_sim.katom,
@@ -1274,9 +1306,16 @@ void getGrad(_gpu_type gpu)
                  gpu->gpu_sim.mpi_bcompute,
 #endif
                  gpu->gpu_sim.store, gpu->gpu_sim.store2,
-                 gpu->gpu_sim.storeAA, gpu->gpu_sim.storeBB, gpu->gpu_sim.storeCC)));
+                 gpu->gpu_sim.storeAA, gpu->gpu_sim.storeBB, gpu->gpu_sim.storeCC,
+                 gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
 
-    QUICK_SAFE_CALL((k_get_grad_cshell_spd <<<gpu->blocks, gpu->twoEThreadsPerBlock, sizeof(QUICKDouble) * 3u * gpu->natom>>>
+    QUICK_SAFE_CALL((k_get_grad_cshell_spd <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u + 3u * gpu->nbasis)
+#if defined(USE_LEGACY_ATOMICS)
+                + sizeof(QUICKULL) * 3u * gpu->natom>>>
+#else
+                + sizeof(QUICKDouble) * 3u * gpu->natom>>>
+#endif
                 (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
                  gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
                  gpu->gpu_sim.xyz, gpu->gpu_sim.kstart, gpu->gpu_sim.katom,
@@ -1298,14 +1337,21 @@ void getGrad(_gpu_type gpu)
                  gpu->gpu_sim.mpi_bcompute,
 #endif
                  gpu->gpu_sim.store, gpu->gpu_sim.store2,
-                 gpu->gpu_sim.storeAA, gpu->gpu_sim.storeBB, gpu->gpu_sim.storeCC)));
+                 gpu->gpu_sim.storeAA, gpu->gpu_sim.storeBB, gpu->gpu_sim.storeCC,
+                 gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
 
     // compute one electron gradients in the meantime
     //get_oneen_grad_();
 
     if (gpu->maxL >= 2) {
         // Part f-1
-        QUICK_SAFE_CALL((k_get_grad_cshell_spdf <<<gpu->blocks, gpu->twoEThreadsPerBlock, sizeof(QUICKDouble) * 3u * gpu->natom>>>
+        QUICK_SAFE_CALL((k_get_grad_cshell_spdf <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                    sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u + 3u * gpu->nbasis)
+#if defined(USE_LEGACY_ATOMICS)
+                    + sizeof(QUICKULL) * 3u * gpu->natom>>>
+#else
+                    + sizeof(QUICKDouble) * 3u * gpu->natom>>>
+#endif
                     (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
                      gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
                      gpu->gpu_sim.xyz, gpu->gpu_sim.kstart, gpu->gpu_sim.katom,
@@ -1327,10 +1373,17 @@ void getGrad(_gpu_type gpu)
                      gpu->gpu_sim.mpi_bcompute,
 #endif
                      gpu->gpu_sim.store, gpu->gpu_sim.store2,
-                     gpu->gpu_sim.storeAA, gpu->gpu_sim.storeBB, gpu->gpu_sim.storeCC)));
+                     gpu->gpu_sim.storeAA, gpu->gpu_sim.storeBB, gpu->gpu_sim.storeCC,
+                     gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
         
         // Part f-2
-        QUICK_SAFE_CALL((k_get_grad_cshell_spdf2 <<<gpu->blocks, gpu->twoEThreadsPerBlock, sizeof(QUICKDouble) * 3u * gpu->natom>>>
+        QUICK_SAFE_CALL((k_get_grad_cshell_spdf2 <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                    sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u + 3u * gpu->nbasis)
+#if defined(USE_LEGACY_ATOMICS)
+                    + sizeof(QUICKULL) * 3u * gpu->natom>>>
+#else
+                    + sizeof(QUICKDouble) * 3u * gpu->natom>>>
+#endif
                     (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
                      gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
                      gpu->gpu_sim.xyz, gpu->gpu_sim.kstart, gpu->gpu_sim.katom,
@@ -1352,58 +1405,73 @@ void getGrad(_gpu_type gpu)
                      gpu->gpu_sim.mpi_bcompute,
 #endif
                      gpu->gpu_sim.store, gpu->gpu_sim.store2,
-                     gpu->gpu_sim.storeAA, gpu->gpu_sim.storeBB, gpu->gpu_sim.storeCC)));
+                     gpu->gpu_sim.storeAA, gpu->gpu_sim.storeBB, gpu->gpu_sim.storeCC,
+                     gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
 
         if (gpu->maxL >= 3) {
 #ifdef GPU_SPDF
             // Part f-3
-            QUICK_SAFE_CALL((k_get_grad_cshell_spdf3 <<<gpu->blocks, gpu->twoEThreadsPerBlock, sizeof(QUICKDouble) * 3u * gpu->natom>>>
-                    (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
-                     gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
-                     gpu->gpu_sim.xyz, gpu->gpu_sim.kstart, gpu->gpu_sim.katom,
-                     gpu->gpu_sim.kprim, gpu->gpu_sim.Ksumtype, gpu->gpu_sim.Qstart,
-                     gpu->gpu_sim.Qsbasis, gpu->gpu_sim.Qfbasis, gpu->gpu_sim.sorted_Qnumber,
-                     gpu->gpu_sim.sorted_Q, gpu->gpu_sim.cons, gpu->gpu_sim.gcexpo,
-                     gpu->gpu_sim.KLMN, gpu->gpu_sim.prim_total, gpu->gpu_sim.prim_start,
-                     gpu->gpu_sim.dense, gpu->gpu_sim.Xcoeff, gpu->gpu_sim.expoSum,
-                     gpu->gpu_sim.weightedCenterX, gpu->gpu_sim.weightedCenterY, gpu->gpu_sim.weightedCenterZ,
-                     gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix,
-                     gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.primLimit,
-                     gpu->gpu_sim.gradCutoff,
+            QUICK_SAFE_CALL((k_get_grad_cshell_spdf3 <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                        sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u + 3u * gpu->nbasis)
 #if defined(USE_LEGACY_ATOMICS)
-                     gpu->gpu_sim.gradULL,
+                        + sizeof(QUICKULL) * 3u * gpu->natom>>>
 #else
-                     gpu->gpu_sim.grad,
+                        + sizeof(QUICKDouble) * 3u * gpu->natom>>>
+#endif
+                        (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
+                         gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
+                         gpu->gpu_sim.xyz, gpu->gpu_sim.kstart, gpu->gpu_sim.katom,
+                         gpu->gpu_sim.kprim, gpu->gpu_sim.Ksumtype, gpu->gpu_sim.Qstart,
+                         gpu->gpu_sim.Qsbasis, gpu->gpu_sim.Qfbasis, gpu->gpu_sim.sorted_Qnumber,
+                         gpu->gpu_sim.sorted_Q, gpu->gpu_sim.cons, gpu->gpu_sim.gcexpo,
+                         gpu->gpu_sim.KLMN, gpu->gpu_sim.prim_total, gpu->gpu_sim.prim_start,
+                         gpu->gpu_sim.dense, gpu->gpu_sim.Xcoeff, gpu->gpu_sim.expoSum,
+                         gpu->gpu_sim.weightedCenterX, gpu->gpu_sim.weightedCenterY, gpu->gpu_sim.weightedCenterZ,
+                         gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix,
+                         gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.primLimit,
+                         gpu->gpu_sim.gradCutoff,
+#if defined(USE_LEGACY_ATOMICS)
+                         gpu->gpu_sim.gradULL,
+#else
+                         gpu->gpu_sim.grad,
 #endif
 #if defined(MPIV_GPU)
-                     gpu->gpu_sim.mpi_bcompute,
+                         gpu->gpu_sim.mpi_bcompute,
 #endif
-                     gpu->gpu_sim.store, gpu->gpu_sim.store2,
-                     gpu->gpu_sim.storeAA, gpu->gpu_sim.storeBB, gpu->gpu_sim.storeCC)));
+                         gpu->gpu_sim.store, gpu->gpu_sim.store2,
+                         gpu->gpu_sim.storeAA, gpu->gpu_sim.storeBB, gpu->gpu_sim.storeCC,
+                         gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
 
-//            QUICK_SAFE_CALL((k_get_grad_cshell_spdf4 <<<gpu->blocks, gpu->twoEThreadsPerBlock, sizeof(QUICKDouble) * 3u * gpu->natom>>>
-//                    (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
-//                     gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
-//                     gpu->gpu_sim.xyz, gpu->gpu_sim.kstart, gpu->gpu_sim.katom,
-//                     gpu->gpu_sim.kprim, gpu->gpu_sim.Ksumtype, gpu->gpu_sim.Qstart,
-//                     gpu->gpu_sim.Qsbasis, gpu->gpu_sim.Qfbasis, gpu->gpu_sim.sorted_Qnumber,
-//                     gpu->gpu_sim.sorted_Q, gpu->gpu_sim.cons, gpu->gpu_sim.gcexpo,
-//                     gpu->gpu_sim.KLMN, gpu->gpu_sim.prim_total, gpu->gpu_sim.prim_start,
-//                     gpu->gpu_sim.dense, gpu->gpu_sim.Xcoeff, gpu->gpu_sim.expoSum,
-//                     gpu->gpu_sim.weightedCenterX, gpu->gpu_sim.weightedCenterY, gpu->gpu_sim.weightedCenterZ,
-//                     gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix,
-//                     gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.primLimit,
-//                     gpu->gpu_sim.gradCutoff,
+//            QUICK_SAFE_CALL((k_get_grad_cshell_spdf4 <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+//                        sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u + 3u * gpu->nbasis)
 //#if defined(USE_LEGACY_ATOMICS)
-//                     gpu->gpu_sim.gradULL,
+//                        + sizeof(QUICKULL) * 3u * gpu->natom>>>
 //#else
-//                     gpu->gpu_sim.grad,
+//                        + sizeof(QUICKDouble) * 3u * gpu->natom>>>
+//#endif
+//                        (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
+//                         gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
+//                         gpu->gpu_sim.xyz, gpu->gpu_sim.kstart, gpu->gpu_sim.katom,
+//                         gpu->gpu_sim.kprim, gpu->gpu_sim.Ksumtype, gpu->gpu_sim.Qstart,
+//                         gpu->gpu_sim.Qsbasis, gpu->gpu_sim.Qfbasis, gpu->gpu_sim.sorted_Qnumber,
+//                         gpu->gpu_sim.sorted_Q, gpu->gpu_sim.cons, gpu->gpu_sim.gcexpo,
+//                         gpu->gpu_sim.KLMN, gpu->gpu_sim.prim_total, gpu->gpu_sim.prim_start,
+//                         gpu->gpu_sim.dense, gpu->gpu_sim.Xcoeff, gpu->gpu_sim.expoSum,
+//                         gpu->gpu_sim.weightedCenterX, gpu->gpu_sim.weightedCenterY, gpu->gpu_sim.weightedCenterZ,
+//                         gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix,
+//                         gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.primLimit,
+//                         gpu->gpu_sim.gradCutoff,
+//#if defined(USE_LEGACY_ATOMICS)
+//                         gpu->gpu_sim.gradULL,
+//#else
+//                         gpu->gpu_sim.grad,
 //#endif
 //#if defined(MPIV_GPU)
-//                     gpu->gpu_sim.mpi_bcompute,
+//                         gpu->gpu_sim.mpi_bcompute,
 //#endif
-//                     gpu->gpu_sim.store, gpu->gpu_sim.store2,
-//                     gpu->gpu_sim.storeAA, gpu->gpu_sim.storeBB, gpu->gpu_sim.storeCC)));
+//                         gpu->gpu_sim.store, gpu->gpu_sim.store2,
+//                         gpu->gpu_sim.storeAA, gpu->gpu_sim.storeBB, gpu->gpu_sim.storeCC,
+//                         gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
 #endif
         }
     }
@@ -1416,7 +1484,13 @@ void getGrad(_gpu_type gpu)
 void get_oshell_eri_grad(_gpu_type gpu)
 {
 //    nvtxRangePushA("Gradient 2e");
-    QUICK_SAFE_CALL((k_get_grad_oshell_sp <<<gpu->blocks, gpu->gradThreadsPerBlock, sizeof(QUICKDouble) * 3u * gpu->natom>>>
+    QUICK_SAFE_CALL((k_get_grad_oshell_sp <<<gpu->blocks, gpu->gradThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u + 3u * gpu->nbasis)
+#if defined(USE_LEGACY_ATOMICS)
+                + sizeof(QUICKULL) * 3u * gpu->natom>>>
+#else
+                + sizeof(QUICKDouble) * 3u * gpu->natom>>>
+#endif
                 (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
                  gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
                  gpu->gpu_sim.xyz, gpu->gpu_sim.kstart, gpu->gpu_sim.katom,
@@ -1438,9 +1512,16 @@ void get_oshell_eri_grad(_gpu_type gpu)
                  gpu->gpu_sim.mpi_bcompute,
 #endif
                  gpu->gpu_sim.store, gpu->gpu_sim.store2,
-                 gpu->gpu_sim.storeAA, gpu->gpu_sim.storeBB, gpu->gpu_sim.storeCC)));
+                 gpu->gpu_sim.storeAA, gpu->gpu_sim.storeBB, gpu->gpu_sim.storeCC,
+                 gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
 
-    QUICK_SAFE_CALL((k_get_grad_oshell_spd <<<gpu->blocks, gpu->gradThreadsPerBlock, sizeof(QUICKDouble) * 3u * gpu->natom>>>
+    QUICK_SAFE_CALL((k_get_grad_oshell_spd <<<gpu->blocks, gpu->gradThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u + 3u * gpu->nbasis)
+#if defined(USE_LEGACY_ATOMICS)
+                + sizeof(QUICKULL) * 3u * gpu->natom>>>
+#else
+                + sizeof(QUICKDouble) * 3u * gpu->natom>>>
+#endif
                 (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
                  gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
                  gpu->gpu_sim.xyz, gpu->gpu_sim.kstart, gpu->gpu_sim.katom,
@@ -1462,7 +1543,8 @@ void get_oshell_eri_grad(_gpu_type gpu)
                  gpu->gpu_sim.mpi_bcompute,
 #endif
                  gpu->gpu_sim.store, gpu->gpu_sim.store2,
-                 gpu->gpu_sim.storeAA, gpu->gpu_sim.storeBB, gpu->gpu_sim.storeCC)));
+                 gpu->gpu_sim.storeAA, gpu->gpu_sim.storeBB, gpu->gpu_sim.storeCC,
+                 gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
 
     // compute one electron gradients in the meantime
     //get_oneen_grad_();
@@ -1470,7 +1552,13 @@ void get_oshell_eri_grad(_gpu_type gpu)
     if (gpu->maxL >= 2) {
 //#ifdef GPU_SPDF
         // Part f-1
-        QUICK_SAFE_CALL((k_get_grad_oshell_spdf <<<gpu->blocks, gpu->gradThreadsPerBlock, sizeof(QUICKDouble) * 3u * gpu->natom>>>
+        QUICK_SAFE_CALL((k_get_grad_oshell_spdf <<<gpu->blocks, gpu->gradThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u + 3u * gpu->nbasis)
+#if defined(USE_LEGACY_ATOMICS)
+                + sizeof(QUICKULL) * 3u * gpu->natom>>>
+#else
+                + sizeof(QUICKDouble) * 3u * gpu->natom>>>
+#endif
                 (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
                  gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
                  gpu->gpu_sim.xyz, gpu->gpu_sim.kstart, gpu->gpu_sim.katom,
@@ -1492,10 +1580,17 @@ void get_oshell_eri_grad(_gpu_type gpu)
                  gpu->gpu_sim.mpi_bcompute,
 #endif
                  gpu->gpu_sim.store, gpu->gpu_sim.store2,
-                 gpu->gpu_sim.storeAA, gpu->gpu_sim.storeBB, gpu->gpu_sim.storeCC)));
+                 gpu->gpu_sim.storeAA, gpu->gpu_sim.storeBB, gpu->gpu_sim.storeCC,
+                 gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
 
         // Part f-2
-        QUICK_SAFE_CALL((k_get_grad_oshell_spdf2 <<<gpu->blocks, gpu->gradThreadsPerBlock, sizeof(QUICKDouble) * 3u * gpu->natom>>>
+        QUICK_SAFE_CALL((k_get_grad_oshell_spdf2 <<<gpu->blocks, gpu->gradThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u + 3u * gpu->nbasis)
+#if defined(USE_LEGACY_ATOMICS)
+                + sizeof(QUICKULL) * 3u * gpu->natom>>>
+#else
+                + sizeof(QUICKDouble) * 3u * gpu->natom>>>
+#endif
                 (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
                  gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
                  gpu->gpu_sim.xyz, gpu->gpu_sim.kstart, gpu->gpu_sim.katom,
@@ -1517,11 +1612,18 @@ void get_oshell_eri_grad(_gpu_type gpu)
                  gpu->gpu_sim.mpi_bcompute,
 #endif
                  gpu->gpu_sim.store, gpu->gpu_sim.store2,
-                 gpu->gpu_sim.storeAA, gpu->gpu_sim.storeBB, gpu->gpu_sim.storeCC)));
+                 gpu->gpu_sim.storeAA, gpu->gpu_sim.storeBB, gpu->gpu_sim.storeCC,
+                 gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
 
         // Part f-3
 	if (gpu->maxL >= 3) {
-//            QUICK_SAFE_CALL((k_get_grad_oshell_spdf3 <<<gpu->blocks, gpu->gradThreadsPerBlock, sizeof(QUICKDouble) * 3u * gpu->natom>>>
+//            QUICK_SAFE_CALL((k_get_grad_oshell_spdf3 <<<gpu->blocks, gpu->gradThreadsPerBlock,
+//                    sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u + 3u * gpu->nbasis)
+//#if defined(USE_LEGACY_ATOMICS)
+//                    + sizeof(QUICKULL) * 3u * gpu->natom>>>
+//#else
+//                    + sizeof(QUICKDouble) * 3u * gpu->natom>>>
+//#endif
 //                    (gpu->gpu_sim.hyb_coeff, gpu->gpu_sim.natom,
 //                     gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
 //                     gpu->gpu_sim.xyz, gpu->gpu_sim.kstart, gpu->gpu_sim.katom,
@@ -1543,7 +1645,8 @@ void get_oshell_eri_grad(_gpu_type gpu)
 //                     gpu->gpu_sim.mpi_bcompute,
 //#endif
 //                     gpu->gpu_sim.store, gpu->gpu_sim.store2,
-//                     gpu->gpu_sim.storeAA, gpu->gpu_sim.storeBB, gpu->gpu_sim.storeCC)));
+//                     gpu->gpu_sim.storeAA, gpu->gpu_sim.storeBB, gpu->gpu_sim.storeCC,
+//                     gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
 //#endif
 	}
     }
@@ -1593,10 +1696,10 @@ __global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_get_add_int(u
 
         if (j == batchSize || i == myInt) {
             for (uint32_t k = 0; k < j; k++) {
-                uint8_t III = a[k].IJ / nbasis;
-                uint8_t JJJ = a[k].IJ % nbasis;
-                uint8_t KKK = a[k].KL / nbasis;
-                uint8_t LLL = a[k].KL % nbasis;
+                uint32_t III = a[k].IJ / nbasis;
+                uint32_t JJJ = a[k].IJ % nbasis;
+                uint32_t KKK = a[k].KL / nbasis;
+                uint32_t LLL = a[k].KL % nbasis;
                 
                 if (III < nbasis && III >= 0 && JJJ < nbasis && JJJ >= 0
                         && KKK < nbasis && KKK >= 0 && LLL < nbasis && LLL >= 0) {
@@ -1764,132 +1867,3 @@ __global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_get_add_int(u
     }
 }
 #endif
-
-
-void upload_para_to_const() {
-    uint8_t trans[TRANSDIM * TRANSDIM * TRANSDIM] = {};
-
-    LOC3(trans, 0, 0, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 0;
-    LOC3(trans, 0, 0, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 3;
-    LOC3(trans, 0, 0, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 9;
-    LOC3(trans, 0, 0, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 19;
-    LOC3(trans, 0, 0, 4, TRANSDIM, TRANSDIM, TRANSDIM) = 34;
-    LOC3(trans, 0, 0, 5, TRANSDIM, TRANSDIM, TRANSDIM) = 55;
-    LOC3(trans, 0, 0, 6, TRANSDIM, TRANSDIM, TRANSDIM) = 83;
-    LOC3(trans, 0, 0, 7, TRANSDIM, TRANSDIM, TRANSDIM) = 119;
-    LOC3(trans, 0, 1, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 2;
-    LOC3(trans, 0, 1, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 5;
-    LOC3(trans, 0, 1, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 16;
-    LOC3(trans, 0, 1, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 31;
-    LOC3(trans, 0, 1, 4, TRANSDIM, TRANSDIM, TRANSDIM) = 47;
-    LOC3(trans, 0, 1, 5, TRANSDIM, TRANSDIM, TRANSDIM) = 66;
-    LOC3(trans, 0, 1, 6, TRANSDIM, TRANSDIM, TRANSDIM) = 99;
-    LOC3(trans, 0, 2, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 8;
-    LOC3(trans, 0, 2, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 15;
-    LOC3(trans, 0, 2, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 22;
-    LOC3(trans, 0, 2, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 41;
-    LOC3(trans, 0, 2, 4, TRANSDIM, TRANSDIM, TRANSDIM) = 72;
-    LOC3(trans, 0, 2, 5, TRANSDIM, TRANSDIM, TRANSDIM) = 105;
-    LOC3(trans, 0, 3, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 18;
-    LOC3(trans, 0, 3, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 30;
-    LOC3(trans, 0, 3, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 42;
-    LOC3(trans, 0, 3, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 78;
-    LOC3(trans, 0, 3, 4, TRANSDIM, TRANSDIM, TRANSDIM) = 111;
-    LOC3(trans, 0, 4, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 33;
-    LOC3(trans, 0, 4, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 48;
-    LOC3(trans, 0, 4, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 73;
-    LOC3(trans, 0, 4, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 112;
-    LOC3(trans, 0, 5, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 54;
-    LOC3(trans, 0, 5, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 67;
-    LOC3(trans, 0, 5, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 106;
-    LOC3(trans, 0, 6, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 82;
-    LOC3(trans, 0, 6, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 100;
-    LOC3(trans, 0, 7, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 118;
-    LOC3(trans, 1, 0, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 1;
-    LOC3(trans, 1, 0, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 6;
-    LOC3(trans, 1, 0, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 14;
-    LOC3(trans, 1, 0, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 27;
-    LOC3(trans, 1, 0, 4, TRANSDIM, TRANSDIM, TRANSDIM) = 49;
-    LOC3(trans, 1, 0, 5, TRANSDIM, TRANSDIM, TRANSDIM) = 68;
-    LOC3(trans, 1, 0, 6, TRANSDIM, TRANSDIM, TRANSDIM) = 101;
-    LOC3(trans, 1, 1, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 4;
-    LOC3(trans, 1, 1, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 10;
-    LOC3(trans, 1, 1, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 25;
-    LOC3(trans, 1, 1, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 40;
-    LOC3(trans, 1, 1, 4, TRANSDIM, TRANSDIM, TRANSDIM) = 58;
-    LOC3(trans, 1, 1, 5, TRANSDIM, TRANSDIM, TRANSDIM) = 86;
-    LOC3(trans, 1, 2, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 12;
-    LOC3(trans, 1, 2, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 24;
-    LOC3(trans, 1, 2, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 35;
-    LOC3(trans, 1, 2, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 59;
-    LOC3(trans, 1, 2, 4, TRANSDIM, TRANSDIM, TRANSDIM) = 87;
-    LOC3(trans, 1, 3, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 29;
-    LOC3(trans, 1, 3, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 39;
-    LOC3(trans, 1, 3, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 60;
-    LOC3(trans, 1, 3, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 93;
-    LOC3(trans, 1, 4, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 51;
-    LOC3(trans, 1, 4, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 57;
-    LOC3(trans, 1, 4, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 88;
-    LOC3(trans, 1, 5, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 70;
-    LOC3(trans, 1, 5, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 85;
-    LOC3(trans, 1, 6, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 103;
-    LOC3(trans, 2, 0, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 7;
-    LOC3(trans, 2, 0, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 13;
-    LOC3(trans, 2, 0, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 21;
-    LOC3(trans, 2, 0, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 43;
-    LOC3(trans, 2, 0, 4, TRANSDIM, TRANSDIM, TRANSDIM) = 74;
-    LOC3(trans, 2, 0, 5, TRANSDIM, TRANSDIM, TRANSDIM) = 109;
-    LOC3(trans, 2, 1, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 11;
-    LOC3(trans, 2, 1, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 23;
-    LOC3(trans, 2, 1, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 36;
-    LOC3(trans, 2, 1, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 61;
-    LOC3(trans, 2, 1, 4, TRANSDIM, TRANSDIM, TRANSDIM) = 89;
-    LOC3(trans, 2, 2, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 20;
-    LOC3(trans, 2, 2, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 37;
-    LOC3(trans, 2, 2, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 65;
-    LOC3(trans, 2, 2, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 98;
-    LOC3(trans, 2, 3, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 45;
-    LOC3(trans, 2, 3, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 63;
-    LOC3(trans, 2, 3, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 97;
-    LOC3(trans, 2, 4, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 76;
-    LOC3(trans, 2, 4, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 91;
-    LOC3(trans, 2, 5, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 109;
-    LOC3(trans, 3, 0, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 17;
-    LOC3(trans, 3, 0, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 26;
-    LOC3(trans, 3, 0, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 44;
-    LOC3(trans, 3, 0, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 79;
-    LOC3(trans, 3, 0, 4, TRANSDIM, TRANSDIM, TRANSDIM) = 113;
-    LOC3(trans, 3, 1, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 28;
-    LOC3(trans, 3, 1, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 38;
-    LOC3(trans, 3, 1, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 62;
-    LOC3(trans, 3, 1, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 94;
-    LOC3(trans, 3, 2, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 46;
-    LOC3(trans, 3, 2, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 64;
-    LOC3(trans, 3, 2, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 96;
-    LOC3(trans, 3, 3, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 80;
-    LOC3(trans, 3, 3, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 95;
-    LOC3(trans, 3, 4, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 115;
-    LOC3(trans, 4, 0, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 32;
-    LOC3(trans, 4, 0, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 50;
-    LOC3(trans, 4, 0, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 75;
-    LOC3(trans, 4, 0, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 114;
-    LOC3(trans, 4, 1, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 52;
-    LOC3(trans, 4, 1, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 56;
-    LOC3(trans, 4, 1, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 90;
-    LOC3(trans, 4, 2, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 77;
-    LOC3(trans, 4, 2, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 92;
-    LOC3(trans, 4, 3, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 116;
-    LOC3(trans, 5, 0, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 53;
-    LOC3(trans, 5, 0, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 69;
-    LOC3(trans, 5, 0, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 108;
-    LOC3(trans, 5, 1, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 71;
-    LOC3(trans, 5, 1, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 84;
-    LOC3(trans, 5, 2, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 110;
-    LOC3(trans, 6, 0, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 81;
-    LOC3(trans, 6, 0, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 102;
-    LOC3(trans, 6, 1, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 104;
-    LOC3(trans, 7, 0, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 117;
-
-    gpuMemcpyToSymbol((const void *) devTrans, (const void *) trans,
-            sizeof(uint8_t) * TRANSDIM * TRANSDIM * TRANSDIM);
-}

@@ -25,14 +25,14 @@
 #define PRIM_INT_OEPROP_LEN (5)
 
 
-__device__ static inline void iclass_oeprop(uint8_t I, uint8_t J, uint32_t II, uint32_t JJ,
+__device__ static inline void iclass_oeprop(uint32_t I, uint32_t J, uint32_t II, uint32_t JJ,
         uint32_t ipoint, uint32_t nextpoint, uint32_t totalatom, bool is_oshell, 
         uint32_t nbasis, uint32_t nshell, uint32_t jbasis,
         QUICKDouble const * const allxyz, QUICKDouble const * const extpointxyz,
         uint32_t const * const kstart, uint32_t const * const katom,
         uint32_t const * const kprim, uint32_t const * const Qstart,
         uint32_t const * const Qsbasis, uint32_t const * const Qfbasis,
-        QUICKDouble const * const cons, uint8_t const * const KLMN,
+        QUICKDouble const * const cons, uint32_t const * const KLMN,
         uint32_t prim_total, uint32_t const * const prim_start,
         QUICKDouble * const dense, QUICKDouble * const denseb,
 #if defined(USE_LEGACY_ATOMICS)
@@ -43,7 +43,8 @@ __device__ static inline void iclass_oeprop(uint8_t I, uint8_t J, uint32_t II, u
         QUICKDouble const * const Xcoeff_oei, QUICKDouble const * const expoSum,
         QUICKDouble const * const weightedCenterX, QUICKDouble const * const weightedCenterY,
         QUICKDouble const * const weightedCenterZ, QUICKDouble coreIntegralCutoff,
-        QUICKDouble * const store, QUICKDouble * const store2)
+        QUICKDouble * const store, QUICKDouble * const store2,
+        uint32_t const * const trans, uint32_t const * const Sumindex)
 {
     /*
        kAtom A, B  is the coresponding atom for shell II, JJ
@@ -76,8 +77,8 @@ __device__ static inline void iclass_oeprop(uint8_t I, uint8_t J, uint32_t II, u
        See J. Chem. Phys. 1986, 84, 3963−3974 for theoretical details.
     */
     // initialize store2 array
-    for (uint8_t i = Sumindex[J]; i < Sumindex[J + 2]; ++i) {
-        for (uint8_t j = Sumindex[I]; j < Sumindex[I + 2]; ++j) {
+    for (uint32_t i = Sumindex[J]; i < Sumindex[J + 2]; ++i) {
+        for (uint32_t j = Sumindex[I]; j < Sumindex[I + 2]; ++j) {
             if (i < STOREDIM && j < STOREDIM) {
                 LOCSTORE(store2, j, i, STOREDIM, STOREDIM) = 0.0;
             }
@@ -140,8 +141,8 @@ __device__ static inline void iclass_oeprop(uint8_t I, uint8_t J, uint32_t II, u
                     1.0 / (2.0 * Zeta), store, YVerticalTemp);
 
             // sum up primitive integral contributions
-            for (uint8_t i = Sumindex[J]; i < Sumindex[J + 2]; ++i) {
-                for (uint8_t j = Sumindex[I]; j < Sumindex[I + 2]; ++j) {
+            for (uint32_t i = Sumindex[J]; i < Sumindex[J + 2]; ++i) {
+                for (uint32_t j = Sumindex[I]; j < Sumindex[I + 2]; ++j) {
                     if (i < STOREDIM && j < STOREDIM) {
                         LOCSTORE(store2, j, i, STOREDIM, STOREDIM) +=  LOCSTORE(store, j, i, STOREDIM, STOREDIM);
                     }
@@ -161,14 +162,14 @@ __device__ static inline void iclass_oeprop(uint8_t I, uint8_t J, uint32_t II, u
 
     for (uint32_t III = III1; III <= III2; III++) {
         for (uint32_t JJJ = MAX(III,JJJ1); JJJ <= JJJ2; JJJ++) {
-            // devTrans maps a basis function with certain angular momentum to store2 array. Get the correct indices now.
-            uint8_t i = LOC3(devTrans,
+            // trans maps a basis function with certain angular momentum to store2 array. Get the correct indices now.
+            uint32_t i = LOC3(trans,
                     LOC2(KLMN, 0, III, 3, nbasis),
                     LOC2(KLMN, 1, III, 3, nbasis),
                     LOC2(KLMN, 2, III, 3, nbasis),
                     TRANSDIM, TRANSDIM, TRANSDIM);
 
-            uint8_t j = LOC3(devTrans, 
+            uint32_t j = LOC3(trans, 
                     LOC2(KLMN, 0, JJJ, 3, nbasis),
                     LOC2(KLMN, 1, JJJ, 3, nbasis),
                     LOC2(KLMN, 2, JJJ, 3, nbasis),
@@ -204,8 +205,8 @@ __global__ void k_get_oeprop(bool is_oshell, uint32_t natom, uint32_t nextatom,
         uint32_t const * const kstart, uint32_t const * const katom,
         uint32_t const * const kprim, uint32_t const * const Qstart,
         uint32_t const * const Qsbasis, uint32_t const * const Qfbasis,
-        uint8_t const * const sorted_Qnumber, uint32_t const * const sorted_Q,
-        QUICKDouble const * const cons, uint8_t const * const KLMN,
+        uint32_t const * const sorted_Qnumber, uint32_t const * const sorted_Q,
+        QUICKDouble const * const cons, uint32_t const * const KLMN,
         uint32_t prim_total, uint32_t const * const prim_start,
         QUICKDouble * const dense, QUICKDouble * const denseb,
 #if defined(USE_LEGACY_ATOMICS)
@@ -220,11 +221,28 @@ __global__ void k_get_oeprop(bool is_oshell, uint32_t natom, uint32_t nextatom,
 #if defined(MPIV_GPU)
         unsigned char const * const mpi_boeicompute,
 #endif
-        QUICKDouble * const store, QUICKDouble * const store2)
+        QUICKDouble * const store, QUICKDouble * const store2,
+        uint32_t const * const trans, uint32_t const * const Sumindex)
 {
     unsigned int offset = blockIdx.x * blockDim.x + threadIdx.x;
     unsigned int totalThreads = blockDim.x * gridDim.x;
     QUICKULL ncalcs = (QUICKULL) (Qshell * Qshell * nextpoint);
+    extern __shared__ uint32_t smem[];
+    uint32_t *strans = smem;
+    uint32_t *sSumindex = &strans[TRANSDIM * TRANSDIM * TRANSDIM];
+    uint32_t *sKLMN = &sSumindex[10];
+
+    for (int i = threadIdx.x; i < TRANSDIM * TRANSDIM * TRANSDIM; i += blockDim.x) {
+        strans[i] = trans[i];
+    }
+    for (int i = threadIdx.x; i < 10; i += blockDim.x) {
+        sSumindex[i] = Sumindex[i];
+    }
+    for (int i = threadIdx.x; i < 3 * (int) nbasis; i += blockDim.x) {
+        sKLMN[i] = KLMN[i];
+    }
+
+    __syncthreads();
 
     for (QUICKULL i = offset; i < ncalcs; i += totalThreads) {
         // use the global index to obtain shell pair. Note that here we obtain
@@ -249,14 +267,14 @@ __global__ void k_get_oeprop(bool is_oshell, uint32_t natom, uint32_t nextatom,
             // Only choose the unique shell pairs
             if (jj >= ii) {
                 // get the quantum number (or angular momentum of shells, s=0, p=1 and so on.)
-                uint8_t iii = sorted_Qnumber[II];
-                uint8_t jjj = sorted_Qnumber[JJ];
+                uint32_t iii = sorted_Qnumber[II];
+                uint32_t jjj = sorted_Qnumber[JJ];
 
                 // compute coulomb attraction for the selected shell pair.
                 iclass_oeprop(iii, jjj, ii, jj, ipoint, nextpoint, natom + nextatom,
                         is_oshell, nbasis, nshell, jbasis,
                         allxyz, extpointxyz, kstart, katom, kprim, Qstart, Qsbasis, Qfbasis,
-                        cons, KLMN, prim_total, prim_start, dense, denseb,
+                        cons, sKLMN, prim_total, prim_start, dense, denseb,
 #if defined(USE_LEGACY_ATOMICS)
                         esp_electronicULL,
 #else
@@ -264,7 +282,7 @@ __global__ void k_get_oeprop(bool is_oshell, uint32_t natom, uint32_t nextatom,
 #endif
                         Xcoeff_oei, expoSum, weightedCenterX, weightedCenterY, weightedCenterZ,
                         coreIntegralCutoff,
-                        store + offset, store2 + offset);
+                        store + offset, store2 + offset, strans, sSumindex);
             }
 #if defined(MPIV_GPU)
         }

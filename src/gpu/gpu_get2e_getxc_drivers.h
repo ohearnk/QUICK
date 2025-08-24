@@ -328,8 +328,6 @@ extern "C" void gpu_get_cshell_xcgrad_(QUICKDouble *grad)
 #if !defined(OSHELL)
 extern "C" void gpu_get_oeprop_(QUICKDouble* esp_electronic)
 {
-    upload_para_to_const_oeprop();
-
     getOEPROP(gpu);
 
 #if defined(USE_LEGACY_ATOMICS)
@@ -351,8 +349,6 @@ extern "C" void gpu_get_oeprop_(QUICKDouble* esp_electronic)
 
 extern "C" void gpu_get_oei_(QUICKDouble* o)
 {
-    upload_para_to_const_oei();
-
     getOEI(gpu);
 
 #if defined(USE_LEGACY_ATOMICS)
@@ -469,8 +465,6 @@ extern "C" void gpu_get_lri_(QUICKDouble* o)
 #endif
 */
 
-    upload_para_to_const_lri();
-
     get_lri(gpu);
 
     //compute xc quad potential
@@ -519,8 +513,6 @@ extern "C" void gpu_get_lri_(QUICKDouble* o)
 
 extern "C" void gpu_get_lri_grad_(QUICKDouble* grad, QUICKDouble* ptchg_grad)
 {
-    upload_para_to_const_lri();
-
     get_lri_grad(gpu);
 
     // download gradients

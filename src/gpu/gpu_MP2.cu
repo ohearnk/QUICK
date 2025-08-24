@@ -28,8 +28,8 @@ devTrans_MP2 : arrays to save the mapping index, will be elimited by hand writin
 Sumindex: a array to store refect how many temp variable needed in VRR. can be elimited by hand writing code.
  */
 static __constant__ gpu_simulation_type devSim_MP2;
-static __constant__ uint8_t devTrans_MP2[TRANSDIM * TRANSDIM * TRANSDIM];
-static __constant__ uint8_t Sumindex_MP2[10] = {0, 0, 1, 4, 10, 20, 35, 56, 84, 120};
+static __constant__ uint32_t devTrans_MP2[TRANSDIM * TRANSDIM * TRANSDIM];
+static __constant__ uint32_t Sumindex_MP2[10] = {0, 0, 1, 4, 10, 20, 35, 56, 84, 120};
 
 // totTime is the timer for GPU 2e time. Only on under debug mode
 #if defined(DEBUG)
@@ -105,7 +105,7 @@ __device__ static inline void FmT_MP2(uint32_t MaxM, QUICKDouble X, QUICKDouble 
 }
 
 
-__device__ static inline void vertical_MP2(uint8_t I, uint8_t J, uint8_t K, uint8_t L,
+__device__ static inline void vertical_MP2(uint32_t I, uint32_t J, uint32_t K, uint32_t L,
         QUICKDouble * const YVerticalTemp, QUICKDouble * const store,
         QUICKDouble Ptempx, QUICKDouble Ptempy, QUICKDouble Ptempz,
         QUICKDouble WPtempx, QUICKDouble WPtempy, QUICKDouble WPtempz,
@@ -5019,13 +5019,13 @@ __device__ static inline void vertical_MP2(uint8_t I, uint8_t J, uint8_t K, uint
 
 
 #if !defined(GPU_SP)
-__device__ static inline uint8_t lefthrr_MP2(QUICKDouble RAx, QUICKDouble RAy, QUICKDouble RAz,
+__device__ static inline uint32_t lefthrr_MP2(QUICKDouble RAx, QUICKDouble RAy, QUICKDouble RAz,
         QUICKDouble RBx, QUICKDouble RBy, QUICKDouble RBz,
-        uint8_t KLMNAx, uint8_t KLMNAy, uint8_t KLMNAz,
-        uint8_t KLMNBx, uint8_t KLMNBy, uint8_t KLMNBz,
-        uint8_t IJTYPE, QUICKDouble * const coefAngularL, uint8_t * const angularL)
+        uint32_t KLMNAx, uint32_t KLMNAy, uint32_t KLMNAz,
+        uint32_t KLMNBx, uint32_t KLMNBy, uint32_t KLMNBz,
+        uint32_t IJTYPE, QUICKDouble * const coefAngularL, uint32_t * const angularL)
 {
-    uint8_t numAngularL;
+    uint32_t numAngularL;
 
     switch (IJTYPE) {
         case 0:
@@ -5212,7 +5212,7 @@ __device__ static inline uint8_t lefthrr_MP2(QUICKDouble RAx, QUICKDouble RAy, Q
 #endif
 
 
-__device__ static inline QUICKDouble hrrwhole_MP2(uint8_t I, uint8_t J, uint8_t K, uint8_t L,
+__device__ static inline QUICKDouble hrrwhole_MP2(uint32_t I, uint32_t J, uint32_t K, uint32_t L,
         uint32_t III, uint32_t JJJ, uint32_t KKK, uint32_t LLL,
         uint32_t IJKLTYPE, QUICKDouble * const store,
         QUICKDouble RAx, QUICKDouble RAy, QUICKDouble RAz,
@@ -5222,26 +5222,26 @@ __device__ static inline QUICKDouble hrrwhole_MP2(uint8_t I, uint8_t J, uint8_t 
 {
     QUICKDouble Y;
 #ifdef GPU_SP
-    uint8_t NAx = LOC2(devSim_MP2.KLMN, 0, III, 3,devSim_MP2.nbasis);
-    uint8_t NAy = LOC2(devSim_MP2.KLMN, 1, III, 3,devSim_MP2.nbasis);
-    uint8_t NAz = LOC2(devSim_MP2.KLMN, 2, III, 3,devSim_MP2.nbasis);
+    uint32_t NAx = LOC2(devSim_MP2.KLMN, 0, III, 3,devSim_MP2.nbasis);
+    uint32_t NAy = LOC2(devSim_MP2.KLMN, 1, III, 3,devSim_MP2.nbasis);
+    uint32_t NAz = LOC2(devSim_MP2.KLMN, 2, III, 3,devSim_MP2.nbasis);
 
-    uint8_t NBx = LOC2(devSim_MP2.KLMN, 0, JJJ, 3,devSim_MP2.nbasis);
-    uint8_t NBy = LOC2(devSim_MP2.KLMN, 1, JJJ, 3,devSim_MP2.nbasis);
-    uint8_t NBz = LOC2(devSim_MP2.KLMN, 2, JJJ, 3,devSim_MP2.nbasis);
+    uint32_t NBx = LOC2(devSim_MP2.KLMN, 0, JJJ, 3,devSim_MP2.nbasis);
+    uint32_t NBy = LOC2(devSim_MP2.KLMN, 1, JJJ, 3,devSim_MP2.nbasis);
+    uint32_t NBz = LOC2(devSim_MP2.KLMN, 2, JJJ, 3,devSim_MP2.nbasis);
 
-    uint8_t NCx = LOC2(devSim_MP2.KLMN, 0, KKK, 3,devSim_MP2.nbasis);
-    uint8_t NCy = LOC2(devSim_MP2.KLMN, 1, KKK, 3,devSim_MP2.nbasis);
-    uint8_t NCz = LOC2(devSim_MP2.KLMN, 2, KKK, 3,devSim_MP2.nbasis);
+    uint32_t NCx = LOC2(devSim_MP2.KLMN, 0, KKK, 3,devSim_MP2.nbasis);
+    uint32_t NCy = LOC2(devSim_MP2.KLMN, 1, KKK, 3,devSim_MP2.nbasis);
+    uint32_t NCz = LOC2(devSim_MP2.KLMN, 2, KKK, 3,devSim_MP2.nbasis);
 
-    uint8_t NDx = LOC2(devSim_MP2.KLMN, 0, LLL, 3,devSim_MP2.nbasis);
-    uint8_t NDy = LOC2(devSim_MP2.KLMN, 1, LLL, 3,devSim_MP2.nbasis);
-    uint8_t NDz = LOC2(devSim_MP2.KLMN, 2, LLL, 3,devSim_MP2.nbasis);
+    uint32_t NDx = LOC2(devSim_MP2.KLMN, 0, LLL, 3,devSim_MP2.nbasis);
+    uint32_t NDy = LOC2(devSim_MP2.KLMN, 1, LLL, 3,devSim_MP2.nbasis);
+    uint32_t NDz = LOC2(devSim_MP2.KLMN, 2, LLL, 3,devSim_MP2.nbasis);
 
-    uint8_t MA = LOC3(devTrans_MP2, NAx, NAy, NAz, TRANSDIM, TRANSDIM, TRANSDIM);
-    uint8_t MB = LOC3(devTrans_MP2, NBx, NBy, NBz, TRANSDIM, TRANSDIM, TRANSDIM);
-    uint8_t MC = LOC3(devTrans_MP2, NCx, NCy, NCz, TRANSDIM, TRANSDIM, TRANSDIM);
-    uint8_t MD = LOC3(devTrans_MP2, NDx, NDy, NDz, TRANSDIM, TRANSDIM, TRANSDIM);
+    uint32_t MA = LOC3(devTrans_MP2, NAx, NAy, NAz, TRANSDIM, TRANSDIM, TRANSDIM);
+    uint32_t MB = LOC3(devTrans_MP2, NBx, NBy, NBz, TRANSDIM, TRANSDIM, TRANSDIM);
+    uint32_t MC = LOC3(devTrans_MP2, NCx, NCy, NCz, TRANSDIM, TRANSDIM, TRANSDIM);
+    uint32_t MD = LOC3(devTrans_MP2, NDx, NDy, NDz, TRANSDIM, TRANSDIM, TRANSDIM);
 
     switch (IJKLTYPE) {
         case 0:
@@ -5315,7 +5315,7 @@ __device__ static inline QUICKDouble hrrwhole_MP2(uint8_t I, uint8_t J, uint8_t 
             break;
         case 111:
             QUICKDouble Y1,Y2;
-            uint8_t MCD = LOC3(devTrans_MP2, NCx + NDx, NCy + NDy, NCz + NDz, TRANSDIM, TRANSDIM, TRANSDIM);
+            uint32_t MCD = LOC3(devTrans_MP2, NCx + NDx, NCy + NDy, NCz + NDz, TRANSDIM, TRANSDIM, TRANSDIM);
             if (NDx != 0) {
                 QUICKDouble c = (QUICKDouble) (RCx - RDx);
                 Y1 = (QUICKDouble) LOC2(store, MB, MCD, STOREDIM, STOREDIM) + c * LOC2(store, MB, MC, STOREDIM, STOREDIM);
@@ -5339,7 +5339,7 @@ __device__ static inline QUICKDouble hrrwhole_MP2(uint8_t I, uint8_t J, uint8_t 
             }
             break;
         case 1100:
-            uint8_t MAB = LOC3(devTrans_MP2, NAx + NBx, NAy + NBy, NAz + NBz, TRANSDIM, TRANSDIM, TRANSDIM);
+            uint32_t MAB = LOC3(devTrans_MP2, NAx + NBx, NAy + NBy, NAz + NBz, TRANSDIM, TRANSDIM, TRANSDIM);
             if (NBx != 0) {
                 Y = (QUICKDouble) LOC2(store, MAB, 0, STOREDIM, STOREDIM) + (RAx - RBx) * LOC2(store, MA, 0, STOREDIM, STOREDIM);
             } else if (NBy != 0) {
@@ -5349,7 +5349,7 @@ __device__ static inline QUICKDouble hrrwhole_MP2(uint8_t I, uint8_t J, uint8_t 
             }
             break;
         case 1110:
-            uint8_t MAB = LOC3(devTrans_MP2, NAx + NBx, NAy + NBy, NAz + NBz, TRANSDIM, TRANSDIM, TRANSDIM);
+            uint32_t MAB = LOC3(devTrans_MP2, NAx + NBx, NAy + NBy, NAz + NBz, TRANSDIM, TRANSDIM, TRANSDIM);
 
             if (NBx != 0) {
                 Y = (QUICKDouble) LOC2(store, MAB, MC, STOREDIM, STOREDIM) + (RAx - RBx) * LOC2(store, MA, MC, STOREDIM, STOREDIM);
@@ -5361,7 +5361,7 @@ __device__ static inline QUICKDouble hrrwhole_MP2(uint8_t I, uint8_t J, uint8_t 
             break;
         case 1101:
             QUICKDouble Y1,Y2;
-            uint8_t MAB = LOC3(devTrans_MP2, NAx + NBx, NAy + NBy, NAz + NBz, TRANSDIM, TRANSDIM, TRANSDIM);
+            uint32_t MAB = LOC3(devTrans_MP2, NAx + NBx, NAy + NBy, NAz + NBz, TRANSDIM, TRANSDIM, TRANSDIM);
             if (NDx != 0) {
                 QUICKDouble c = (QUICKDouble) (RCx - RDx);
                 Y1 = (QUICKDouble) LOC2(store, MAB, MD, STOREDIM, STOREDIM) + c * LOC2(store, MAB,  0, STOREDIM, STOREDIM);
@@ -5386,8 +5386,8 @@ __device__ static inline QUICKDouble hrrwhole_MP2(uint8_t I, uint8_t J, uint8_t 
             break;
         case 1111:
             QUICKDouble Y1,Y2;
-            uint8_t MAB = LOC3(devTrans_MP2, NAx + NBx, NAy + NBy, NAz + NBz, TRANSDIM, TRANSDIM, TRANSDIM);
-            uint8_t MCD = LOC3(devTrans_MP2, NCx + NDx, NCy + NDy, NCz + NDz, TRANSDIM, TRANSDIM, TRANSDIM);
+            uint32_t MAB = LOC3(devTrans_MP2, NAx + NBx, NAy + NBy, NAz + NBz, TRANSDIM, TRANSDIM, TRANSDIM);
+            uint32_t MCD = LOC3(devTrans_MP2, NCx + NDx, NCy + NDy, NCz + NDz, TRANSDIM, TRANSDIM, TRANSDIM);
 
             if (NDx != 0) {
                 QUICKDouble c = (QUICKDouble) (RCx - RDx);
@@ -5422,7 +5422,7 @@ __device__ static inline QUICKDouble hrrwhole_MP2(uint8_t I, uint8_t J, uint8_t 
             }
             break;
         case 11:
-            uint8_t MCD = LOC3(devTrans_MP2, NCx + NDx, NCy + NDy, NCz + NDz, TRANSDIM, TRANSDIM, TRANSDIM);
+            uint32_t MCD = LOC3(devTrans_MP2, NCx + NDx, NCy + NDy, NCz + NDz, TRANSDIM, TRANSDIM, TRANSDIM);
             if (NDx != 0) {
                 Y = (QUICKDouble) LOC2(store, 0, MCD, STOREDIM, STOREDIM) + (RCx - RDx) * LOC2(store, 0, MC, STOREDIM, STOREDIM);
             } else if (NDy != 0) {
@@ -5440,7 +5440,7 @@ __device__ static inline QUICKDouble hrrwhole_MP2(uint8_t I, uint8_t J, uint8_t 
                 Y = (QUICKDouble) LOC2(store, MA, MD, STOREDIM, STOREDIM) + (RCz - RDz) * LOC2(store, MA, 0, STOREDIM, STOREDIM);
             }
         case 1011:
-            uint8_t MCD = LOC3(devTrans_MP2, NCx + NDx, NCy + NDy, NCz + NDz, TRANSDIM, TRANSDIM, TRANSDIM);
+            uint32_t MCD = LOC3(devTrans_MP2, NCx + NDx, NCy + NDy, NCz + NDz, TRANSDIM, TRANSDIM, TRANSDIM);
             if (NDx != 0) {
                 Y = (QUICKDouble) LOC2(store, MA, MCD, STOREDIM, STOREDIM) + (RCx - RDx) * LOC2(store, MA, MC, STOREDIM, STOREDIM);
             } else if (NDy != 0) {
@@ -5454,11 +5454,11 @@ __device__ static inline QUICKDouble hrrwhole_MP2(uint8_t I, uint8_t J, uint8_t 
     }
 #else
 
-    uint8_t angularL[8], angularR[8];
+    uint32_t angularL[8], angularR[8];
     QUICKDouble coefAngularL[8], coefAngularR[8];
     Y = (QUICKDouble) 0.0;
 
-    uint8_t numAngularL = lefthrr_MP2(RAx, RAy, RAz, RBx, RBy, RBz,
+    uint32_t numAngularL = lefthrr_MP2(RAx, RAy, RAz, RBx, RBy, RBz,
             LOC2(devSim_MP2.KLMN, 0, III, 3, devSim_MP2.nbasis),
             LOC2(devSim_MP2.KLMN, 1, III, 3, devSim_MP2.nbasis),
             LOC2(devSim_MP2.KLMN, 2, III, 3, devSim_MP2.nbasis),
@@ -5466,7 +5466,7 @@ __device__ static inline QUICKDouble hrrwhole_MP2(uint8_t I, uint8_t J, uint8_t 
             LOC2(devSim_MP2.KLMN, 1, JJJ, 3, devSim_MP2.nbasis),
             LOC2(devSim_MP2.KLMN, 2, JJJ, 3, devSim_MP2.nbasis),
             J, coefAngularL, angularL);
-    uint8_t numAngularR = lefthrr_MP2(RCx, RCy, RCz, RDx, RDy, RDz,
+    uint32_t numAngularR = lefthrr_MP2(RCx, RCy, RCz, RDx, RDy, RDz,
             LOC2(devSim_MP2.KLMN, 0, KKK, 3, devSim_MP2.nbasis),
             LOC2(devSim_MP2.KLMN, 1, KKK, 3, devSim_MP2.nbasis),
             LOC2(devSim_MP2.KLMN, 2, KKK, 3, devSim_MP2.nbasis),
@@ -5475,8 +5475,8 @@ __device__ static inline QUICKDouble hrrwhole_MP2(uint8_t I, uint8_t J, uint8_t 
             LOC2(devSim_MP2.KLMN, 2, LLL, 3, devSim_MP2.nbasis),
             L, coefAngularR, angularR);
 
-    for (uint8_t i = 0; i < numAngularL; i++) {
-        for (uint8_t j = 0; j < numAngularR; j++) {
+    for (uint32_t i = 0; i < numAngularL; i++) {
+        for (uint32_t j = 0; j < numAngularR; j++) {
             Y += coefAngularL[i] * coefAngularR[j] * LOC2(store, angularL[i], angularR[j], STOREDIM, STOREDIM);
         }
     }
@@ -5492,7 +5492,7 @@ __device__ static inline QUICKDouble hrrwhole_MP2(uint8_t I, uint8_t J, uint8_t 
    iclass subroutine is to generate 2-electron intergral using HRR and VRR method, which is the most
    performance algrithem for electron intergral evaluation. See description below for details
  */
-__device__ static inline void iclass_MP2(uint8_t I, uint8_t J, uint8_t K, uint8_t L,
+__device__ static inline void iclass_MP2(uint32_t I, uint32_t J, uint32_t K, uint32_t L,
         uint32_t II, uint32_t JJ, uint32_t KK, uint32_t LL, QUICKDouble DNMax)
 {
     /*
@@ -5536,8 +5536,8 @@ __device__ static inline void iclass_MP2(uint8_t I, uint8_t J, uint8_t K, uint8_
     /*
        Initial the neccessary element for
      */
-    for (uint8_t i = Sumindex_MP2[K + 1] + 1; i <= Sumindex_MP2[K + L + 2]; i++) {
-        for (uint8_t j = Sumindex_MP2[I + 1] + 1; j <= Sumindex_MP2[I + J + 2]; j++) {
+    for (uint32_t i = Sumindex_MP2[K + 1] + 1; i <= Sumindex_MP2[K + L + 2]; i++) {
+        for (uint32_t j = Sumindex_MP2[I + 1] + 1; j <= Sumindex_MP2[I + J + 2]; j++) {
             LOC2(store, j - 1, i - 1, STOREDIM, STOREDIM) = 0;
         }
     }
@@ -5674,7 +5674,7 @@ __device__ static inline void iclass_MP2(uint8_t I, uint8_t J, uint8_t K, uint8_
     uint32_t LLL2 = LOC2(devSim_MP2.Qfbasis, LL, L, devSim_MP2.nshell, 4);
 
     // maxIJKL is the max of I,J, K,L
-    uint8_t maxIJKL = MAX(MAX(I,J), MAX(K,L));
+    uint32_t maxIJKL = MAX(MAX(I,J), MAX(K,L));
 
     if ((maxIJKL == 2 && (J != 0 || L != 0)) || maxIJKL >= 3) {
         IJKLTYPE = 999;
@@ -5898,10 +5898,10 @@ __global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) get2e_MP2_kerne
                     > devSim_MP2.integralCutoff
                     && LOC2(devSim_MP2.YCutoff, kk, ll, nshell, nshell) * LOC2(devSim_MP2.YCutoff, ii, jj, nshell, nshell) * DNMax
                     > devSim_MP2.integralCutoff) {
-                uint8_t iii = devSim_MP2.sorted_Qnumber[II];
-                uint8_t jjj = devSim_MP2.sorted_Qnumber[JJ];
-                uint8_t kkk = devSim_MP2.sorted_Qnumber[KK];
-                uint8_t lll = devSim_MP2.sorted_Qnumber[LL];
+                uint32_t iii = devSim_MP2.sorted_Qnumber[II];
+                uint32_t jjj = devSim_MP2.sorted_Qnumber[JJ];
+                uint32_t kkk = devSim_MP2.sorted_Qnumber[KK];
+                uint32_t lll = devSim_MP2.sorted_Qnumber[LL];
 
                 iclass_MP2(iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax);
             }
@@ -5912,7 +5912,7 @@ __global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) get2e_MP2_kerne
 
 void upload_para_to_const_MP2()
 {
-    uint8_t trans[TRANSDIM * TRANSDIM * TRANSDIM] = {};
+    uint32_t trans[TRANSDIM * TRANSDIM * TRANSDIM] = {};
 
     LOC3(trans, 0, 0, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 0;
     LOC3(trans, 0, 0, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 3;
@@ -6036,7 +6036,7 @@ void upload_para_to_const_MP2()
     LOC3(trans, 7, 0, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 117;
 
     gpuMemcpyToSymbol((const void *) devTrans_MP2, (const void *) trans,
-            sizeof(uint8_t) * TRANSDIM * TRANSDIM * TRANSDIM);
+            sizeof(uint32_t) * TRANSDIM * TRANSDIM * TRANSDIM);
 }
 
 

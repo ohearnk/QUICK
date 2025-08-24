@@ -26,14 +26,14 @@
 #define PRIM_INT_OEI_GRAD_LEN (7)
 
 
-__device__ static inline void iclass_oei_grad(uint8_t I, uint8_t J, uint32_t II, uint32_t JJ,
+__device__ static inline void iclass_oei_grad(uint32_t I, uint32_t J, uint32_t II, uint32_t JJ,
         uint32_t iatom, bool is_oshell, uint32_t natom, uint32_t nextatom, uint32_t nbasis,
         uint32_t nshell, uint32_t jbasis,
         QUICKDouble const * const allchg, QUICKDouble const * const allxyz,
         uint32_t const * const kstart, uint32_t const * const katom,
         uint32_t const * const kprim, uint32_t const * const Ksumtype, uint32_t const * const Qstart,
         uint32_t const * const Qsbasis, uint32_t const * const Qfbasis,
-        QUICKDouble const * const cons, QUICKDouble const * const gcexpo, uint8_t const * const KLMN,
+        QUICKDouble const * const cons, QUICKDouble const * const gcexpo, uint32_t const * const KLMN,
         uint32_t prim_total, uint32_t const * const prim_start,
         QUICKDouble const * const dense, QUICKDouble const * const denseb, 
         QUICKDouble const * const Xcoeff_oei, QUICKDouble const * const expoSum,
@@ -45,7 +45,8 @@ __device__ static inline void iclass_oei_grad(uint8_t I, uint8_t J, uint32_t II,
         QUICKDouble * const grad, QUICKDouble * const ptchg_grad,
 #endif
         QUICKDouble * const store, QUICKDouble * const store2,
-        QUICKDouble * const storeAA, QUICKDouble * const storeBB)
+        QUICKDouble * const storeAA, QUICKDouble * const storeBB,
+        uint32_t const * const trans, uint32_t const * const Sumindex)
 {
     /*
        kAtom A, B  is the coresponding atom for shell II, JJ
@@ -83,24 +84,24 @@ __device__ static inline void iclass_oei_grad(uint8_t I, uint8_t J, uint32_t II,
        initialize the region of store2 array that we will be using. This region is determined by looking at the
        Sumindex array with angular momentums of the shells.
     */
-    for (uint8_t i = Sumindex[J]; i < Sumindex[J + 2]; ++i) {
-        for (uint8_t j = Sumindex[I]; j < Sumindex[I + 2]; ++j) {
+    for (uint32_t i = Sumindex[J]; i < Sumindex[J + 2]; ++i) {
+        for (uint32_t j = Sumindex[I]; j < Sumindex[I + 2]; ++j) {
             if (i < STOREDIM && j < STOREDIM) {
                 LOCSTORE(&store2[blockIdx.x * blockDim.x + threadIdx.x], j, i, STOREDIM, STOREDIM) = 0.0;
             }
         }
     }
 
-    for (uint8_t i = Sumindex[J]; i < Sumindex[J + 2]; ++i) {
-        for (uint8_t j = Sumindex[I + 1]; j < Sumindex[I + 3]; ++j) {
+    for (uint32_t i = Sumindex[J]; i < Sumindex[J + 2]; ++i) {
+        for (uint32_t j = Sumindex[I + 1]; j < Sumindex[I + 3]; ++j) {
             if (i < STOREDIM && j < STOREDIM) {
                 LOCSTORE(&storeAA[blockIdx.x * blockDim.x + threadIdx.x], j, i, STOREDIM, STOREDIM) = 0.0;
             }
         }
     }
 
-    for (uint8_t i = Sumindex[J + 1]; i < Sumindex[J + 3]; ++i) {
-        for (uint8_t j = Sumindex[I]; j < Sumindex[I + 2]; ++j) {
+    for (uint32_t i = Sumindex[J + 1]; i < Sumindex[J + 3]; ++i) {
+        for (uint32_t j = Sumindex[I]; j < Sumindex[I + 2]; ++j) {
             if (i < STOREDIM && j < STOREDIM) {
                 LOCSTORE(&storeBB[blockIdx.x * blockDim.x + threadIdx.x], j, i, STOREDIM, STOREDIM) = 0.0;
             }
@@ -168,8 +169,8 @@ __device__ static inline void iclass_oei_grad(uint8_t I, uint8_t J, uint32_t II,
                     YVerticalTemp);
 
             // sum up primitive integral values into store array
-            for (uint8_t i = Sumindex[J]; i < Sumindex[J + 2]; ++i) {
-                for (uint8_t j = Sumindex[I]; j < Sumindex[I + 2]; ++j) {
+            for (uint32_t i = Sumindex[J]; i < Sumindex[J + 2]; ++i) {
+                for (uint32_t j = Sumindex[I]; j < Sumindex[I + 2]; ++j) {
                     if (i < STOREDIM && j < STOREDIM) {
                         LOCSTORE(&store2[blockIdx.x * blockDim.x + threadIdx.x], j, i, STOREDIM, STOREDIM)
                             += LOCSTORE(&store[blockIdx.x * blockDim.x + threadIdx.x], j, i, STOREDIM, STOREDIM);
@@ -178,8 +179,8 @@ __device__ static inline void iclass_oei_grad(uint8_t I, uint8_t J, uint32_t II,
             }
 
             // scale primitive integral values with exponent of the first center and add up into storeAA
-            for (uint8_t i = Sumindex[J]; i < Sumindex[J + 2]; ++i) {
-                for (uint8_t j = Sumindex[I + 1]; j < Sumindex[I + 3]; ++j) {
+            for (uint32_t i = Sumindex[J]; i < Sumindex[J + 2]; ++i) {
+                for (uint32_t j = Sumindex[I + 1]; j < Sumindex[I + 3]; ++j) {
                     if (i < STOREDIM && j < STOREDIM) {
                         LOCSTORE(&storeAA[blockIdx.x * blockDim.x + threadIdx.x], j, i, STOREDIM, STOREDIM)
                             += LOCSTORE(&store[blockIdx.x * blockDim.x + threadIdx.x], j, i, STOREDIM, STOREDIM) * AA * 2.0;
@@ -188,8 +189,8 @@ __device__ static inline void iclass_oei_grad(uint8_t I, uint8_t J, uint32_t II,
             }
 
             // scale primitive integral values with exponent of the second center and add up into storeBB
-            for (uint8_t i = Sumindex[J + 1]; i < Sumindex[J + 3]; ++i) {
-                for (uint8_t j = Sumindex[I]; j < Sumindex[I + 2]; ++j) {
+            for (uint32_t i = Sumindex[J + 1]; i < Sumindex[J + 3]; ++i) {
+                for (uint32_t j = Sumindex[I]; j < Sumindex[I + 2]; ++j) {
                     if (i < STOREDIM && j < STOREDIM) {
                         LOCSTORE(&storeBB[blockIdx.x * blockDim.x + threadIdx.x], j, i, STOREDIM, STOREDIM)
                             += LOCSTORE(&store[blockIdx.x * blockDim.x + threadIdx.x], j, i, STOREDIM, STOREDIM) * BB * 2.0;
@@ -216,7 +217,7 @@ __device__ static inline void iclass_oei_grad(uint8_t I, uint8_t J, uint32_t II,
     QUICKDouble BGradz = 0.0;
 
     for (uint32_t III = III1; III <= III2; III++) {
-        const uint8_t i = LOC3(devTrans,
+        const uint32_t i = LOC3(trans,
                 LOC2(KLMN, 0, III, 3, nbasis),
                 LOC2(KLMN, 1, III, 3, nbasis),
                 LOC2(KLMN, 2, III, 3, nbasis),
@@ -233,15 +234,15 @@ __device__ static inline void iclass_oei_grad(uint8_t I, uint8_t J, uint32_t II,
 
             const QUICKDouble constant = cons[III] * cons[JJJ] * DENSEJI;
 
-            // devTrans maps a basis function with certain angular momentum to store2 array. Get the correct indices now.
-            uint8_t j = LOC3(devTrans,
+            // trans maps a basis function with certain angular momentum to store2 array. Get the correct indices now.
+            uint32_t j = LOC3(trans,
                     LOC2(KLMN, 0, JJJ, 3, nbasis),
                     LOC2(KLMN, 1, JJJ, 3, nbasis),
                     LOC2(KLMN, 2, JJJ, 3, nbasis),
                     TRANSDIM, TRANSDIM, TRANSDIM);
 
             // sum up gradient wrt x-coordinate of first center
-            uint8_t itemp = LOC3(devTrans,
+            uint32_t itemp = LOC3(trans,
                     LOC2(KLMN, 0, III, 3, nbasis) + 1,
                     LOC2(KLMN, 1, III, 3, nbasis),
                     LOC2(KLMN, 2, III, 3, nbasis),
@@ -250,7 +251,7 @@ __device__ static inline void iclass_oei_grad(uint8_t I, uint8_t J, uint32_t II,
             AGradx += constant * LOCSTORE(&storeAA[blockIdx.x * blockDim.x + threadIdx.x], itemp, j, STOREDIM, STOREDIM);
 
             if (LOC2(KLMN, 0, III, 3, nbasis) >= 1) {
-                itemp = LOC3(devTrans,
+                itemp = LOC3(trans,
                         LOC2(KLMN, 0, III, 3, nbasis) - 1,
                         LOC2(KLMN, 1, III, 3, nbasis),
                         LOC2(KLMN, 2, III, 3, nbasis),
@@ -261,7 +262,7 @@ __device__ static inline void iclass_oei_grad(uint8_t I, uint8_t J, uint32_t II,
             }
 
             // sum up gradient wrt y-coordinate of first center
-            itemp = LOC3(devTrans,
+            itemp = LOC3(trans,
                     LOC2(KLMN, 0, III, 3, nbasis),
                     LOC2(KLMN, 1, III, 3, nbasis) + 1,
                     LOC2(KLMN, 2, III, 3, nbasis),
@@ -270,7 +271,7 @@ __device__ static inline void iclass_oei_grad(uint8_t I, uint8_t J, uint32_t II,
             AGrady += constant * LOCSTORE(&storeAA[blockIdx.x * blockDim.x + threadIdx.x], itemp, j, STOREDIM, STOREDIM);
 
             if (LOC2(KLMN, 1, III, 3, nbasis) >= 1) {
-                itemp = LOC3(devTrans,
+                itemp = LOC3(trans,
                         LOC2(KLMN, 0, III, 3, nbasis),
                         LOC2(KLMN, 1, III, 3, nbasis) - 1,
                         LOC2(KLMN, 2, III, 3, nbasis),
@@ -281,7 +282,7 @@ __device__ static inline void iclass_oei_grad(uint8_t I, uint8_t J, uint32_t II,
             }
 
             // sum up gradient wrt z-coordinate of first center
-            itemp = LOC3(devTrans,
+            itemp = LOC3(trans,
                     LOC2(KLMN, 0, III, 3, nbasis),
                     LOC2(KLMN, 1, III, 3, nbasis),
                     LOC2(KLMN, 2, III, 3, nbasis) + 1,
@@ -290,7 +291,7 @@ __device__ static inline void iclass_oei_grad(uint8_t I, uint8_t J, uint32_t II,
             AGradz += constant * LOCSTORE(&storeAA[blockIdx.x * blockDim.x + threadIdx.x], itemp, j, STOREDIM, STOREDIM);
 
             if (LOC2(KLMN, 2, III, 3, nbasis) >= 1) {
-                itemp = LOC3(devTrans,
+                itemp = LOC3(trans,
                         LOC2(KLMN, 0, III, 3, nbasis),
                         LOC2(KLMN, 1, III, 3, nbasis),
                         LOC2(KLMN, 2, III, 3, nbasis) - 1,
@@ -301,7 +302,7 @@ __device__ static inline void iclass_oei_grad(uint8_t I, uint8_t J, uint32_t II,
             }
 
             // sum up gradient wrt x-coordinate of second center
-            j = LOC3(devTrans,
+            j = LOC3(trans,
                     LOC2(KLMN, 0, JJJ, 3, nbasis) + 1,
                     LOC2(KLMN, 1, JJJ, 3, nbasis),
                     LOC2(KLMN, 2, JJJ, 3, nbasis),
@@ -310,7 +311,7 @@ __device__ static inline void iclass_oei_grad(uint8_t I, uint8_t J, uint32_t II,
             BGradx += constant * LOCSTORE(&storeBB[blockIdx.x * blockDim.x + threadIdx.x], i, j, STOREDIM, STOREDIM);
 
             if (LOC2(KLMN, 0, JJJ, 3, nbasis) >= 1) {
-                j = LOC3(devTrans,
+                j = LOC3(trans,
                         LOC2(KLMN, 0, JJJ, 3, nbasis) - 1,
                         LOC2(KLMN, 1, JJJ, 3, nbasis),
                         LOC2(KLMN, 2, JJJ, 3, nbasis),
@@ -321,7 +322,7 @@ __device__ static inline void iclass_oei_grad(uint8_t I, uint8_t J, uint32_t II,
             }
 
             // sum up gradient wrt y-coordinate of second center
-            j = LOC3(devTrans,
+            j = LOC3(trans,
                     LOC2(KLMN, 0, JJJ, 3, nbasis),
                     LOC2(KLMN, 1, JJJ, 3, nbasis) + 1,
                     LOC2(KLMN, 2, JJJ, 3, nbasis),
@@ -330,7 +331,7 @@ __device__ static inline void iclass_oei_grad(uint8_t I, uint8_t J, uint32_t II,
             BGrady += constant * LOCSTORE(&storeBB[blockIdx.x * blockDim.x + threadIdx.x], i, j, STOREDIM, STOREDIM);
 
             if (LOC2(KLMN, 1, JJJ, 3, nbasis) >= 1) {
-                j = LOC3(devTrans,
+                j = LOC3(trans,
                         LOC2(KLMN, 0, JJJ, 3, nbasis),
                         LOC2(KLMN, 1, JJJ, 3, nbasis) - 1,
                         LOC2(KLMN, 2, JJJ, 3, nbasis),
@@ -341,7 +342,7 @@ __device__ static inline void iclass_oei_grad(uint8_t I, uint8_t J, uint32_t II,
             }
 
             // sum up gradient wrt z-coordinate of second center
-            j = LOC3(devTrans,
+            j = LOC3(trans,
                     LOC2(KLMN, 0, JJJ, 3, nbasis),
                     LOC2(KLMN, 1, JJJ, 3, nbasis),
                     LOC2(KLMN, 2, JJJ, 3, nbasis) + 1,
@@ -350,7 +351,7 @@ __device__ static inline void iclass_oei_grad(uint8_t I, uint8_t J, uint32_t II,
             BGradz += constant * LOCSTORE(&storeBB[blockIdx.x * blockDim.x + threadIdx.x], i, j, STOREDIM, STOREDIM);
 
             if (LOC2(KLMN, 2, JJJ, 3, nbasis) >= 1) {
-                j = LOC3(devTrans,
+                j = LOC3(trans,
                         LOC2(KLMN, 0, JJJ, 3, nbasis),
                         LOC2(KLMN, 1, JJJ, 3, nbasis),
                         LOC2(KLMN, 2, JJJ, 3, nbasis) - 1,
@@ -412,8 +413,8 @@ __global__ void k_oei_grad(bool is_oshell, uint32_t natom, uint32_t nextatom, ui
         uint32_t const * const kstart, uint32_t const * const katom,
         uint32_t const * const kprim, uint32_t const * const Ksumtype, uint32_t const * const Qstart,
         uint32_t const * const Qsbasis, uint32_t const * const Qfbasis,
-        uint8_t const * const sorted_Qnumber, uint32_t const * const sorted_Q,
-        QUICKDouble const * const cons, QUICKDouble const * const gcexpo, uint8_t const * const KLMN,
+        uint32_t const * const sorted_Qnumber, uint32_t const * const sorted_Q,
+        QUICKDouble const * const cons, QUICKDouble const * const gcexpo, uint32_t const * const KLMN,
         uint32_t prim_total, uint32_t const * const prim_start,
         QUICKDouble const * const dense, QUICKDouble const * const denseb, 
         QUICKDouble const * const Xcoeff_oei, QUICKDouble const * const expoSum,
@@ -429,30 +430,55 @@ __global__ void k_oei_grad(bool is_oshell, uint32_t natom, uint32_t nextatom, ui
         unsigned char const * const mpi_boeicompute,
 #endif
         QUICKDouble * const store, QUICKDouble * const store2,
-        QUICKDouble * const storeAA, QUICKDouble * const storeBB)
+        QUICKDouble * const storeAA, QUICKDouble * const storeBB,
+        uint32_t const * const trans, uint32_t const * const Sumindex)
 {
     const QUICKULL jshell = (QUICKULL) Qshell;
 #if defined(USE_LEGACY_ATOMICS)
-    extern __shared__ QUICKULL smem[];
-    QUICKULL *sgradULL = smem;
+    extern __shared__ QUICKUll smem2[];
+    QUICKULL *sgradULL = smem2;
     QUICKULL *sptchg_gradULL = &sgradULL[3u * natom];
+    uint32_t *strans = (uint32_t *) &sptchg_gradULL[3u * nextatom];
+    uint32_t *sSumindex = &strans[TRANSDIM * TRANSDIM * TRANSDIM];
+    uint32_t *sKLMN = &sSumindex[10];
 
-    for (int i = threadIdx.x; i < 3u * natom; i += blockDim.x) {
+    for (int i = threadIdx.x; i < 3 * (int) natom; i += blockDim.x) {
       sgradULL[i] = 0ull;
     }
-    for (int i = threadIdx.x; i < 3u * nextatom; i += blockDim.x) {
+    for (int i = threadIdx.x; i < 3 * (int) nextatom; i += blockDim.x) {
       sptchg_gradULL[i] = 0ull;
     }
+    for (int i = threadIdx.x; i < TRANSDIM * TRANSDIM * TRANSDIM; i += blockDim.x) {
+        strans[i] = trans[i];
+    }
+    for (int i = threadIdx.x; i < 10; i += blockDim.x) {
+        sSumindex[i] = Sumindex[i];
+    }
+    for (int i = threadIdx.x; i < 3 * (int) nbasis; i += blockDim.x) {
+        sKLMN[i] = KLMN[i];
+    }
 #else
-    extern __shared__ QUICKDouble smem[];
-    QUICKDouble *sgrad = smem;
+    extern __shared__ QUICKDouble smem2[];
+    QUICKDouble *sgrad = smem2;
     QUICKDouble *sptchg_grad = &sgrad[3u * natom];
+    uint32_t *strans = (uint32_t *) &sptchg_grad[3u * nextatom];
+    uint32_t *sSumindex = &strans[TRANSDIM * TRANSDIM * TRANSDIM];
+    uint32_t *sKLMN = &sSumindex[10];
 
-    for (int i = threadIdx.x; i < 3u * natom; i += blockDim.x) {
+    for (int i = threadIdx.x; i < 3 * (int) natom; i += blockDim.x) {
         sgrad[i] = 0.0;
     }
-    for (int i = threadIdx.x; i < 3u * nextatom; i += blockDim.x) {
+    for (int i = threadIdx.x; i < 3 * (int) nextatom; i += blockDim.x) {
         sptchg_grad[i] = 0.0;
+    }
+    for (int i = threadIdx.x; i < TRANSDIM * TRANSDIM * TRANSDIM; i += blockDim.x) {
+        strans[i] = trans[i];
+    }
+    for (int i = threadIdx.x; i < 10; i += blockDim.x) {
+        sSumindex[i] = Sumindex[i];
+    }
+    for (int i = threadIdx.x; i < 3 * (int) nbasis; i += blockDim.x) {
+        sKLMN[i] = KLMN[i];
     }
 #endif
 
@@ -476,13 +502,13 @@ __global__ void k_oei_grad(bool is_oshell, uint32_t natom, uint32_t nextatom, ui
         const uint32_t jj = sorted_Q[JJ];
 
         // get the quantum number (or angular momentum of shells, s=0, p=1 and so on.)
-        const uint8_t iii = sorted_Qnumber[II];
-        const uint8_t jjj = sorted_Qnumber[JJ];
+        const uint32_t iii = sorted_Qnumber[II];
+        const uint32_t jjj = sorted_Qnumber[JJ];
 
         // compute coulomb attraction for the selected shell pair.
         iclass_oei_grad(iii, jjj, ii, jj, iatom, is_oshell, natom, nextatom, nbasis, nshell, jbasis,
                 allchg, allxyz, kstart, katom, kprim, Ksumtype, Qstart, Qsbasis, Qfbasis,
-                cons, gcexpo, KLMN, prim_total, prim_start, dense, denseb,
+                cons, gcexpo, sKLMN, prim_total, prim_start, dense, denseb,
                 Xcoeff_oei, expoSum, weightedCenterX, weightedCenterY, weightedCenterZ,
                 coreIntegralCutoff,
 #if defined(USE_LEGACY_ATOMICS)
@@ -490,7 +516,7 @@ __global__ void k_oei_grad(bool is_oshell, uint32_t natom, uint32_t nextatom, ui
 #else
                 sgrad, sptchg_grad,
 #endif
-                store, store2, storeAA, storeBB);
+                store, store2, storeAA, storeBB, strans, sSumindex);
 #ifdef MPIV_GPU
         }
 #endif
@@ -498,14 +524,14 @@ __global__ void k_oei_grad(bool is_oshell, uint32_t natom, uint32_t nextatom, ui
 
     __syncthreads();
 
-    for (int i = threadIdx.x; i < 3u * natom; i += blockDim.x) {
+    for (int i = threadIdx.x; i < 3 * (int) natom; i += blockDim.x) {
 #if defined(USE_LEGACY_ATOMICS)
         atomicAdd(&gradULL[i], sgradULL[i]);
 #else
         atomicAdd(&grad[i], sgrad[i]);
 #endif
     }
-    for (int i = threadIdx.x; i < 3u * nextatom; i += blockDim.x) {
+    for (int i = threadIdx.x; i < 3 * (int) nextatom; i += blockDim.x) {
 #if defined(USE_LEGACY_ATOMICS)
         atomicAdd(&ptchg_gradULL[i], sptchg_gradULL[i]);
 #else

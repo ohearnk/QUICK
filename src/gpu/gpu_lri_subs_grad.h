@@ -32,13 +32,14 @@
   #define STOREDIM STOREDIM_S
 __device__ static inline void hrrwholegrad_lri(QUICKDouble * const Yaax, QUICKDouble * const Yaay, QUICKDouble * const Yaaz,
         QUICKDouble * const Ybbx, QUICKDouble * const Ybby, QUICKDouble * const Ybbz,
-        uint8_t J, uint32_t III, uint32_t JJJ,
+        uint32_t J, uint32_t III, uint32_t JJJ,
         QUICKDouble * const store, QUICKDouble * const storeAA, QUICKDouble * const storeBB,
         QUICKDouble RAx, QUICKDouble RAy, QUICKDouble RAz,
         QUICKDouble RBx, QUICKDouble RBy, QUICKDouble RBz,
-        uint32_t nbasis, QUICKDouble const * const cons, uint8_t const * const KLMN)
+        uint32_t nbasis, QUICKDouble const * const cons, uint32_t const * const KLMN,
+        uint32_t const * const trans)
 {
-    uint8_t angularL[12];
+    uint32_t angularL[12];
     QUICKDouble coefAngularL[12];
 
     *Yaax = 0.0;
@@ -49,7 +50,7 @@ __device__ static inline void hrrwholegrad_lri(QUICKDouble * const Yaax, QUICKDo
     *Ybbz = 0.0;
 
     QUICKDouble constant = cons[III] * cons[JJJ];
-    uint8_t numAngularL;
+    uint32_t numAngularL;
 
     //  Part A - x
     numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
@@ -59,9 +60,9 @@ __device__ static inline void hrrwholegrad_lri(QUICKDouble * const Yaax, QUICKDo
             LOC2(KLMN, 0, JJJ, 3, nbasis),
             LOC2(KLMN, 1, JJJ, 3, nbasis),
             LOC2(KLMN, 2, JJJ, 3, nbasis),
-            J, coefAngularL, angularL);
+            J, coefAngularL, angularL, trans);
 
-    for (uint8_t i = 0; i < numAngularL; i++) {
+    for (uint32_t i = 0; i < numAngularL; i++) {
         if (angularL[i] < STOREDIM) {
             *Yaax = *Yaax + coefAngularL[i] * LOCSTORE(storeAA, angularL[i], 0, STOREDIM, STOREDIM);
         }
@@ -74,9 +75,9 @@ __device__ static inline void hrrwholegrad_lri(QUICKDouble * const Yaax, QUICKDo
             LOC2(KLMN, 0, JJJ, 3, nbasis),
             LOC2(KLMN, 1, JJJ, 3, nbasis),
             LOC2(KLMN, 2, JJJ, 3, nbasis),
-            J, coefAngularL, angularL);
+            J, coefAngularL, angularL, trans);
 
-    for (uint8_t i = 0; i < numAngularL; i++) {
+    for (uint32_t i = 0; i < numAngularL; i++) {
         if (angularL[i] < STOREDIM) {
             *Yaay = *Yaay + coefAngularL[i] * LOCSTORE(storeAA, angularL[i], 0, STOREDIM, STOREDIM);
         }
@@ -89,9 +90,9 @@ __device__ static inline void hrrwholegrad_lri(QUICKDouble * const Yaax, QUICKDo
             LOC2(KLMN, 0, JJJ, 3, nbasis),
             LOC2(KLMN, 1, JJJ, 3, nbasis),
             LOC2(KLMN, 2, JJJ, 3, nbasis),
-            J, coefAngularL, angularL);
+            J, coefAngularL, angularL, trans);
 
-    for (uint8_t i = 0; i < numAngularL; i++) {
+    for (uint32_t i = 0; i < numAngularL; i++) {
         if (angularL[i] < STOREDIM) {
             *Yaaz = *Yaaz + coefAngularL[i] * LOCSTORE(storeAA, angularL[i], 0, STOREDIM, STOREDIM);
         }
@@ -104,9 +105,9 @@ __device__ static inline void hrrwholegrad_lri(QUICKDouble * const Yaax, QUICKDo
             LOC2(KLMN, 0, JJJ, 3, nbasis) + 1,
             LOC2(KLMN, 1, JJJ, 3, nbasis),
             LOC2(KLMN, 2, JJJ, 3, nbasis),
-            J + 1, coefAngularL, angularL);
+            J + 1, coefAngularL, angularL, trans);
 
-    for (uint8_t i = 0; i < numAngularL; i++) {
+    for (uint32_t i = 0; i < numAngularL; i++) {
         if (angularL[i] < STOREDIM) {
             *Ybbx = *Ybbx + coefAngularL[i] * LOCSTORE(storeBB, angularL[i], 0, STOREDIM, STOREDIM);
         }
@@ -119,9 +120,9 @@ __device__ static inline void hrrwholegrad_lri(QUICKDouble * const Yaax, QUICKDo
             LOC2(KLMN, 0, JJJ, 3, nbasis),
             LOC2(KLMN, 1, JJJ, 3, nbasis) + 1,
             LOC2(KLMN, 2, JJJ, 3, nbasis),
-            J + 1, coefAngularL, angularL);
+            J + 1, coefAngularL, angularL, trans);
 
-    for (uint8_t i = 0; i < numAngularL; i++) {
+    for (uint32_t i = 0; i < numAngularL; i++) {
         if (angularL[i] < STOREDIM) {
             *Ybby = *Ybby + coefAngularL[i] * LOCSTORE(storeBB, angularL[i], 0, STOREDIM, STOREDIM);
         }
@@ -134,9 +135,9 @@ __device__ static inline void hrrwholegrad_lri(QUICKDouble * const Yaax, QUICKDo
             LOC2(KLMN, 0, JJJ, 3, nbasis),
             LOC2(KLMN, 1, JJJ, 3, nbasis),
             LOC2(KLMN, 2, JJJ, 3, nbasis) + 1,
-            J + 1, coefAngularL, angularL);
+            J + 1, coefAngularL, angularL, trans);
 
-    for (uint8_t i = 0; i < numAngularL; i++) {
+    for (uint32_t i = 0; i < numAngularL; i++) {
         if (angularL[i] < STOREDIM) {
             *Ybbz = *Ybbz + coefAngularL[i] * LOCSTORE(storeBB, angularL[i], 0, STOREDIM, STOREDIM);
         }
@@ -150,9 +151,9 @@ __device__ static inline void hrrwholegrad_lri(QUICKDouble * const Yaax, QUICKDo
                 LOC2(KLMN, 0, JJJ, 3, nbasis),
                 LOC2(KLMN, 1, JJJ, 3, nbasis),
                 LOC2(KLMN, 2, JJJ, 3, nbasis),
-                J, coefAngularL, angularL);
+                J, coefAngularL, angularL, trans);
 
-        for (uint8_t i = 0; i < numAngularL; i++) {
+        for (uint32_t i = 0; i < numAngularL; i++) {
             if (angularL[i] < STOREDIM) {
                 *Yaax = *Yaax - LOC2(KLMN, 0, III, 3, nbasis) * coefAngularL[i]
                     * LOCSTORE(store, angularL[i], 0, STOREDIM, STOREDIM);
@@ -168,9 +169,9 @@ __device__ static inline void hrrwholegrad_lri(QUICKDouble * const Yaax, QUICKDo
                 LOC2(KLMN, 0, JJJ, 3, nbasis),
                 LOC2(KLMN, 1, JJJ, 3, nbasis),
                 LOC2(KLMN, 2, JJJ, 3, nbasis),
-                J, coefAngularL, angularL);
+                J, coefAngularL, angularL, trans);
 
-        for (uint8_t i = 0; i < numAngularL; i++) {
+        for (uint32_t i = 0; i < numAngularL; i++) {
             if (angularL[i] < STOREDIM) {
                 *Yaay = *Yaay - LOC2(KLMN, 1, III, 3, nbasis) * coefAngularL[i]
                     * LOCSTORE(store, angularL[i], 0, STOREDIM, STOREDIM);
@@ -186,9 +187,9 @@ __device__ static inline void hrrwholegrad_lri(QUICKDouble * const Yaax, QUICKDo
                 LOC2(KLMN, 0, JJJ, 3, nbasis),
                 LOC2(KLMN, 1, JJJ, 3, nbasis),
                 LOC2(KLMN, 2, JJJ, 3, nbasis),
-                J, coefAngularL, angularL);
+                J, coefAngularL, angularL, trans);
 
-        for (uint8_t i = 0; i < numAngularL; i++) {
+        for (uint32_t i = 0; i < numAngularL; i++) {
             if (angularL[i] < STOREDIM) {
                 *Yaaz = *Yaaz - LOC2(KLMN, 2, III, 3, nbasis) * coefAngularL[i]
                     * LOCSTORE(store, angularL[i], 0, STOREDIM, STOREDIM);
@@ -204,9 +205,9 @@ __device__ static inline void hrrwholegrad_lri(QUICKDouble * const Yaax, QUICKDo
                 LOC2(KLMN, 0, JJJ, 3, nbasis) - 1,
                 LOC2(KLMN, 1, JJJ, 3, nbasis),
                 LOC2(KLMN, 2, JJJ, 3, nbasis),
-                J - 1, coefAngularL, angularL);
+                J - 1, coefAngularL, angularL, trans);
 
-        for (uint8_t i = 0; i < numAngularL; i++) {
+        for (uint32_t i = 0; i < numAngularL; i++) {
             if (angularL[i] < STOREDIM) {
                 *Ybbx = *Ybbx - LOC2(KLMN, 0, JJJ, 3, nbasis) * coefAngularL[i]
                     * LOCSTORE(store, angularL[i], 0, STOREDIM, STOREDIM);
@@ -222,9 +223,9 @@ __device__ static inline void hrrwholegrad_lri(QUICKDouble * const Yaax, QUICKDo
                 LOC2(KLMN, 0, JJJ, 3, nbasis),
                 LOC2(KLMN, 1, JJJ, 3, nbasis) - 1,
                 LOC2(KLMN, 2, JJJ, 3, nbasis),
-                J - 1, coefAngularL, angularL);
+                J - 1, coefAngularL, angularL, trans);
 
-        for (uint8_t i = 0; i < numAngularL; i++) {
+        for (uint32_t i = 0; i < numAngularL; i++) {
             if (angularL[i] < STOREDIM) {
                 *Ybby = *Ybby - LOC2(KLMN, 1, JJJ, 3, nbasis) * coefAngularL[i]
                     * LOCSTORE(store, angularL[i], 0, STOREDIM, STOREDIM);
@@ -240,9 +241,9 @@ __device__ static inline void hrrwholegrad_lri(QUICKDouble * const Yaax, QUICKDo
                 LOC2(KLMN, 0, JJJ, 3, nbasis),
                 LOC2(KLMN, 1, JJJ, 3, nbasis),
                 LOC2(KLMN, 2, JJJ, 3, nbasis) - 1,
-                J - 1, coefAngularL, angularL);
+                J - 1, coefAngularL, angularL, trans);
 
-        for (uint8_t i = 0; i < numAngularL; i++) {
+        for (uint32_t i = 0; i < numAngularL; i++) {
             if (angularL[i] < STOREDIM) {
                 *Ybbz = *Ybbz - LOC2(KLMN, 2, JJJ, 3, nbasis) * coefAngularL[i]
                     * LOCSTORE(store, angularL[i], 0, STOREDIM, STOREDIM);
@@ -264,13 +265,14 @@ __device__ static inline void hrrwholegrad_lri(QUICKDouble * const Yaax, QUICKDo
   #define STOREDIM STOREDIM_L
 __device__ static inline void hrrwholegrad_lri2(QUICKDouble * const Yaax, QUICKDouble * const Yaay, QUICKDouble * const Yaaz,
         QUICKDouble * const Ybbx, QUICKDouble * const Ybby, QUICKDouble * const Ybbz,
-        uint8_t J, uint32_t III, uint32_t JJJ,
+        uint32_t J, uint32_t III, uint32_t JJJ,
         QUICKDouble * const store, QUICKDouble AA, QUICKDouble BB,
         QUICKDouble RAx, QUICKDouble RAy, QUICKDouble RAz,
         QUICKDouble RBx, QUICKDouble RBy, QUICKDouble RBz,
-        uint32_t nbasis, QUICKDouble const * const cons, uint8_t const * const KLMN)
+        uint32_t nbasis, QUICKDouble const * const cons, uint32_t const * const KLMN,
+        uint32_t const * const trans)
 {
-    uint8_t angularL[12];
+    uint32_t angularL[12];
     QUICKDouble coefAngularL[12];
 
     *Yaax = 0.0;
@@ -281,7 +283,7 @@ __device__ static inline void hrrwholegrad_lri2(QUICKDouble * const Yaax, QUICKD
     *Ybbz = 0.0;
 
     QUICKDouble constant = cons[III] * cons[JJJ];
-    uint8_t numAngularL;
+    uint32_t numAngularL;
 
     //  Part A - x
     numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
@@ -291,9 +293,9 @@ __device__ static inline void hrrwholegrad_lri2(QUICKDouble * const Yaax, QUICKD
             LOC2(KLMN,0,JJJ,3,nbasis),
             LOC2(KLMN,1,JJJ,3,nbasis),
             LOC2(KLMN,2,JJJ,3,nbasis),
-            J, coefAngularL, angularL);
+            J, coefAngularL, angularL, trans);
 
-    for (uint8_t i = 0; i < numAngularL; i++) {
+    for (uint32_t i = 0; i < numAngularL; i++) {
         if (angularL[i] < STOREDIM) {
             *Yaax = *Yaax + coefAngularL[i] * LOCSTORE(store, angularL[i], 0, STOREDIM, STOREDIM) * 2 * AA;
         }
@@ -306,9 +308,9 @@ __device__ static inline void hrrwholegrad_lri2(QUICKDouble * const Yaax, QUICKD
             LOC2(KLMN, 0, JJJ, 3, nbasis),
             LOC2(KLMN, 1, JJJ, 3, nbasis),
             LOC2(KLMN, 2, JJJ, 3, nbasis),
-            J, coefAngularL, angularL);
+            J, coefAngularL, angularL, trans);
 
-    for (uint8_t i = 0; i < numAngularL; i++) {
+    for (uint32_t i = 0; i < numAngularL; i++) {
         if (angularL[i] < STOREDIM) {
             *Yaay = *Yaay + coefAngularL[i] * LOCSTORE(store, angularL[i], 0, STOREDIM, STOREDIM) * 2 * AA;
         }
@@ -321,9 +323,9 @@ __device__ static inline void hrrwholegrad_lri2(QUICKDouble * const Yaax, QUICKD
             LOC2(KLMN, 0, JJJ, 3, nbasis),
             LOC2(KLMN, 1, JJJ, 3, nbasis),
             LOC2(KLMN, 2, JJJ, 3, nbasis),
-            J, coefAngularL, angularL);
+            J, coefAngularL, angularL, trans);
 
-    for (uint8_t i = 0; i < numAngularL; i++) {
+    for (uint32_t i = 0; i < numAngularL; i++) {
         if (angularL[i] < STOREDIM) {
             *Yaaz = *Yaaz + coefAngularL[i] * LOCSTORE(store, angularL[i], 0, STOREDIM, STOREDIM) * 2 * AA;
         }
@@ -336,9 +338,9 @@ __device__ static inline void hrrwholegrad_lri2(QUICKDouble * const Yaax, QUICKD
             LOC2(KLMN, 0, JJJ, 3, nbasis) + 1,
             LOC2(KLMN, 1, JJJ, 3, nbasis),
             LOC2(KLMN, 2, JJJ, 3, nbasis),
-            J + 1, coefAngularL, angularL);
+            J + 1, coefAngularL, angularL, trans);
 
-    for (uint8_t i = 0; i < numAngularL; i++) {
+    for (uint32_t i = 0; i < numAngularL; i++) {
         if (angularL[i] < STOREDIM) {
             *Ybbx = *Ybbx + coefAngularL[i] * LOCSTORE(store, angularL[i], 0, STOREDIM, STOREDIM) * 2 * BB;
         }
@@ -351,9 +353,9 @@ __device__ static inline void hrrwholegrad_lri2(QUICKDouble * const Yaax, QUICKD
             LOC2(KLMN, 0, JJJ, 3, nbasis),
             LOC2(KLMN, 1, JJJ, 3, nbasis) + 1,
             LOC2(KLMN, 2, JJJ, 3, nbasis),
-            J + 1, coefAngularL, angularL);
+            J + 1, coefAngularL, angularL, trans);
 
-    for (uint8_t i = 0; i < numAngularL; i++) {
+    for (uint32_t i = 0; i < numAngularL; i++) {
         if (angularL[i] < STOREDIM) {
             *Ybby = *Ybby + coefAngularL[i] * LOCSTORE(store, angularL[i], 0, STOREDIM, STOREDIM) * 2 * BB;
         }
@@ -366,9 +368,9 @@ __device__ static inline void hrrwholegrad_lri2(QUICKDouble * const Yaax, QUICKD
             LOC2(KLMN, 0, JJJ, 3, nbasis),
             LOC2(KLMN, 1, JJJ, 3, nbasis),
             LOC2(KLMN, 2, JJJ, 3, nbasis) + 1,
-            J + 1, coefAngularL, angularL);
+            J + 1, coefAngularL, angularL, trans);
 
-    for (uint8_t i = 0; i < numAngularL; i++) {
+    for (uint32_t i = 0; i < numAngularL; i++) {
         if (angularL[i] < STOREDIM) {
             *Ybbz = *Ybbz + coefAngularL[i] * LOCSTORE(store, angularL[i], 0, STOREDIM, STOREDIM) * 2 * BB;
         }
@@ -382,9 +384,9 @@ __device__ static inline void hrrwholegrad_lri2(QUICKDouble * const Yaax, QUICKD
                 LOC2(KLMN, 0, JJJ, 3, nbasis),
                 LOC2(KLMN, 1, JJJ, 3, nbasis),
                 LOC2(KLMN, 2, JJJ, 3, nbasis),
-                J, coefAngularL, angularL);
+                J, coefAngularL, angularL, trans);
 
-        for (uint8_t i = 0; i < numAngularL; i++) {
+        for (uint32_t i = 0; i < numAngularL; i++) {
             if (angularL[i] < STOREDIM) {
                 *Yaax = *Yaax - LOC2(KLMN, 0, III, 3, nbasis) * coefAngularL[i]
                     * LOCSTORE(store, angularL[i], 0, STOREDIM, STOREDIM);
@@ -400,9 +402,9 @@ __device__ static inline void hrrwholegrad_lri2(QUICKDouble * const Yaax, QUICKD
                 LOC2(KLMN, 0, JJJ, 3, nbasis),
                 LOC2(KLMN, 1, JJJ, 3, nbasis),
                 LOC2(KLMN, 2, JJJ, 3, nbasis),
-                J, coefAngularL, angularL);
+                J, coefAngularL, angularL, trans);
 
-        for (uint8_t i = 0; i < numAngularL; i++) {
+        for (uint32_t i = 0; i < numAngularL; i++) {
             if (angularL[i] < STOREDIM) {
                 *Yaay = *Yaay - LOC2(KLMN, 1, III, 3, nbasis) * coefAngularL[i]
                     * LOCSTORE(store, angularL[i], 0, STOREDIM, STOREDIM);
@@ -418,9 +420,9 @@ __device__ static inline void hrrwholegrad_lri2(QUICKDouble * const Yaax, QUICKD
                 LOC2(KLMN, 0, JJJ, 3, nbasis),
                 LOC2(KLMN, 1, JJJ, 3, nbasis),
                 LOC2(KLMN, 2, JJJ, 3, nbasis),
-                J, coefAngularL, angularL);
+                J, coefAngularL, angularL, trans);
 
-        for (uint8_t i = 0; i < numAngularL; i++) {
+        for (uint32_t i = 0; i < numAngularL; i++) {
             if (angularL[i] < STOREDIM) {
                 *Yaaz = *Yaaz - LOC2(KLMN, 2, III, 3, nbasis) * coefAngularL[i]
                     * LOCSTORE(store, angularL[i], 0, STOREDIM, STOREDIM);
@@ -436,9 +438,9 @@ __device__ static inline void hrrwholegrad_lri2(QUICKDouble * const Yaax, QUICKD
                 LOC2(KLMN, 0, JJJ, 3, nbasis) - 1,
                 LOC2(KLMN, 1, JJJ, 3, nbasis),
                 LOC2(KLMN, 2, JJJ, 3, nbasis),
-                J - 1, coefAngularL, angularL);
+                J - 1, coefAngularL, angularL, trans);
 
-        for (uint8_t i = 0; i < numAngularL; i++) {
+        for (uint32_t i = 0; i < numAngularL; i++) {
             if (angularL[i] < STOREDIM) {
                 *Ybbx = *Ybbx - LOC2(KLMN, 0, JJJ, 3, nbasis) * coefAngularL[i]
                     * LOCSTORE(store, angularL[i], 0, STOREDIM, STOREDIM);
@@ -454,9 +456,9 @@ __device__ static inline void hrrwholegrad_lri2(QUICKDouble * const Yaax, QUICKD
                 LOC2(KLMN, 0, JJJ, 3, nbasis),
                 LOC2(KLMN, 1, JJJ, 3, nbasis) - 1,
                 LOC2(KLMN, 2, JJJ, 3, nbasis),
-                J - 1, coefAngularL, angularL);
+                J - 1, coefAngularL, angularL, trans);
 
-        for (uint8_t i = 0; i < numAngularL; i++) {
+        for (uint32_t i = 0; i < numAngularL; i++) {
             if (angularL[i] < STOREDIM) {
                 *Ybby = *Ybby - LOC2(KLMN, 1, JJJ, 3, nbasis) * coefAngularL[i]
                     * LOCSTORE(store, angularL[i], 0, STOREDIM, STOREDIM);
@@ -472,9 +474,9 @@ __device__ static inline void hrrwholegrad_lri2(QUICKDouble * const Yaax, QUICKD
                 LOC2(KLMN, 0, JJJ, 3, nbasis),
                 LOC2(KLMN, 1, JJJ, 3, nbasis),
                 LOC2(KLMN, 2, JJJ, 3, nbasis) - 1,
-                J - 1, coefAngularL, angularL);
+                J - 1, coefAngularL, angularL, trans);
 
-        for (uint8_t i = 0; i < numAngularL; i++) {
+        for (uint32_t i = 0; i < numAngularL; i++) {
             if (angularL[i] < STOREDIM) {
                 *Ybbz = *Ybbz - LOC2(KLMN, 2, JJJ, 3, nbasis) * coefAngularL[i]
                     * LOCSTORE(store, angularL[i], 0, STOREDIM, STOREDIM);
@@ -495,13 +497,14 @@ __device__ static inline void hrrwholegrad_lri2(QUICKDouble * const Yaax, QUICKD
 
 __device__ static inline void hrrwholegrad_lri2_2(QUICKDouble * const Yaax, QUICKDouble * const Yaay, QUICKDouble * const Yaaz,
         QUICKDouble * const Ybbx, QUICKDouble * const Ybby, QUICKDouble * const Ybbz,
-        uint8_t J, uint32_t III, uint32_t JJJ,
+        uint32_t J, uint32_t III, uint32_t JJJ,
         QUICKDouble * const store, QUICKDouble AA, QUICKDouble BB,
         QUICKDouble RAx, QUICKDouble RAy, QUICKDouble RAz,
         QUICKDouble RBx, QUICKDouble RBy, QUICKDouble RBz,
-        uint32_t nbasis, QUICKDouble const * const cons, uint8_t const * const KLMN)
+        uint32_t nbasis, QUICKDouble const * const cons, uint32_t const * const KLMN,
+        uint32_t const * const trans)
 {
-    uint8_t angularL[12];
+    uint32_t angularL[12];
     QUICKDouble coefAngularL[12];
 
     *Yaax = 0.0;
@@ -512,7 +515,7 @@ __device__ static inline void hrrwholegrad_lri2_2(QUICKDouble * const Yaax, QUIC
     *Ybbz = 0.0;
 
     QUICKDouble constant = cons[III] * cons[JJJ];
-    uint8_t numAngularL;
+    uint32_t numAngularL;
 
     //  Part A - x
     numAngularL = lefthrr_lri(RAx, RAy, RAz, RBx, RBy, RBz,
@@ -522,9 +525,9 @@ __device__ static inline void hrrwholegrad_lri2_2(QUICKDouble * const Yaax, QUIC
             LOC2(KLMN, 0, JJJ, 3, nbasis),
             LOC2(KLMN, 1, JJJ, 3, nbasis),
             LOC2(KLMN, 2, JJJ, 3, nbasis),
-            J, coefAngularL, angularL);
+            J, coefAngularL, angularL, trans);
 
-    for (uint8_t i = 0; i < numAngularL; i++) {
+    for (uint32_t i = 0; i < numAngularL; i++) {
         if (angularL[i] < STOREDIM) {
             *Yaax = *Yaax + coefAngularL[i] * LOCSTORE(store, angularL[i], 0, STOREDIM, STOREDIM) * 2 * AA;
         }
@@ -537,9 +540,9 @@ __device__ static inline void hrrwholegrad_lri2_2(QUICKDouble * const Yaax, QUIC
             LOC2(KLMN, 0, JJJ, 3, nbasis),
             LOC2(KLMN, 1, JJJ, 3, nbasis),
             LOC2(KLMN, 2, JJJ, 3, nbasis),
-            J, coefAngularL, angularL);
+            J, coefAngularL, angularL, trans);
 
-    for (uint8_t i = 0; i < numAngularL; i++) {
+    for (uint32_t i = 0; i < numAngularL; i++) {
         if (angularL[i] < STOREDIM) {
             *Yaay = *Yaay + coefAngularL[i] * LOCSTORE(store, angularL[i], 0, STOREDIM, STOREDIM) * 2 * AA;
         }
@@ -552,9 +555,9 @@ __device__ static inline void hrrwholegrad_lri2_2(QUICKDouble * const Yaax, QUIC
             LOC2(KLMN, 0, JJJ, 3, nbasis),
             LOC2(KLMN, 1, JJJ, 3, nbasis),
             LOC2(KLMN, 2, JJJ, 3, nbasis),
-            J, coefAngularL, angularL);
+            J, coefAngularL, angularL, trans);
 
-    for (uint8_t i = 0; i < numAngularL; i++) {
+    for (uint32_t i = 0; i < numAngularL; i++) {
         if (angularL[i] < STOREDIM) {
             *Yaaz = *Yaaz + coefAngularL[i] * LOCSTORE(store, angularL[i], 0, STOREDIM, STOREDIM) * 2 * AA;
         }
@@ -567,9 +570,9 @@ __device__ static inline void hrrwholegrad_lri2_2(QUICKDouble * const Yaax, QUIC
             LOC2(KLMN, 0, JJJ, 3, nbasis) + 1,
             LOC2(KLMN, 1, JJJ, 3, nbasis),
             LOC2(KLMN, 2, JJJ, 3, nbasis),
-            J + 1, coefAngularL, angularL);
+            J + 1, coefAngularL, angularL, trans);
 
-    for (uint8_t i = 0; i < numAngularL; i++) {
+    for (uint32_t i = 0; i < numAngularL; i++) {
         if (angularL[i] < STOREDIM) {
             *Ybbx = *Ybbx + coefAngularL[i] * LOCSTORE(store, angularL[i], 0, STOREDIM, STOREDIM) * 2 * BB;
         }
@@ -582,9 +585,9 @@ __device__ static inline void hrrwholegrad_lri2_2(QUICKDouble * const Yaax, QUIC
             LOC2(KLMN, 0, JJJ, 3, nbasis),
             LOC2(KLMN, 1, JJJ, 3, nbasis) + 1,
             LOC2(KLMN, 2, JJJ, 3, nbasis),
-            J + 1, coefAngularL, angularL);
+            J + 1, coefAngularL, angularL, trans);
 
-    for (uint8_t i = 0; i < numAngularL; i++) {
+    for (uint32_t i = 0; i < numAngularL; i++) {
         if (angularL[i] < STOREDIM) {
             *Ybby = *Ybby + coefAngularL[i] * LOCSTORE(store, angularL[i], 0, STOREDIM, STOREDIM) * 2 * BB;
         }
@@ -597,9 +600,9 @@ __device__ static inline void hrrwholegrad_lri2_2(QUICKDouble * const Yaax, QUIC
             LOC2(KLMN, 0, JJJ, 3, nbasis),
             LOC2(KLMN, 1, JJJ, 3, nbasis),
             LOC2(KLMN, 2, JJJ, 3, nbasis) + 1,
-            J + 1, coefAngularL, angularL);
+            J + 1, coefAngularL, angularL, trans);
 
-    for (uint8_t i = 0; i < numAngularL; i++) {
+    for (uint32_t i = 0; i < numAngularL; i++) {
         if (angularL[i] < STOREDIM) {
             *Ybbz = *Ybbz + coefAngularL[i] * LOCSTORE(store, angularL[i], 0, STOREDIM, STOREDIM) * 2 * BB;
         }
@@ -634,13 +637,13 @@ __device__ static inline void iclass_oshell_lri_grad
   #else
 __device__ static inline void iclass_lri_grad
   #endif
-(uint8_t I, uint8_t J, uint32_t II, uint32_t JJ, uint32_t iatom, uint32_t totalatom,
+(uint32_t I, uint32_t J, uint32_t II, uint32_t JJ, uint32_t iatom, uint32_t totalatom,
  uint32_t natom, uint32_t nbasis, uint32_t nshell, uint32_t jbasis,
  QUICKDouble const * const xyz, QUICKDouble const * const allxyz,
  uint32_t const * const kstart, uint32_t const * const katom,
  uint32_t const * const kprim, uint32_t const * const Ksumtype, uint32_t const * const Qstart,
  uint32_t const * const Qsbasis, uint32_t const * const Qfbasis,
- QUICKDouble const * const cons, QUICKDouble const * const gcexpo, uint8_t const * const KLMN,
+ QUICKDouble const * const cons, QUICKDouble const * const gcexpo, uint32_t const * const KLMN,
  uint32_t prim_total, uint32_t const * const prim_start, QUICKDouble * const dense,
 #if defined(OSHELL)
  QUICKDouble * const denseb,
@@ -690,24 +693,24 @@ __device__ static inline void iclass_lri_grad
 
        See M.Head-Gordon and J.A.Pople, Jchem.Phys., 89, No.9 (1988) for VRR algrithem details.
     */
-    for (uint8_t i = Sumindex[0]; i < Sumindex[2]; i++) {
-        for (uint8_t j = Sumindex[I]; j < Sumindex[I + J + 2]; j++) {
+    for (uint32_t i = Sumindex[0]; i < Sumindex[2]; i++) {
+        for (uint32_t j = Sumindex[I]; j < Sumindex[I + J + 2]; j++) {
             if (i < STOREDIM && j < STOREDIM) {
                 LOCSTORE(store, j, i, STOREDIM, STOREDIM) = 0.0;
             }
         }
     }
 
-    for (uint8_t i = Sumindex[0]; i < Sumindex[3]; i++) {
-        for (uint8_t j = Sumindex[I + 1]; j < Sumindex[I + J + 3]; j++) {
+    for (uint32_t i = Sumindex[0]; i < Sumindex[3]; i++) {
+        for (uint32_t j = Sumindex[I + 1]; j < Sumindex[I + J + 3]; j++) {
             if (i < STOREDIM && j < STOREDIM) {
                 LOCSTORE(storeAA, j, i, STOREDIM, STOREDIM) = 0.0;
             }
         }
     }
 
-    for (uint8_t i = Sumindex[0]; i < Sumindex[3]; i++) {
-        for (uint8_t j = Sumindex[I + 1]; j < Sumindex[I + J + 3]; j++) {
+    for (uint32_t i = Sumindex[0]; i < Sumindex[3]; i++) {
+        for (uint32_t j = Sumindex[I + 1]; j < Sumindex[I + J + 3]; j++) {
             if (i < STOREDIM && j < STOREDIM) {
                 LOCSTORE(storeBB, j, i, STOREDIM, STOREDIM) = 0.0;
             }
@@ -808,8 +811,8 @@ __device__ static inline void iclass_lri_grad
                 (Px * AB + Qx * CD) * ABCD - Qx, (Py * AB + Qy * CD) * ABCD - Qy, (Pz * AB + Qz * CD) * ABCD - Qz,
                 0.5 * ABCD, 0.5 / AB, 0.5 / CD, AB * ABCD, CD * ABCD);
 
-        for (uint8_t i = Sumindex[0]; i < Sumindex[2]; i++) {
-            for (uint8_t j = Sumindex[I]; j < Sumindex[I + J + 2]; j++) {
+        for (uint32_t i = Sumindex[0]; i < Sumindex[2]; i++) {
+            for (uint32_t j = Sumindex[I]; j < Sumindex[I + J + 2]; j++) {
                 if (i < STOREDIM && j < STOREDIM) {
                     LOCSTORE(store, j, i , STOREDIM, STOREDIM) += LOCSTORE(store2, j, i, STOREDIM, STOREDIM);
                     //printf("store2 %d %d %f \n", i, j, LOCSTORE(store2, j, i, STOREDIM, STOREDIM));
@@ -817,8 +820,8 @@ __device__ static inline void iclass_lri_grad
             }
         }
 
-        for (uint8_t i = Sumindex[0]; i < Sumindex[2]; i++) {
-            for (uint8_t j = Sumindex[I + 1]; j < Sumindex[I + J + 3]; j++) {
+        for (uint32_t i = Sumindex[0]; i < Sumindex[2]; i++) {
+            for (uint32_t j = Sumindex[I + 1]; j < Sumindex[I + J + 3]; j++) {
                 if (i < STOREDIM && j < STOREDIM) {
                     LOCSTORE(storeAA, j, i, STOREDIM, STOREDIM) += LOCSTORE(store2, j, i, STOREDIM, STOREDIM) * AA * 2.0;
                     LOCSTORE(storeBB, j, i, STOREDIM, STOREDIM) += LOCSTORE(store2, j, i, STOREDIM, STOREDIM) * BB * 2.0;
@@ -859,7 +862,7 @@ __device__ static inline void iclass_lri_grad
             hrrwholegrad_lri(&Yaax, &Yaay, &Yaaz, &Ybbx, &Ybby, &Ybbz,
                     J, III, JJJ, store, storeAA, storeBB,
                     RAx, RAy, RAz, RBx, RBy, RBz,
-                    nbasis, cons, KLMN);
+                    nbasis, cons, KLMN, trans);
 
   #if defined(OSHELL)
             QUICKDouble DENSEJI = (QUICKDouble) (LOC2(dense, JJJ, III, nbasis, nbasis)
@@ -944,29 +947,31 @@ __device__ static inline void iclass_oshell_lri_grad_spdf2
 __device__ static inline void iclass_lri_grad_spdf2
     #endif
   #endif
-(uint8_t I, uint8_t J, uint32_t II, uint32_t JJ, uint32_t iatom, uint32_t totalatom,
- uint32_t natom, uint32_t nbasis, uint32_t nshell, uint32_t jbasis,
- QUICKDouble const * const xyz, QUICKDouble const * const allxyz,
- uint32_t const * const kstart, uint32_t const * const katom,
- uint32_t const * const kprim, uint32_t const * const Ksumtype, uint32_t const * const Qstart,
- uint32_t const * const Qsbasis, uint32_t const * const Qfbasis,
- QUICKDouble const * const cons, QUICKDouble const * const gcexpo, uint8_t const * const KLMN,
- uint32_t prim_total, uint32_t const * const prim_start, QUICKDouble * const dense,
+    (uint32_t I, uint32_t J, uint32_t II, uint32_t JJ, uint32_t iatom, uint32_t totalatom,
+     uint32_t natom, uint32_t nbasis, uint32_t nshell, uint32_t jbasis,
+     QUICKDouble const * const xyz, QUICKDouble const * const allxyz,
+     uint32_t const * const kstart, uint32_t const * const katom,
+     uint32_t const * const kprim, uint32_t const * const Ksumtype, uint32_t const * const Qstart,
+     uint32_t const * const Qsbasis, uint32_t const * const Qfbasis,
+     QUICKDouble const * const cons, QUICKDouble const * const gcexpo, uint32_t const * const KLMN,
+     uint32_t prim_total, uint32_t const * const prim_start, QUICKDouble * const dense,
 #if defined(OSHELL)
- QUICKDouble * const denseb,
+     QUICKDouble * const denseb,
 #endif
- QUICKDouble const * const Xcoeff, QUICKDouble const * const expoSum,
- QUICKDouble const * const weightedCenterX, QUICKDouble const * const weightedCenterY,
- QUICKDouble const * const weightedCenterZ,
+     QUICKDouble const * const Xcoeff, QUICKDouble const * const expoSum,
+     QUICKDouble const * const weightedCenterX, QUICKDouble const * const weightedCenterY,
+     QUICKDouble const * const weightedCenterZ,
 #if defined(USE_LEGACY_ATOMICS)
- QUICKULL * const gradULL,
+     QUICKULL * const gradULL,
 #else
- QUICKDouble * const grad,
+     QUICKDouble * const grad,
 #endif
- QUICKDouble * const store, QUICKDouble * const store2,
- QUICKDouble * const storeAA, QUICKDouble * const storeBB)
+     QUICKDouble * const store, QUICKDouble * const store2,
+     QUICKDouble * const storeAA, QUICKDouble * const storeBB,
+     uint32_t const * const trans, uint32_t const * const Sumindex)
+{
     /*
-       kAtom A, B, C ,D is the coresponding atom for shell ii, jj, kk, ll
+       kAtom A, B, C, D is the coresponding atom for shell ii, jj, kk, ll
        and be careful with the index difference between Fortran and C++,
        Fortran starts array index with 1 and C++ starts 0.
 
@@ -1098,8 +1103,8 @@ __device__ static inline void iclass_lri_grad_spdf2
                 YVerticalTemp[i] *= X2;
             }
 
-            for (uint8_t i = Sumindex[0]; i < Sumindex[3]; i++) {
-                for (uint8_t j = Sumindex[I]; j < Sumindex[I + J + 3]; j++) {
+            for (uint32_t i = Sumindex[0]; i < Sumindex[3]; i++) {
+                for (uint32_t j = Sumindex[I]; j < Sumindex[I + J + 3]; j++) {
                     if (i < STOREDIM && j < STOREDIM && !(i >= Sumindex[I + J + 2] && j >= Sumindex[2])) {
                         LOCSTORE(store2, j, i, STOREDIM, STOREDIM) = 0.0;
                     }
@@ -1141,7 +1146,7 @@ __device__ static inline void iclass_lri_grad_spdf2
                     (&Yaax, &Yaay, &Yaaz, &Ybbx, &Ybby, &Ybbz,
                      J, III, JJJ, store2, AA, BB,
                      RAx, RAy, RAz, RBx, RBy, RBz,
-                     nbasis, cons, KLMN);
+                     nbasis, cons, KLMN, trans);
 
   #if defined(OSHELL)
                     QUICKDouble DENSEJI = (QUICKDouble) (LOC2(dense, JJJ, III, nbasis, nbasis)
@@ -1226,8 +1231,8 @@ k_get_lri_grad_spdf2
      uint32_t const * const kstart, uint32_t const * const katom,
      uint32_t const * const kprim, uint32_t const * const Ksumtype, uint32_t const * const Qstart,
      uint32_t const * const Qsbasis, uint32_t const * const Qfbasis,
-     uint8_t const * const sorted_Qnumber, uint32_t const * const sorted_Q,
-     QUICKDouble const * const cons, QUICKDouble const * const gcexpo, uint8_t const * const KLMN,
+     uint32_t const * const sorted_Qnumber, uint32_t const * const sorted_Q,
+     QUICKDouble const * const cons, QUICKDouble const * const gcexpo, uint32_t const * const KLMN,
      uint32_t prim_total, uint32_t const * const prim_start, QUICKDouble * const dense,
 #if defined(OSHELL)
      QUICKDouble * const denseb,
@@ -1244,25 +1249,50 @@ k_get_lri_grad_spdf2
      unsigned char const * const mpi_bcompute,
 #endif
      QUICKDouble * const store, QUICKDouble * const store2,
-     QUICKDouble * const storeAA, QUICKDouble * const storeBB)
+     QUICKDouble * const storeAA, QUICKDouble * const storeBB,
+     uint32_t const * const trans, uint32_t const * const Sumindex)
 {
     unsigned int offset = blockIdx.x * blockDim.x + threadIdx.x;
     int totalThreads = blockDim.x * gridDim.x;
     uint32_t totalatom = natom + nextatom;
     QUICKULL jshell = (QUICKULL) sqrQshell;
 #if defined(USE_LEGACY_ATOMICS)
-    extern __shared__ QUICKULL smem[];
-    QUICKULL *sgradULL = smem;
+    extern __shared__ QUICKULL smem2[];
+    QUICKULL *sgradULL = smem2;
+    uint32_t *strans = (uint32_t *) &sgradULL[3u * natom];
+    uint32_t *sSumindex = &strans[TRANSDIM * TRANSDIM * TRANSDIM];
+    uint32_t *sKLMN = &sSumindex[10];
 
-    for (int i = threadIdx.x; i < 3u * natom; i += blockDim.x) {
+    for (int i = threadIdx.x; i < 3 * (int) natom; i += blockDim.x) {
       sgradULL[i] = 0ull;
     }
+    for (int i = threadIdx.x; i < TRANSDIM * TRANSDIM * TRANSDIM; i += blockDim.x) {
+        strans[i] = trans[i];
+    }
+    for (int i = threadIdx.x; i < 10; i += blockDim.x) {
+        sSumindex[i] = Sumindex[i];
+    }
+    for (int i = threadIdx.x; i < 3 * (int) nbasis; i += blockDim.x) {
+        sKLMN[i] = KLMN[i];
+    }
 #else
-    extern __shared__ QUICKDouble smem[];
-    QUICKDouble *sgrad = smem;
+    extern __shared__ QUICKDouble smem2[];
+    QUICKDouble *sgrad = smem2;
+    uint32_t *strans = (uint32_t *) &sgrad[3u * natom];
+    uint32_t *sSumindex = &strans[TRANSDIM * TRANSDIM * TRANSDIM];
+    uint32_t *sKLMN = &sSumindex[10];
 
-    for (int i = threadIdx.x; i < 3u * natom; i += blockDim.x) {
+    for (int i = threadIdx.x; i < 3 * (int) natom; i += blockDim.x) {
         sgrad[i] = 0.0;
+    }
+    for (int i = threadIdx.x; i < TRANSDIM * TRANSDIM * TRANSDIM; i += blockDim.x) {
+        strans[i] = trans[i];
+    }
+    for (int i = threadIdx.x; i < 10; i += blockDim.x) {
+        sSumindex[i] = Sumindex[i];
+    }
+    for (int i = threadIdx.x; i < 3 * (int) nbasis; i += blockDim.x) {
+        sKLMN[i] = KLMN[i];
     }
 #endif
 
@@ -1281,8 +1311,8 @@ k_get_lri_grad_spdf2
         uint32_t ii = sorted_Q[II];
         uint32_t jj = sorted_Q[JJ];
 
-        uint8_t iii = sorted_Qnumber[II];
-        uint8_t jjj = sorted_Qnumber[JJ];
+        uint32_t iii = sorted_Qnumber[II];
+        uint32_t jjj = sorted_Qnumber[JJ];
 
 #if defined(int_spd)
         {
@@ -1294,7 +1324,7 @@ k_get_lri_grad_spdf2
                 (iii, jjj, ii, jj, iatom, totalatom,
                  natom, nbasis, nshell, jbasis, xyz, allxyz,
                  kstart, katom, kprim, Ksumtype, Qstart, Qsbasis, Qfbasis,
-                 cons, gcexpo, KLMN, prim_total, prim_start, dense,
+                 cons, gcexpo, sKLMN, prim_total, prim_start, dense,
 #if defined(OSHELL)
                  denseb,
 #endif
@@ -1305,7 +1335,8 @@ k_get_lri_grad_spdf2
                  sgrad,
 #endif
                  store + offset, store2 + offset,
-                 storeAA + offset, storeBB + offset);
+                 storeAA + offset, storeBB + offset,
+                 strans, sSumindex);
         }
 #if defined(MPIV_GPU)
         }
@@ -1314,7 +1345,7 @@ k_get_lri_grad_spdf2
 
     __syncthreads();
 
-    for (int i = threadIdx.x; i < 3u * natom; i += blockDim.x) {
+    for (int i = threadIdx.x; i < 3 * (int) natom; i += blockDim.x) {
 #if defined(USE_LEGACY_ATOMICS)
         atomicAdd(&gradULL[i], sgradULL[i]);
 #else

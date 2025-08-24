@@ -40,7 +40,7 @@
 #if !defined(__gpu_get2e_subs_h_)
   #define __gpu_get2e_subs_h_
   #if !defined(OSHELL)
-__device__ static inline bool check_iclass(uint8_t I, uint8_t J, uint8_t K, uint8_t L,
+__device__ static inline bool check_iclass(uint32_t I, uint32_t J, uint32_t K, uint32_t L,
         uint32_t II, uint32_t JJ, uint32_t KK, uint32_t LL, uint32_t nshell,
         uint32_t const * const Qsbasis, uint32_t const * const Qfbasis)
 {
@@ -127,13 +127,13 @@ __device__ static inline void iclass_cshell_spdf9
 __device__ static inline void iclass_cshell_spdf10
   #endif
 #endif
-      (uint8_t I, uint8_t J, uint8_t K, uint8_t L, uint32_t II, uint32_t JJ, uint32_t KK, uint32_t LL,
+      (uint32_t I, uint32_t J, uint32_t K, uint32_t L, uint32_t II, uint32_t JJ, uint32_t KK, uint32_t LL,
        QUICKDouble DNMax, QUICKDouble hyb_coeff, uint32_t natom, uint32_t nbasis,
         uint32_t nshell, uint32_t jbasis, QUICKDouble const * const xyz,
         uint32_t const * const kstart, uint32_t const * const katom,
         uint32_t const * const kprim, uint32_t const * const Qstart,
         uint32_t const * const Qsbasis, uint32_t const * const Qfbasis,
-        QUICKDouble const * const cons, uint8_t const * const KLMN,
+        QUICKDouble const * const cons, uint32_t const * const KLMN,
         uint32_t prim_total, uint32_t const * const prim_start,
 #if defined(USE_LEGACY_ATOMICS)
         QUICKULL * const oULL,
@@ -153,7 +153,8 @@ __device__ static inline void iclass_cshell_spdf10
         QUICKDouble const * const Xcoeff, QUICKDouble const * const expoSum,
         QUICKDouble const * const weightedCenterX, QUICKDouble const * const weightedCenterY,
         QUICKDouble const * const weightedCenterZ, QUICKDouble const * const cutPrim,
-        QUICKDouble integralCutoff, QUICKDouble primLimit, QUICKDouble * const store)
+        QUICKDouble integralCutoff, QUICKDouble primLimit, QUICKDouble * const store,
+        uint32_t const * const trans, uint32_t const * const Sumindex)
 {
     QUICKDouble temp;
 #if defined(OSHELL)
@@ -197,8 +198,8 @@ __device__ static inline void iclass_cshell_spdf10
      
      See M.Head-Gordon and J.A.Pople, Jchem.Phys., 89, No.9 (1988) for VRR algrithem details.
     */
-    for (uint8_t i = Sumindex[K + 1] + 1; i <= Sumindex[K + L + 2]; i++) {
-        for (uint8_t j = Sumindex[I + 1] + 1; j <= Sumindex[I + J + 2]; j++) {
+    for (uint32_t i = Sumindex[K + 1] + 1; i <= Sumindex[K + L + 2]; i++) {
+        for (uint32_t j = Sumindex[I + 1] + 1; j <= Sumindex[I + J + 2]; j++) {
             if (i <= STOREDIM && j <= STOREDIM) {
                 LOCSTORE(&store[blockIdx.x * blockDim.x + threadIdx.x],
                         j - 1, i - 1, STOREDIM, STOREDIM) = 0.0;
@@ -420,10 +421,9 @@ __device__ static inline void iclass_cshell_spdf10
                            (I, J, K, L, III, JJJ, KKK, LLL,
                            RAx, RAy, RAz, RBx, RBy, RBz,
                            RCx, RCy, RCz, RDx, RDy, RDz,
-                           nbasis, cons, KLMN, store);
+                           nbasis, cons, KLMN, store, trans);
 
-                        if (abs(Y) > integralCutoff)
-                        {
+                        if (abs(Y) > integralCutoff) {
 #if defined(OSHELL)
                             QUICKDouble DENSELK = (QUICKDouble) (LOC2(dense, LLL, KKK, nbasis, nbasis)
                                     + LOC2(denseb, LLL, KKK, nbasis, nbasis));
@@ -727,8 +727,8 @@ __global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_sp
         uint32_t ffStart, uint32_t const * const kstart, uint32_t const * const katom,
         uint32_t const * const kprim, uint32_t const * const Qstart,
         uint32_t const * const Qsbasis, uint32_t const * const Qfbasis,
-        uint8_t const * const sorted_Qnumber, uint32_t const * const sorted_Q,
-        QUICKDouble const * const cons, uint8_t const * const KLMN,
+        uint32_t const * const sorted_Qnumber, uint32_t const * const sorted_Q,
+        QUICKDouble const * const cons, uint32_t const * const KLMN,
         uint32_t prim_total, uint32_t const * const prim_start,
 #if defined(USE_LEGACY_ATOMICS)
         QUICKULL * const oULL,
@@ -754,7 +754,7 @@ __global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_sp
 #if defined(MPIV_GPU)
         unsigned char const * const mpi_bcompute,
 #endif
-        QUICKDouble * const store)
+        QUICKDouble * const store, uint32_t const * const trans, uint32_t const * const Sumindex)
 {
     // jshell and jshell2 defines the regions in i+j and k+l axes respectively.    
     // sqrQshell= Qshell x Qshell; where Qshell is the number of sorted shells (see gpu_upload_basis_ in gpu.cu)
@@ -833,6 +833,22 @@ __global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_sp
     const QUICKULL jshell = (QUICKULL) sqrQshell - jshell00;
     const QUICKULL jshell2 = (QUICKULL) sqrQshell - jshell0;
 #endif
+    extern __shared__ uint32_t smem[];
+    uint32_t *strans = smem;
+    uint32_t *sSumindex = &strans[TRANSDIM * TRANSDIM * TRANSDIM];
+    uint32_t *sKLMN = &sSumindex[10];
+
+    for (int i = threadIdx.x; i < TRANSDIM * TRANSDIM * TRANSDIM; i += blockDim.x) {
+        strans[i] = trans[i];
+    }
+    for (int i = threadIdx.x; i < 10; i += blockDim.x) {
+        sSumindex[i] = Sumindex[i];
+    }
+    for (int i = threadIdx.x; i < 3 * (int) nbasis; i += blockDim.x) {
+        sKLMN[i] = KLMN[i];
+    }
+
+    __syncthreads();
 
     for (QUICKULL i = blockIdx.x * blockDim.x + threadIdx.x; i < jshell * jshell2; i += blockDim.x * gridDim.x) {
 #if defined(int_sp) || defined(int_spd)
@@ -917,10 +933,10 @@ __global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_sp
             const int JJ = sorted_YCutoffIJ[a].y;            
             const int LL = sorted_YCutoffIJ[b].y;
 
-            const uint8_t iii = sorted_Qnumber[II];
-            const uint8_t jjj = sorted_Qnumber[JJ];
-            const uint8_t kkk = sorted_Qnumber[KK];
-            const uint8_t lll = sorted_Qnumber[LL];
+            const uint32_t iii = sorted_Qnumber[II];
+            const uint32_t jjj = sorted_Qnumber[JJ];
+            const uint32_t kkk = sorted_Qnumber[KK];
+            const uint32_t lll = sorted_Qnumber[LL];
 
 #if defined(int_sp)
             if (iii < 2 && jjj < 2 && kkk < 2 && lll < 2) {
@@ -1058,7 +1074,7 @@ __global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_sp
 #endif
                         (iii, jjj, kkk, lll, ii, jj, kk, ll, DNMax, hyb_coeff, natom, nbasis,
                         nshell, jbasis, xyz, kstart, katom, kprim, Qstart, Qsbasis, Qfbasis,
-                        cons, KLMN, prim_total, prim_start,
+                        cons, sKLMN, prim_total, prim_start,
 #if defined(USE_LEGACY_ATOMICS)
                         oULL,
   #if defined(OSHELL)
@@ -1075,7 +1091,8 @@ __global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_sp
                         denseb,
 #endif
                         Xcoeff, expoSum, weightedCenterX, weightedCenterY,
-                        weightedCenterZ, cutPrim, integralCutoff, primLimit, store);
+                        weightedCenterZ, cutPrim, integralCutoff, primLimit,
+                        store, strans, sSumindex);
                 }
             }
 #if defined(int_sp) || defined(int_spd)
@@ -1145,10 +1162,10 @@ __global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) getAOInt_kernel
             
             if ((LOC2(YCutoff, kk, ll, nshell, nshell) * LOC2(YCutoff, ii, jj, nshell, nshell))
                     > leastIntegralCutoff) {
-                const uint8_t iii = sorted_Qnumber[II];
-                const uint8_t jjj = sorted_Qnumber[JJ];
-                const uint8_t kkk = sorted_Qnumber[KK];
-                const uint8_t lll = sorted_Qnumber[LL];
+                const uint32_t iii = sorted_Qnumber[II];
+                const uint32_t jjj = sorted_Qnumber[JJ];
+                const uint32_t kkk = sorted_Qnumber[KK];
+                const uint32_t lll = sorted_Qnumber[LL];
     #if defined(int_spd)
                 iclass_AOInt(iii, jjj, kkk, lll, ii, jj, kk, ll, 1.0, aoint_buffer, streamID,
                         store + offside);
@@ -1236,7 +1253,7 @@ __device__ static inline void iclass_AOInt_spdf9
     #elif defined(int_spdf10)
 __device__ static inline void iclass_AOInt_spdf10
     #endif
-    (uint8_t I, uint8_t J, uint8_t K, uint8_t L, uint32_t II, uint32_t JJ, uint32_t KK, uint32_t LL,
+    (uint32_t I, uint32_t J, uint32_t K, uint32_t L, uint32_t II, uint32_t JJ, uint32_t KK, uint32_t LL,
      QUICKDouble DNMax, ERI_entry* aoint_buffer, int streamID, QUICKDouble* store)
 {
     /*
@@ -1281,8 +1298,8 @@ __device__ static inline void iclass_AOInt_spdf10
     /*
      Initial the neccessary element for
      */
-    for (uint8_t i = Sumindex[K + 1] + 1; i <= Sumindex[K + L + 2]; i++) {
-        for (uint8_t j = Sumindex[I + 1] + 1; j <= Sumindex[I + J + 2]; j++) {
+    for (uint32_t i = Sumindex[K + 1] + 1; i <= Sumindex[K + L + 2]; i++) {
+        for (uint32_t j = Sumindex[I + 1] + 1; j <= Sumindex[I + J + 2]; j++) {
             if (i <= STOREDIM && j <= STOREDIM) {
                 LOCSTORE(store, j - 1, i - 1, STOREDIM, STOREDIM) = 0.0;
             }

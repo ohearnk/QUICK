@@ -220,8 +220,8 @@ enum QUICK_METHOD
 };
 
 struct ERI_entry {
-    uint8_t IJ;
-    uint8_t KL;
+    uint32_t IJ;
+    uint32_t KL;
     QUICKDouble value;
 };
 

@@ -11,7 +11,7 @@
    !_____________________________________________________________________!
    */
 
-__device__ static inline void OEint_vertical(uint8_t I, uint8_t J, 
+__device__ static inline void OEint_vertical(uint32_t I, uint32_t J, 
 #if defined(DEBUG_OEI)
         uint32_t II, uint32_t JJ,
 #endif

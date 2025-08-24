@@ -21,7 +21,7 @@
 #define STORE_OPERATOR =
 
 
-__device__ static inline void ERint_vertical_spdf_3_2(uint8_t I, uint8_t J, uint8_t K, uint8_t L,
+__device__ static inline void ERint_vertical_spdf_3_2(uint32_t I, uint32_t J, uint32_t K, uint32_t L,
         QUICKDouble Ptempx, QUICKDouble Ptempy, QUICKDouble Ptempz,
         QUICKDouble WPtempx, QUICKDouble WPtempy, QUICKDouble WPtempz,
         QUICKDouble Qtempx, QUICKDouble Qtempy, QUICKDouble Qtempz,

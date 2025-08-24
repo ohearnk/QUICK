@@ -47,14 +47,14 @@ __device__ static inline void iclass_lri
 #elif defined(int_spdf2)
 __device__ static inline void iclass_lri_spdf2
 #endif
-    (uint8_t I, uint8_t J, uint32_t II, uint32_t JJ, uint32_t iatom,
+    (uint32_t I, uint32_t J, uint32_t II, uint32_t JJ, uint32_t iatom,
      uint32_t totalatom, uint32_t natom, uint32_t nbasis,
      uint32_t nshell, uint32_t jbasis, QUICKDouble const * const xyz,
      QUICKDouble const * const allxyz, uint32_t const * const kstart, uint32_t const * const katom,
      uint32_t const * const kprim, uint32_t const * const Qstart,
      uint32_t const * const Qsbasis, uint32_t const * const Qfbasis,
-     uint8_t const * const sorted_Qnumber, uint32_t const * const sorted_Q,
-     QUICKDouble const * const cons, uint8_t const * const KLMN,
+     uint32_t const * const sorted_Qnumber, uint32_t const * const sorted_Q,
+     QUICKDouble const * const cons, uint32_t const * const KLMN,
      uint32_t prim_total, uint32_t const * const prim_start,
 #if defined(USE_LEGACY_ATOMICS)
      QUICKULL * const oULL,
@@ -67,7 +67,7 @@ __device__ static inline void iclass_lri_spdf2
 #if defined(MPIV_GPU)
      unsigned char const * const mpi_bcompute,
 #endif
-     QUICKDouble * const store)
+     QUICKDouble * const store, uint32_t const * const trans, uint32_t const * const Sumindex)
 {
     /*
        kAtom A, B, C ,D is the coresponding atom for shell ii, jj, kk, ll
@@ -108,16 +108,16 @@ __device__ static inline void iclass_lri_spdf2
        Initial the neccessary element for
     */
 #if defined(int_spd)
-    for (uint8_t i = Sumindex[1] + 1; i <= Sumindex[2]; i++) {
-        for (uint8_t j = Sumindex[I + 1] + 1; j <= Sumindex[I + J + 2]; j++) {
+    for (uint32_t i = Sumindex[1] + 1; i <= Sumindex[2]; i++) {
+        for (uint32_t j = Sumindex[I + 1] + 1; j <= Sumindex[I + J + 2]; j++) {
             if (i <= STOREDIM && j <= STOREDIM) {
                 LOCSTORE(store, j - 1, i - 1, STOREDIM, STOREDIM) = 0.0;
             }
         }
     }
 #elif(defined int_spdf2)
-    for (uint8_t i = Sumindex[1] + 1; i <= Sumindex[2]; i++) {
-        for (uint8_t j = Sumindex[I + 1] + 1; j <= Sumindex[I + J + 2]; j++) {
+    for (uint32_t i = Sumindex[1] + 1; i <= Sumindex[2]; i++) {
+        for (uint32_t j = Sumindex[I + 1] + 1; j <= Sumindex[I + J + 2]; j++) {
             if (i <= STOREDIM && j <= STOREDIM) {
                 LOCSTORE(store, j - 1, i - 1, STOREDIM, STOREDIM) = 0.0;
             }
@@ -247,15 +247,14 @@ __device__ static inline void iclass_lri_spdf2
                 (I, J, 0, 0, III, JJJ, 0, 0,
                  RAx, RAy, RAz, RBx, RBy, RBz,
                  RCx, RCy, RCz, 0.0, 0.0, 0.0,
-                 nbasis, cons, KLMN, store);
+                 nbasis, cons, KLMN, store, trans);
 
             //printf("II JJ III JJJ Y %d %d %d %d %f \n", II, JJ, III, JJJ, Y);
 #if defined(int_spd)
-            if (abs(Y) > 0.0e0)
+            if (abs(Y) > 0.0e0) {
 #else
-            if (abs(Y) > coreIntegralCutoff)
+            if (abs(Y) > coreIntegralCutoff) {
 #endif
-            {
 #if defined(USE_LEGACY_ATOMICS)
                 GPUATOMICADD(&LOC2(oULL, JJJ, III, nbasis, nbasis), Y, OSCALE);    
 #else
@@ -336,8 +335,8 @@ __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_get_lri_spdf2
      uint32_t const * const kstart, uint32_t const * const katom,
      uint32_t const * const kprim, uint32_t const * const Qstart,
      uint32_t const * const Qsbasis, uint32_t const * const Qfbasis,
-     uint8_t const * const sorted_Qnumber, uint32_t const * const sorted_Q,
-     QUICKDouble const * const cons, uint8_t const * const KLMN,
+     uint32_t const * const sorted_Qnumber, uint32_t const * const sorted_Q,
+     QUICKDouble const * const cons, uint32_t const * const KLMN,
      uint32_t prim_total, uint32_t const * const prim_start,
 #if defined(USE_LEGACY_ATOMICS)
      QUICKULL * const oULL,
@@ -350,11 +349,10 @@ __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_get_lri_spdf2
 #if defined(MPIV_GPU)
      unsigned char const * const mpi_bcompute,
 #endif
-     QUICKDouble * const store)
+    QUICKDouble * const store, uint32_t const * const trans, uint32_t const * const Sumindex)
 {
     unsigned int offset = blockIdx.x * blockDim.x + threadIdx.x;
     int totalThreads = blockDim.x * gridDim.x;
-
     // jshell and jshell2 defines the regions in i+j and k+l axes respectively.
     // sqrQshell= Qshell x Qshell; where Qshell is the number of sorted shells (see gpu_upload_basis_ in gpu.cu)
     // for details on sorting.
@@ -376,8 +374,23 @@ __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_get_lri_spdf2
 #elif defined(int_spdf2)
     QUICKULL jshell = (QUICKULL) sqrQshell;
 #endif
-
     uint32_t totalatom = natom + nextatom;
+    extern __shared__ uint32_t smem[];
+    uint32_t *strans = smem;
+    uint32_t *sSumindex = &strans[TRANSDIM * TRANSDIM * TRANSDIM];
+    uint32_t *sKLMN = &sSumindex[10];
+
+    for (int i = threadIdx.x; i < TRANSDIM * TRANSDIM * TRANSDIM; i += blockDim.x) {
+        strans[i] = trans[i];
+    }
+    for (int i = threadIdx.x; i < 10; i += blockDim.x) {
+        sSumindex[i] = Sumindex[i];
+    }
+    for (int i = threadIdx.x; i < 3 * (int) nbasis; i += blockDim.x) {
+        sKLMN[i] = KLMN[i];
+    }
+
+    __syncthreads();
 
     for (QUICKULL i = offset; i < jshell * totalatom; i+= totalThreads) {
 #if defined(int_spd)
@@ -402,8 +415,8 @@ __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_get_lri_spdf2
 
 //            printf("b II JJ ii jj %lu %lu %d %d %d %d \n", jshell, b, II, JJ, ii, jj);
 
-            uint8_t iii = sorted_Qnumber[II];
-            uint8_t jjj = sorted_Qnumber[JJ];
+            uint32_t iii = sorted_Qnumber[II];
+            uint32_t jjj = sorted_Qnumber[JJ];
 
             // assign values to dummy variables, to be cleaned up eventually
 #if defined(int_spd)
@@ -415,14 +428,14 @@ __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_get_lri_spdf2
 #endif
                 (iii, jjj, ii, jj, iatom, totalatom, natom, nbasis, nshell, jbasis,
                  xyz, allxyz, kstart, katom, kprim, Qstart, Qsbasis, Qfbasis,
-                 cons, KLMN, prim_total, prim_start,
+                 cons, sKLMN, prim_total, prim_start,
 #if defined(USE_LEGACY_ATOMICS)
                  oULL,
 #else
                  o,
 #endif
                  Xcoeff, expoSum, weightedCenterX, weightedCenterY,
-                 weightedCenterZ, store + offset);
+                 weightedCenterZ, store + offset, strans, sSumindex);
             }
 #if defined(MPIV_GPU)
         }

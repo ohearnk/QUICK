@@ -5,7 +5,7 @@
 #include "include/h_all_subroutines.h"
 
 
-__device__ static inline void vertical_spdf(uint8_t I, uint8_t J, uint8_t K, uint8_t L,
+__device__ static inline void vertical_spdf(uint32_t I, uint32_t J, uint32_t K, uint32_t L,
         QUICKDouble * const YVerticalTemp, QUICKDouble * const store,
         QUICKDouble Ptempx, QUICKDouble Ptempy, QUICKDouble Ptempz,
         QUICKDouble WPtempx, QUICKDouble WPtempy, QUICKDouble WPtempz,
@@ -80,7 +80,7 @@ __device__ static inline void vertical_spdf(uint8_t I, uint8_t J, uint8_t K, uin
 }
 
 
-__device__ static inline void vertical_spdf2(uint8_t I, uint8_t J, uint8_t K, uint8_t L,
+__device__ static inline void vertical_spdf2(uint32_t I, uint32_t J, uint32_t K, uint32_t L,
         QUICKDouble * const YVerticalTemp, QUICKDouble * const store,
         QUICKDouble Ptempx, QUICKDouble Ptempy, QUICKDouble Ptempz,
         QUICKDouble WPtempx, QUICKDouble WPtempy, QUICKDouble WPtempz,
@@ -149,7 +149,7 @@ __device__ static inline void vertical_spdf2(uint8_t I, uint8_t J, uint8_t K, ui
 }
 
 
-__device__ static inline void vertical_spdf3(uint8_t I, uint8_t J, uint8_t K, uint8_t L,
+__device__ static inline void vertical_spdf3(uint32_t I, uint32_t J, uint32_t K, uint32_t L,
         QUICKDouble * const YVerticalTemp, QUICKDouble * const store,
         QUICKDouble Ptempx, QUICKDouble Ptempy, QUICKDouble Ptempz,
         QUICKDouble WPtempx, QUICKDouble WPtempy, QUICKDouble WPtempz,
@@ -166,7 +166,7 @@ __device__ static inline void vertical_spdf3(uint8_t I, uint8_t J, uint8_t K, ui
 }
 
 
-__device__ static inline void vertical_spdf4(uint8_t I, uint8_t J, uint8_t K, uint8_t L,
+__device__ static inline void vertical_spdf4(uint32_t I, uint32_t J, uint32_t K, uint32_t L,
         QUICKDouble * const YVerticalTemp, QUICKDouble * const store,
         QUICKDouble Ptempx, QUICKDouble Ptempy, QUICKDouble Ptempz,
         QUICKDouble WPtempx, QUICKDouble WPtempy, QUICKDouble WPtempz,
@@ -183,7 +183,7 @@ __device__ static inline void vertical_spdf4(uint8_t I, uint8_t J, uint8_t K, ui
 }
 
 
-__device__ static inline void vertical_spdf5(uint8_t I, uint8_t J, uint8_t K, uint8_t L,
+__device__ static inline void vertical_spdf5(uint32_t I, uint32_t J, uint32_t K, uint32_t L,
         QUICKDouble * const YVerticalTemp, QUICKDouble * const store,
         QUICKDouble Ptempx, QUICKDouble Ptempy, QUICKDouble Ptempz,
         QUICKDouble WPtempx, QUICKDouble WPtempy, QUICKDouble WPtempz,
@@ -200,7 +200,7 @@ __device__ static inline void vertical_spdf5(uint8_t I, uint8_t J, uint8_t K, ui
 }
 
 
-__device__ static inline void vertical_spdf6(uint8_t I, uint8_t J, uint8_t K, uint8_t L,
+__device__ static inline void vertical_spdf6(uint32_t I, uint32_t J, uint32_t K, uint32_t L,
         QUICKDouble * const YVerticalTemp, QUICKDouble * const store,
         QUICKDouble Ptempx, QUICKDouble Ptempy, QUICKDouble Ptempz,
         QUICKDouble WPtempx, QUICKDouble WPtempy, QUICKDouble WPtempz,
@@ -217,7 +217,7 @@ __device__ static inline void vertical_spdf6(uint8_t I, uint8_t J, uint8_t K, ui
 }
 
 
-__device__ static inline void vertical_spdf7(uint8_t I, uint8_t J, uint8_t K, uint8_t L,
+__device__ static inline void vertical_spdf7(uint32_t I, uint32_t J, uint32_t K, uint32_t L,
         QUICKDouble * const YVerticalTemp, QUICKDouble * const store,
         QUICKDouble Ptempx, QUICKDouble Ptempy, QUICKDouble Ptempz,
         QUICKDouble WPtempx, QUICKDouble WPtempy, QUICKDouble WPtempz,
@@ -234,7 +234,7 @@ __device__ static inline void vertical_spdf7(uint8_t I, uint8_t J, uint8_t K, ui
 }
 
 
-__device__ static inline void vertical_spdf8(uint8_t I, uint8_t J, uint8_t K, uint8_t L,
+__device__ static inline void vertical_spdf8(uint32_t I, uint32_t J, uint32_t K, uint32_t L,
         QUICKDouble * const YVerticalTemp, QUICKDouble * const store,
         QUICKDouble Ptempx, QUICKDouble Ptempy, QUICKDouble Ptempz,
         QUICKDouble WPtempx, QUICKDouble WPtempy, QUICKDouble WPtempz,
@@ -251,7 +251,7 @@ __device__ static inline void vertical_spdf8(uint8_t I, uint8_t J, uint8_t K, ui
 }
 
 
-__device__ static inline void vertical_spdf9(uint8_t I, uint8_t J, uint8_t K, uint8_t L,
+__device__ static inline void vertical_spdf9(uint32_t I, uint32_t J, uint32_t K, uint32_t L,
         QUICKDouble * const YVerticalTemp, QUICKDouble * const store,
         QUICKDouble Ptempx, QUICKDouble Ptempy, QUICKDouble Ptempz,
         QUICKDouble WPtempx, QUICKDouble WPtempy, QUICKDouble WPtempz,
@@ -268,7 +268,7 @@ __device__ static inline void vertical_spdf9(uint8_t I, uint8_t J, uint8_t K, ui
 }
 
 
-__device__ static inline void vertical_spdf10(uint8_t I, uint8_t J, uint8_t K, uint8_t L,
+__device__ static inline void vertical_spdf10(uint32_t I, uint32_t J, uint32_t K, uint32_t L,
         QUICKDouble * const YVerticalTemp, QUICKDouble * const store,
         QUICKDouble Ptempx, QUICKDouble Ptempy, QUICKDouble Ptempz,
         QUICKDouble WPtempx, QUICKDouble WPtempy, QUICKDouble WPtempz,
@@ -288,7 +288,7 @@ __device__ static inline void vertical_spdf10(uint8_t I, uint8_t J, uint8_t K, u
 #undef STOREDIM
 #define STOREDIM STOREDIM_S
 // Vertical for s, p, d orbitals
-__device__ static inline void vertical(uint8_t I, uint8_t J, uint8_t K, uint8_t L,
+__device__ static inline void vertical(uint32_t I, uint32_t J, uint32_t K, uint32_t L,
         QUICKDouble * const YVerticalTemp, QUICKDouble * const store,
         QUICKDouble Ptempx, QUICKDouble Ptempy, QUICKDouble Ptempz,
         QUICKDouble WPtempx, QUICKDouble WPtempy, QUICKDouble WPtempz,

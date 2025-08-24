@@ -294,12 +294,12 @@ struct gpu_simulation_type {
     uint32_t *Qfinal;
     uint32_t *Qsbasis;
     uint32_t *Qfbasis;
-    uint8_t *sorted_Qnumber;
+    uint32_t *sorted_Qnumber;
     uint32_t *sorted_Q;
     QUICKDouble *gccoeff;
     QUICKDouble *cons;
     QUICKDouble *gcexpo;
-    uint8_t *KLMN;
+    uint32_t *KLMN;
     uint32_t prim_total;
     uint32_t *prim_start;
 
@@ -379,6 +379,9 @@ struct gpu_simulation_type {
     QUICKDouble *lri_cc;
     QUICKDouble *cew_vrecip;
     bool use_cew;
+
+    uint32_t *trans;
+    uint32_t *Sumindex;
 };
 
 struct gpu_basis_type {
@@ -413,7 +416,7 @@ struct gpu_basis_type {
     gpu_buffer_type<uint32_t> *Qfinal;
     gpu_buffer_type<uint32_t> *Qsbasis;
     gpu_buffer_type<uint32_t> *Qfbasis;
-    gpu_buffer_type<uint8_t> *sorted_Qnumber;
+    gpu_buffer_type<uint32_t> *sorted_Qnumber;
     gpu_buffer_type<uint32_t> *sorted_Q;
     gpu_buffer_type<QUICKDouble> *gccoeff;
     gpu_buffer_type<QUICKDouble> *Xcoeff;                     // 4-dimension one
@@ -424,7 +427,7 @@ struct gpu_basis_type {
     gpu_buffer_type<QUICKDouble> *weightedCenterZ;            // 4-dimension one
     gpu_buffer_type<QUICKDouble> *cons;
     gpu_buffer_type<QUICKDouble> *gcexpo;
-    gpu_buffer_type<uint8_t> *KLMN;
+    gpu_buffer_type<uint32_t> *KLMN;
     gpu_buffer_type<QUICKDouble> *Apri;
     gpu_buffer_type<QUICKDouble> *Kpri;
     gpu_buffer_type<QUICKDouble> *PpriX;

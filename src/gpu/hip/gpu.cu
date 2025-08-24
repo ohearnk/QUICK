@@ -692,8 +692,6 @@ extern "C" void gpu_setup_(int* natom, int* nbasis, int* nElec, int* imult, int*
     GPU_TIMER_START();
 #endif
 
-    upload_para_to_const( );
-
 #if defined(DEBUG)
     GPU_TIMER_STOP();
   #if defined(GPU)
@@ -869,7 +867,7 @@ extern "C" void gpu_upload_cutoff_(QUICKDouble* cutMatrix, QUICKDouble* integral
 //-----------------------------------------------
 extern "C" void gpu_upload_cutoff_matrix_(QUICKDouble* YCutoff,QUICKDouble* cutPrim)
 {
-    uint8_t sort_method;
+    uint32_t sort_method;
 
 #if defined(MPIV_GPU)
     GPU_TIMER_CREATE();
@@ -1564,7 +1562,7 @@ extern "C" void gpu_upload_oei_(int* nextatom, QUICKDouble* extxyz, QUICKDouble*
     // allocate array for sorted shell pair info
     gpu->gpu_cutoff->sorted_OEICutoffIJ = new gpu_buffer_type<int2>(gpu->gpu_basis->Qshell * gpu->gpu_basis->Qshell);
 
-    uint8_t sort_method = 0;
+    uint32_t sort_method = 0;
     uint32_t a = 0;
 
     if (sort_method == 0) {
@@ -1639,8 +1637,8 @@ extern "C" void gpu_upload_oei_(int* nextatom, QUICKDouble* extxyz, QUICKDouble*
         uint32_t ii = gpu->gpu_basis->sorted_Q->_hostData[II];
         uint32_t jj = gpu->gpu_basis->sorted_Q->_hostData[JJ];
 
-        uint8_t iii = gpu->gpu_basis->sorted_Qnumber->_hostData[II];
-        uint8_t jjj = gpu->gpu_basis->sorted_Qnumber->_hostData[JJ];
+        uint32_t iii = gpu->gpu_basis->sorted_Qnumber->_hostData[II];
+        uint32_t jjj = gpu->gpu_basis->sorted_Qnumber->_hostData[JJ];
 
         printf("%i II JJ ii jj iii jjj %d %d %d %d %d %d nprim_i: %d nprim_j: %d \n",i, II, JJ, ii, jj, iii, jjj, gpu->gpu_basis->kprim->_hostData[ii], gpu->gpu_basis->kprim->_hostData[jj]);
         }
@@ -1788,6 +1786,130 @@ extern "C" void gpu_upload_basis_(int* nshell, int* nprim, int* jshell, int* jba
         int* Qnumber, int* Qstart, int* Qfinal, int* Qsbasis, int* Qfbasis,
         QUICKDouble* gccoeff, QUICKDouble* cons, QUICKDouble* gcexpo, int* KLMN)
 {
+    uint32_t trans[TRANSDIM * TRANSDIM * TRANSDIM] = {};
+    uint32_t Sumindex[10] = {0, 0, 1, 4, 10, 20, 35, 56, 84, 120};
+
+    LOC3(trans, 0, 0, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 0;
+    LOC3(trans, 0, 0, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 3;
+    LOC3(trans, 0, 0, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 9;
+    LOC3(trans, 0, 0, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 19;
+    LOC3(trans, 0, 0, 4, TRANSDIM, TRANSDIM, TRANSDIM) = 34;
+    LOC3(trans, 0, 0, 5, TRANSDIM, TRANSDIM, TRANSDIM) = 55;
+    LOC3(trans, 0, 0, 6, TRANSDIM, TRANSDIM, TRANSDIM) = 83;
+    LOC3(trans, 0, 0, 7, TRANSDIM, TRANSDIM, TRANSDIM) = 119;
+    LOC3(trans, 0, 1, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 2;
+    LOC3(trans, 0, 1, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 5;
+    LOC3(trans, 0, 1, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 16;
+    LOC3(trans, 0, 1, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 31;
+    LOC3(trans, 0, 1, 4, TRANSDIM, TRANSDIM, TRANSDIM) = 47;
+    LOC3(trans, 0, 1, 5, TRANSDIM, TRANSDIM, TRANSDIM) = 66;
+    LOC3(trans, 0, 1, 6, TRANSDIM, TRANSDIM, TRANSDIM) = 99;
+    LOC3(trans, 0, 2, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 8;
+    LOC3(trans, 0, 2, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 15;
+    LOC3(trans, 0, 2, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 22;
+    LOC3(trans, 0, 2, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 41;
+    LOC3(trans, 0, 2, 4, TRANSDIM, TRANSDIM, TRANSDIM) = 72;
+    LOC3(trans, 0, 2, 5, TRANSDIM, TRANSDIM, TRANSDIM) = 105;
+    LOC3(trans, 0, 3, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 18;
+    LOC3(trans, 0, 3, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 30;
+    LOC3(trans, 0, 3, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 42;
+    LOC3(trans, 0, 3, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 78;
+    LOC3(trans, 0, 3, 4, TRANSDIM, TRANSDIM, TRANSDIM) = 111;
+    LOC3(trans, 0, 4, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 33;
+    LOC3(trans, 0, 4, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 48;
+    LOC3(trans, 0, 4, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 73;
+    LOC3(trans, 0, 4, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 112;
+    LOC3(trans, 0, 5, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 54;
+    LOC3(trans, 0, 5, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 67;
+    LOC3(trans, 0, 5, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 106;
+    LOC3(trans, 0, 6, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 82;
+    LOC3(trans, 0, 6, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 100;
+    LOC3(trans, 0, 7, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 118;
+    LOC3(trans, 1, 0, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 1;
+    LOC3(trans, 1, 0, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 6;
+    LOC3(trans, 1, 0, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 14;
+    LOC3(trans, 1, 0, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 27;
+    LOC3(trans, 1, 0, 4, TRANSDIM, TRANSDIM, TRANSDIM) = 49;
+    LOC3(trans, 1, 0, 5, TRANSDIM, TRANSDIM, TRANSDIM) = 68;
+    LOC3(trans, 1, 0, 6, TRANSDIM, TRANSDIM, TRANSDIM) = 101;
+    LOC3(trans, 1, 1, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 4;
+    LOC3(trans, 1, 1, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 10;
+    LOC3(trans, 1, 1, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 25;
+    LOC3(trans, 1, 1, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 40;
+    LOC3(trans, 1, 1, 4, TRANSDIM, TRANSDIM, TRANSDIM) = 58;
+    LOC3(trans, 1, 1, 5, TRANSDIM, TRANSDIM, TRANSDIM) = 86;
+    LOC3(trans, 1, 2, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 12;
+    LOC3(trans, 1, 2, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 24;
+    LOC3(trans, 1, 2, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 35;
+    LOC3(trans, 1, 2, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 59;
+    LOC3(trans, 1, 2, 4, TRANSDIM, TRANSDIM, TRANSDIM) = 87;
+    LOC3(trans, 1, 3, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 29;
+    LOC3(trans, 1, 3, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 39;
+    LOC3(trans, 1, 3, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 60;
+    LOC3(trans, 1, 3, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 93;
+    LOC3(trans, 1, 4, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 51;
+    LOC3(trans, 1, 4, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 57;
+    LOC3(trans, 1, 4, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 88;
+    LOC3(trans, 1, 5, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 70;
+    LOC3(trans, 1, 5, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 85;
+    LOC3(trans, 1, 6, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 103;
+    LOC3(trans, 2, 0, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 7;
+    LOC3(trans, 2, 0, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 13;
+    LOC3(trans, 2, 0, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 21;
+    LOC3(trans, 2, 0, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 43;
+    LOC3(trans, 2, 0, 4, TRANSDIM, TRANSDIM, TRANSDIM) = 74;
+    LOC3(trans, 2, 0, 5, TRANSDIM, TRANSDIM, TRANSDIM) = 109;
+    LOC3(trans, 2, 1, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 11;
+    LOC3(trans, 2, 1, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 23;
+    LOC3(trans, 2, 1, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 36;
+    LOC3(trans, 2, 1, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 61;
+    LOC3(trans, 2, 1, 4, TRANSDIM, TRANSDIM, TRANSDIM) = 89;
+    LOC3(trans, 2, 2, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 20;
+    LOC3(trans, 2, 2, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 37;
+    LOC3(trans, 2, 2, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 65;
+    LOC3(trans, 2, 2, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 98;
+    LOC3(trans, 2, 3, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 45;
+    LOC3(trans, 2, 3, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 63;
+    LOC3(trans, 2, 3, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 97;
+    LOC3(trans, 2, 4, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 76;
+    LOC3(trans, 2, 4, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 91;
+    LOC3(trans, 2, 5, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 109;
+    LOC3(trans, 3, 0, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 17;
+    LOC3(trans, 3, 0, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 26;
+    LOC3(trans, 3, 0, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 44;
+    LOC3(trans, 3, 0, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 79;
+    LOC3(trans, 3, 0, 4, TRANSDIM, TRANSDIM, TRANSDIM) = 113;
+    LOC3(trans, 3, 1, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 28;
+    LOC3(trans, 3, 1, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 38;
+    LOC3(trans, 3, 1, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 62;
+    LOC3(trans, 3, 1, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 94;
+    LOC3(trans, 3, 2, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 46;
+    LOC3(trans, 3, 2, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 64;
+    LOC3(trans, 3, 2, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 96;
+    LOC3(trans, 3, 3, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 80;
+    LOC3(trans, 3, 3, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 95;
+    LOC3(trans, 3, 4, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 115;
+    LOC3(trans, 4, 0, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 32;
+    LOC3(trans, 4, 0, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 50;
+    LOC3(trans, 4, 0, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 75;
+    LOC3(trans, 4, 0, 3, TRANSDIM, TRANSDIM, TRANSDIM) = 114;
+    LOC3(trans, 4, 1, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 52;
+    LOC3(trans, 4, 1, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 56;
+    LOC3(trans, 4, 1, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 90;
+    LOC3(trans, 4, 2, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 77;
+    LOC3(trans, 4, 2, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 92;
+    LOC3(trans, 4, 3, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 116;
+    LOC3(trans, 5, 0, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 53;
+    LOC3(trans, 5, 0, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 69;
+    LOC3(trans, 5, 0, 2, TRANSDIM, TRANSDIM, TRANSDIM) = 108;
+    LOC3(trans, 5, 1, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 71;
+    LOC3(trans, 5, 1, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 84;
+    LOC3(trans, 5, 2, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 110;
+    LOC3(trans, 6, 0, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 81;
+    LOC3(trans, 6, 0, 1, TRANSDIM, TRANSDIM, TRANSDIM) = 102;
+    LOC3(trans, 6, 1, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 104;
+    LOC3(trans, 7, 0, 0, TRANSDIM, TRANSDIM, TRANSDIM) = 117;
+
 #if defined(DEBUG)
     GPU_TIMER_CREATE();
     GPU_TIMER_START();
@@ -1838,14 +1960,17 @@ extern "C" void gpu_upload_basis_(int* nshell, int* nprim, int* jshell, int* jba
 
     gpu->gpu_basis->cons = new gpu_buffer_type<QUICKDouble>(cons, gpu->nbasis);
     gpu->gpu_basis->gcexpo = new gpu_buffer_type<QUICKDouble>(gcexpo, MAXPRIM, gpu->nbasis);
-    gpu->gpu_basis->KLMN = new gpu_buffer_type<uint8_t>(3u, gpu->nbasis);
+    gpu->gpu_basis->KLMN = new gpu_buffer_type<uint32_t>(3u, gpu->nbasis);
+
+    gpuMalloc((void **) &gpu->gpu_sim.trans, sizeof(uint32_t) * TRANSDIM * TRANSDIM * TRANSDIM);
+    gpuMalloc((void **) &gpu->gpu_sim.Sumindex, sizeof(uint32_t) * 10);
 
     size_t index_c = 0;
     size_t index_f = 0;
     for (size_t j = 0; j < gpu->nbasis; j++) {
         for (size_t i = 0; i < 3; i++) {
             index_c = j * 3 + i;
-            gpu->gpu_basis->KLMN->_hostData[index_c] = (uint8_t) KLMN[index_f++];
+            gpu->gpu_basis->KLMN->_hostData[index_c] = (uint32_t) KLMN[index_f++];
         }
     }
 
@@ -1922,7 +2047,7 @@ extern "C" void gpu_upload_basis_(int* nshell, int* nprim, int* jshell, int* jba
     gpu->gpu_sim.Qshell = gpu->gpu_basis->Qshell;
 
     gpu->gpu_basis->sorted_Q = new gpu_buffer_type<uint32_t>(gpu->gpu_basis->Qshell);
-    gpu->gpu_basis->sorted_Qnumber = new gpu_buffer_type<uint8_t>(gpu->gpu_basis->Qshell);
+    gpu->gpu_basis->sorted_Qnumber = new gpu_buffer_type<uint32_t>(gpu->gpu_basis->Qshell);
 
     /*
        Now because to sort, sorted_Q stands for the shell no, and sorted_Qnumber is the shell orbital type (or angular momentum).
@@ -1938,7 +2063,7 @@ move p orbital to the end of the sequence. so the Qshell stands for the length o
         for (uint32_t j = gpu->gpu_basis->Qstart->_hostData[i]; j <= gpu->gpu_basis->Qfinal->_hostData[i]; j++) {
             if (a == 0) {
                 gpu->gpu_basis->sorted_Q->_hostData[0] = i;
-                gpu->gpu_basis->sorted_Qnumber->_hostData[0] = (uint8_t) j;
+                gpu->gpu_basis->sorted_Qnumber->_hostData[0] = (uint32_t) j;
             } else {
                 for (uint32_t k = 0; k < a; k++) {
                     if (j < gpu->gpu_basis->sorted_Qnumber->_hostData[k]) {
@@ -1949,11 +2074,11 @@ move p orbital to the end of the sequence. so the Qshell stands for the length o
                         }
 
                         gpu->gpu_basis->sorted_Q->_hostData[kk] = i;
-                        gpu->gpu_basis->sorted_Qnumber->_hostData[kk] = (uint8_t) j;
+                        gpu->gpu_basis->sorted_Qnumber->_hostData[kk] = (uint32_t) j;
                         break;
                     }
                     gpu->gpu_basis->sorted_Q->_hostData[a] = i;
-                    gpu->gpu_basis->sorted_Qnumber->_hostData[a] = (uint8_t) j;
+                    gpu->gpu_basis->sorted_Qnumber->_hostData[a] = (uint32_t) j;
                 }
             }
             a++;
@@ -2078,6 +2203,8 @@ move p orbital to the end of the sequence. so the Qshell stands for the length o
     gpu->gpu_basis->weightedCenterZ->Upload();
     gpu->gpu_basis->sorted_Q->Upload();
     gpu->gpu_basis->sorted_Qnumber->Upload();
+    gpuMemcpy(gpu->gpu_sim.trans, trans, sizeof(uint32_t) * TRANSDIM * TRANSDIM * TRANSDIM, hipMemcpyHostToDevice);
+    gpuMemcpy(gpu->gpu_sim.Sumindex, Sumindex, sizeof(uint32_t) * 10, hipMemcpyHostToDevice);
 
     gpu->gpu_sim.expoSum = gpu->gpu_basis->expoSum->_devData;
     gpu->gpu_sim.weightedCenterX = gpu->gpu_basis->weightedCenterX->_devData;

@@ -21,7 +21,7 @@
 #define STORE_OPERATOR =
 
 
-__device__ static inline void ERint_grad_vertical_spdf_4(uint8_t I, uint8_t J, uint8_t K, uint8_t L,
+__device__ static inline void ERint_grad_vertical_spdf_4(uint32_t I, uint32_t J, uint32_t K, uint32_t L,
         const QUICKDouble Ptempx, const QUICKDouble Ptempy, const QUICKDouble Ptempz,
         const QUICKDouble WPtempx, const QUICKDouble WPtempy, const QUICKDouble WPtempz,
         const QUICKDouble Qtempx, const QUICKDouble Qtempy, const QUICKDouble Qtempz,
