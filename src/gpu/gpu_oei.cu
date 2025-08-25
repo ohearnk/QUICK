@@ -50,7 +50,7 @@ static float totTime;
 // interface for kernel launching
 void getOEI(_gpu_type gpu) {
     QUICK_SAFE_CALL((k_oei <<<gpu->blocks, gpu->twoEThreadsPerBlock,
-                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u + 3u * gpu->nbasis)>>>
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u)>>>
                 (gpu->gpu_sim.natom, gpu->gpu_sim.nextatom, gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell,
                  gpu->gpu_sim.jbasis, gpu->gpu_sim.Qshell, gpu->gpu_sim.allchg,
                  gpu->gpu_sim.allxyz, gpu->gpu_sim.kstart, gpu->gpu_sim.katom,
@@ -75,7 +75,7 @@ void getOEI(_gpu_type gpu) {
 
 void get_oei_grad(_gpu_type gpu) {
     QUICK_SAFE_CALL((k_oei_grad <<<gpu->blocks, gpu->twoEThreadsPerBlock,
-                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u + 3u * gpu->nbasis)
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u)
 #if defined(USE_LEGACY_ATOMICS)
                 + sizeof(QUICKULL) * 3u * (gpu->natom + gpu->nextatom)>>>
 #else

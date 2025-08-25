@@ -440,7 +440,6 @@ __global__ void k_oei_grad(bool is_oshell, uint32_t natom, uint32_t nextatom, ui
     QUICKULL *sptchg_gradULL = &sgradULL[3u * natom];
     uint32_t *strans = (uint32_t *) &sptchg_gradULL[3u * nextatom];
     uint32_t *sSumindex = &strans[TRANSDIM * TRANSDIM * TRANSDIM];
-    uint32_t *sKLMN = &sSumindex[10];
 
     for (int i = threadIdx.x; i < 3 * (int) natom; i += blockDim.x) {
       sgradULL[i] = 0ull;
@@ -454,16 +453,12 @@ __global__ void k_oei_grad(bool is_oshell, uint32_t natom, uint32_t nextatom, ui
     for (int i = threadIdx.x; i < 10; i += blockDim.x) {
         sSumindex[i] = Sumindex[i];
     }
-    for (int i = threadIdx.x; i < 3 * (int) nbasis; i += blockDim.x) {
-        sKLMN[i] = KLMN[i];
-    }
 #else
     extern __shared__ QUICKDouble smem2[];
     QUICKDouble *sgrad = smem2;
     QUICKDouble *sptchg_grad = &sgrad[3u * natom];
     uint32_t *strans = (uint32_t *) &sptchg_grad[3u * nextatom];
     uint32_t *sSumindex = &strans[TRANSDIM * TRANSDIM * TRANSDIM];
-    uint32_t *sKLMN = &sSumindex[10];
 
     for (int i = threadIdx.x; i < 3 * (int) natom; i += blockDim.x) {
         sgrad[i] = 0.0;
@@ -476,9 +471,6 @@ __global__ void k_oei_grad(bool is_oshell, uint32_t natom, uint32_t nextatom, ui
     }
     for (int i = threadIdx.x; i < 10; i += blockDim.x) {
         sSumindex[i] = Sumindex[i];
-    }
-    for (int i = threadIdx.x; i < 3 * (int) nbasis; i += blockDim.x) {
-        sKLMN[i] = KLMN[i];
     }
 #endif
 
@@ -508,7 +500,7 @@ __global__ void k_oei_grad(bool is_oshell, uint32_t natom, uint32_t nextatom, ui
         // compute coulomb attraction for the selected shell pair.
         iclass_oei_grad(iii, jjj, ii, jj, iatom, is_oshell, natom, nextatom, nbasis, nshell, jbasis,
                 allchg, allxyz, kstart, katom, kprim, Ksumtype, Qstart, Qsbasis, Qfbasis,
-                cons, gcexpo, sKLMN, prim_total, prim_start, dense, denseb,
+                cons, gcexpo, KLMN, prim_total, prim_start, dense, denseb,
                 Xcoeff_oei, expoSum, weightedCenterX, weightedCenterY, weightedCenterZ,
                 coreIntegralCutoff,
 #if defined(USE_LEGACY_ATOMICS)

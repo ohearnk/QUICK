@@ -100,7 +100,7 @@ void get_lri(_gpu_type gpu)
     // Part spd
 //    nvtxRangePushA("SCF lri");
     QUICK_SAFE_CALL((k_get_lri <<<gpu->blocks, gpu->twoEThreadsPerBlock,
-                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u + 3u * gpu->nbasis)>>>
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u)>>>
                 (gpu->gpu_sim.natom, gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
                  gpu->gpu_sim.xyz, gpu->gpu_sim.allxyz, gpu->gpu_sim.kstart, gpu->gpu_sim.katom,
                  gpu->gpu_sim.kprim, gpu->gpu_sim.Qstart, gpu->gpu_sim.Qsbasis, gpu->gpu_sim.Qfbasis,
@@ -123,7 +123,7 @@ void get_lri(_gpu_type gpu)
     if (gpu->maxL >= 3) {
         // Part f-2
         QUICK_SAFE_CALL((k_get_lri_spdf2 <<<gpu->blocks, gpu->twoEThreadsPerBlock,
-                    sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u + 3u * gpu->nbasis)>>>
+                    sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u)>>>
                     (gpu->gpu_sim.natom, gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
                      gpu->gpu_sim.xyz, gpu->gpu_sim.allxyz, gpu->gpu_sim.kstart, gpu->gpu_sim.katom,
                      gpu->gpu_sim.kprim, gpu->gpu_sim.Qstart, gpu->gpu_sim.Qsbasis, gpu->gpu_sim.Qfbasis,
@@ -153,7 +153,7 @@ void get_lri_grad(_gpu_type gpu)
 {
 //   nvtxRangePushA("Gradient lri");
     QUICK_SAFE_CALL((k_get_lri_grad <<<gpu->blocks, gpu->gradThreadsPerBlock,
-                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u + 3u * gpu->nbasis)
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u)
 #if defined(USE_LEGACY_ATOMICS)
                 + sizeof(QUICKULL) * 3u * gpu->natom>>>
 #else
@@ -187,7 +187,7 @@ void get_lri_grad(_gpu_type gpu)
 //#if defined(GPU_SPDF)
         // Part f-2
         QUICK_SAFE_CALL((k_get_lri_grad_spdf2 <<<gpu->blocks, gpu->gradThreadsPerBlock,
-                    sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u + 3u * gpu->nbasis)
+                    sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u)
 #if defined(USE_LEGACY_ATOMICS)
                     + sizeof(QUICKULL) * 3u * gpu->natom>>>
 #else

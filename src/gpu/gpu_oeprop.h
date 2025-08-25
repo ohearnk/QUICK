@@ -230,16 +230,12 @@ __global__ void k_get_oeprop(bool is_oshell, uint32_t natom, uint32_t nextatom,
     extern __shared__ uint32_t smem[];
     uint32_t *strans = smem;
     uint32_t *sSumindex = &strans[TRANSDIM * TRANSDIM * TRANSDIM];
-    uint32_t *sKLMN = &sSumindex[10];
 
     for (int i = threadIdx.x; i < TRANSDIM * TRANSDIM * TRANSDIM; i += blockDim.x) {
         strans[i] = trans[i];
     }
     for (int i = threadIdx.x; i < 10; i += blockDim.x) {
         sSumindex[i] = Sumindex[i];
-    }
-    for (int i = threadIdx.x; i < 3 * (int) nbasis; i += blockDim.x) {
-        sKLMN[i] = KLMN[i];
     }
 
     __syncthreads();
@@ -274,7 +270,7 @@ __global__ void k_get_oeprop(bool is_oshell, uint32_t natom, uint32_t nextatom,
                 iclass_oeprop(iii, jjj, ii, jj, ipoint, nextpoint, natom + nextatom,
                         is_oshell, nbasis, nshell, jbasis,
                         allxyz, extpointxyz, kstart, katom, kprim, Qstart, Qsbasis, Qfbasis,
-                        cons, sKLMN, prim_total, prim_start, dense, denseb,
+                        cons, KLMN, prim_total, prim_start, dense, denseb,
 #if defined(USE_LEGACY_ATOMICS)
                         esp_electronicULL,
 #else

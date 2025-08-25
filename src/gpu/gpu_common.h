@@ -72,7 +72,7 @@ static FILE *debugFile = NULL;
   #define SM_2X_XCGRAD_THREADS_PER_BLOCK MAX_POINTS_PER_CLUSTER
   #define SM_2X_SSW_GRAD_THREADS_PER_BLOCK (320)
 #elif defined(HIP) || defined(HIP_MPIV)
-#if defined(AMD_ARCH_GFX90a)
+  #if defined(AMD_ARCH_GFX90a)
     /* constant for general purpose */
     #define SM_13_THREADS_PER_BLOCK (256)
     #define SM_2X_THREADS_PER_BLOCK (256)

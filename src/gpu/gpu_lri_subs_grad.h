@@ -1261,7 +1261,6 @@ k_get_lri_grad_spdf2
     QUICKULL *sgradULL = smem2;
     uint32_t *strans = (uint32_t *) &sgradULL[3u * natom];
     uint32_t *sSumindex = &strans[TRANSDIM * TRANSDIM * TRANSDIM];
-    uint32_t *sKLMN = &sSumindex[10];
 
     for (int i = threadIdx.x; i < 3 * (int) natom; i += blockDim.x) {
       sgradULL[i] = 0ull;
@@ -1272,15 +1271,11 @@ k_get_lri_grad_spdf2
     for (int i = threadIdx.x; i < 10; i += blockDim.x) {
         sSumindex[i] = Sumindex[i];
     }
-    for (int i = threadIdx.x; i < 3 * (int) nbasis; i += blockDim.x) {
-        sKLMN[i] = KLMN[i];
-    }
 #else
     extern __shared__ QUICKDouble smem2[];
     QUICKDouble *sgrad = smem2;
     uint32_t *strans = (uint32_t *) &sgrad[3u * natom];
     uint32_t *sSumindex = &strans[TRANSDIM * TRANSDIM * TRANSDIM];
-    uint32_t *sKLMN = &sSumindex[10];
 
     for (int i = threadIdx.x; i < 3 * (int) natom; i += blockDim.x) {
         sgrad[i] = 0.0;
@@ -1290,9 +1285,6 @@ k_get_lri_grad_spdf2
     }
     for (int i = threadIdx.x; i < 10; i += blockDim.x) {
         sSumindex[i] = Sumindex[i];
-    }
-    for (int i = threadIdx.x; i < 3 * (int) nbasis; i += blockDim.x) {
-        sKLMN[i] = KLMN[i];
     }
 #endif
 
@@ -1324,7 +1316,7 @@ k_get_lri_grad_spdf2
                 (iii, jjj, ii, jj, iatom, totalatom,
                  natom, nbasis, nshell, jbasis, xyz, allxyz,
                  kstart, katom, kprim, Ksumtype, Qstart, Qsbasis, Qfbasis,
-                 cons, gcexpo, sKLMN, prim_total, prim_start, dense,
+                 cons, gcexpo, KLMN, prim_total, prim_start, dense,
 #if defined(OSHELL)
                  denseb,
 #endif

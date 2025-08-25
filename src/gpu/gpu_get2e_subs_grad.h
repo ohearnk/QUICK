@@ -2600,7 +2600,6 @@ __launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) k_get_grad_cshell_spdf8
     QUICKULL *sgradULL = smem2;
     uint32_t *strans = (uint32_t *) &sgradULL[3u * natom];
     uint32_t *sSumindex = &strans[TRANSDIM * TRANSDIM * TRANSDIM];
-    uint32_t *sKLMN = &sSumindex[10];
 
     for (int i = threadIdx.x; i < 3 * (int) natom; i += blockDim.x) {
       sgradULL[i] = 0ull;
@@ -2611,15 +2610,11 @@ __launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) k_get_grad_cshell_spdf8
     for (int i = threadIdx.x; i < 10; i += blockDim.x) {
         sSumindex[i] = Sumindex[i];
     }
-    for (int i = threadIdx.x; i < 3 * (int) nbasis; i += blockDim.x) {
-        sKLMN[i] = KLMN[i];
-    }
 #else
     extern __shared__ QUICKDouble smem2[];
     QUICKDouble *sgrad = smem2;
     uint32_t *strans = (uint32_t *) &sgrad[3u * natom];
     uint32_t *sSumindex = &strans[TRANSDIM * TRANSDIM * TRANSDIM];
-    uint32_t *sKLMN = &sSumindex[10];
 
     for (int i = threadIdx.x; i < 3 * (int) natom; i += blockDim.x) {
         sgrad[i] = 0.0;
@@ -2629,9 +2624,6 @@ __launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) k_get_grad_cshell_spdf8
     }
     for (int i = threadIdx.x; i < 10; i += blockDim.x) {
         sSumindex[i] = Sumindex[i];
-    }
-    for (int i = threadIdx.x; i < 3 * (int) nbasis; i += blockDim.x) {
-        sKLMN[i] = KLMN[i];
     }
 #endif
 

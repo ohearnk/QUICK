@@ -378,16 +378,12 @@ __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_get_lri_spdf2
     extern __shared__ uint32_t smem[];
     uint32_t *strans = smem;
     uint32_t *sSumindex = &strans[TRANSDIM * TRANSDIM * TRANSDIM];
-    uint32_t *sKLMN = &sSumindex[10];
 
     for (int i = threadIdx.x; i < TRANSDIM * TRANSDIM * TRANSDIM; i += blockDim.x) {
         strans[i] = trans[i];
     }
     for (int i = threadIdx.x; i < 10; i += blockDim.x) {
         sSumindex[i] = Sumindex[i];
-    }
-    for (int i = threadIdx.x; i < 3 * (int) nbasis; i += blockDim.x) {
-        sKLMN[i] = KLMN[i];
     }
 
     __syncthreads();
@@ -428,7 +424,7 @@ __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_get_lri_spdf2
 #endif
                 (iii, jjj, ii, jj, iatom, totalatom, natom, nbasis, nshell, jbasis,
                  xyz, allxyz, kstart, katom, kprim, Qstart, Qsbasis, Qfbasis,
-                 cons, sKLMN, prim_total, prim_start,
+                 cons, KLMN, prim_total, prim_start,
 #if defined(USE_LEGACY_ATOMICS)
                  oULL,
 #else

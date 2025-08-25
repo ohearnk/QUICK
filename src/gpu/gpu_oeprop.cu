@@ -46,7 +46,7 @@ static float totTime;
 void getOEPROP(_gpu_type gpu)
 {
     QUICK_SAFE_CALL((k_get_oeprop <<<gpu->blocks, gpu->twoEThreadsPerBlock,
-                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u + 3u * gpu->nbasis)>>>
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u)>>>
                 (gpu->gpu_sim.is_oshell, gpu->gpu_sim.natom, gpu->gpu_sim.nextatom,
                  gpu->gpu_sim.nextpoint, gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell,
                  gpu->gpu_sim.jbasis, gpu->gpu_sim.Qshell, gpu->gpu_sim.allxyz,
