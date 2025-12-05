@@ -191,6 +191,8 @@ subroutine fullx
    integer g_count,ii,jj,kk
    double precision a,b,Ax,Ay,Az,Bx,By,Bz
 
+   integer NBASIS_lin_ind
+
    RECORD_TIME(timer_begin%T1eS)
 
    call allocfullx(quick_scratch,nbasis)
@@ -294,7 +296,7 @@ subroutine fullx
    ! Similarly:
    ! Xji = Sum(k=1,m) Ajk * transpose(U)ki
    ! Xji = Sum(k=1,m) Ujk * s^(-.5)kk * transpose(U)ki
-   ! Xji = Sum(k=1,m) Ujk * s^(-.5)kk * Uik
+   ! Xji = Sum(k=1,m) Ujk * s^(-.5)kk * Uik59
 
    ! This aggravating little demonstration contains two points:
    ! 1)  X can be calculated without crossing columns in the array
@@ -302,24 +304,51 @@ subroutine fullx
    ! 2)  X has to be symmetric. Thus we only have to fill the bottom
    ! half. (Lower Diagonal)
 
+   NBASIS_lin_ind = 0
+
    do I=1,nbasis
-      if (quick_scratch%Sminhalf(I).gt.1E-4) then
-      quick_scratch%tmphold(i,i)= quick_scratch%Sminhalf(I)**(-.5d0)
+      if (quick_scratch%Sminhalf(I).gt.1E-5) then
+         NBASIS_lin_ind = NBASIS_lin_ind + 1
+      endif
+   enddo
+
+   deallocate(quick_scratch%tmphold)
+   deallocate(quick_scratch%hold3)
+   deallocate(quick_scratch%tmpco)
+
+   allocate(quick_scratch%tmphold(NBASIS_lin_ind,NBASIS_lin_ind))
+   allocate(quick_scratch%hold3(nbasis,NBASIS_lin_ind))
+   allocate(quick_scratch%tmpco(nbasis,NBASIS_lin_ind))
+
+   Write(ioutfile,'("Number of linearly independent basis functions:",2X,i5)') NBASIS_lin_ind
+   write(ioutfile,'("condition number of overlap matrix:",2X,es11.3)') maxval(quick_scratch%Sminhalf)/minval(quick_scratch%Sminhalf)
+   write(ioutfile,'("Smallest eigenvalue of overlap matrix:",2X,es11.3)') minval(quick_scratch%Sminhalf)
+   write(ioutfile,'()')
+
+   NBASIS_lin_ind = 0
+
+   do I=1,nbasis
+      if (quick_scratch%Sminhalf(I).gt.1E-5) then
+         NBASIS_lin_ind = NBASIS_lin_ind + 1
+         quick_scratch%tmphold(NBASIS_lin_ind,NBASIS_lin_ind)= quick_scratch%Sminhalf(I)**(-.5d0)
+         do J=1,nbasis
+            quick_scratch%hold3(J,NBASIS_lin_ind)= quick_scratch%hold2(J,I)
+         enddo
       endif
    enddo
 
 #if defined(GPU) || defined(MPIV_GPU)
-   call GPU_DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0,quick_scratch%hold2, &
-   nbasis, quick_scratch%tmphold, nbasis, 0.0d0, quick_scratch%tmpco,nbasis)
+   call GPU_DGEMM ('n', 'n', nbasis, NBASIS_Lin_ind, NBASIS_Lin_ind, 1.0d0,quick_scratch%hold3, &
+   nbasis, quick_scratch%tmphold, NBASIS_Lin_ind, 0.0d0, quick_scratch%tmpco,nbasis)
 
-   call GPU_DGEMM ('n', 't', nbasis, nbasis, nbasis, 1.0d0,quick_scratch%tmpco, &
-   nbasis, quick_scratch%hold2, nbasis, 0.0d0, quick_qm_struct%x,nbasis)
+   call GPU_DGEMM ('n', 't', nbasis, nbasis, NBASIS_Lin_ind, 1.0d0,quick_scratch%tmpco, &
+   nbasis, quick_scratch%hold3, nbasis, 0.0d0, quick_qm_struct%x,nbasis)
 #else
-   call DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_scratch%hold2, &
-   nbasis, quick_scratch%tmphold, nbasis, 0.0d0, quick_scratch%tmpco,nbasis)
+   call DGEMM ('n', 'n', nbasis, NBASIS_Lin_ind, NBASIS_Lin_ind, 1.0d0, quick_scratch%hold3, &
+   nbasis, quick_scratch%tmphold, NBASIS_Lin_ind, 0.0d0, quick_scratch%tmpco,nbasis)
 
-   call DGEMM ('n', 't', nbasis, nbasis, nbasis, 1.0d0, quick_scratch%tmpco, &
-   nbasis, quick_scratch%hold2, nbasis, 0.0d0, quick_qm_struct%x,nbasis)
+   call DGEMM ('n', 't', nbasis, nbasis, NBASIS_Lin_ind, 1.0d0, quick_scratch%tmpco, &
+   nbasis, quick_scratch%hold3, nbasis, 0.0d0, quick_qm_struct%x,nbasis)
 #endif
 
    ! Transpose U onto X then copy on to U.  Now U contains U transpose.

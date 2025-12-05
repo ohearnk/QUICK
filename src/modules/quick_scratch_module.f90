@@ -25,7 +25,7 @@ module quick_scratch_module
     ! store some scratch arrays
     
     type quick_scratch_type
-        double precision, dimension(:,:), allocatable :: hold,hold2
+        double precision, dimension(:,:), allocatable :: hold,hold2,hold3
         ! variables required for fullx subroutines
         double precision, dimension(:,:), allocatable :: tmpx, tmphold, tmpco, V
         double precision, dimension(:), allocatable :: Sminhalf, IDEGEN1
@@ -73,6 +73,7 @@ module quick_scratch_module
             
             if(.not. allocated(self%hold)) allocate(self%hold(nbasis,nbasis))
             if(.not. allocated(self%hold2)) allocate(self%hold2(nbasis,nbasis))
+            if(.not. allocated(self%hold3)) allocate(self%hold3(nbasis,nbasis))
 #ifdef MPIV
             if(.not. allocated(self%osum)) allocate(self%osum(nbasis,nbasis))
             if(.not. allocated(self%obsum)) allocate(self%obsum(nbasis,nbasis))
@@ -88,6 +89,7 @@ module quick_scratch_module
             
             if (allocated(self%hold)) deallocate(self%hold)
             if (allocated(self%hold2)) deallocate(self%hold2)
+            if (allocated(self%hold3)) deallocate(self%hold3)
 #ifdef MPIV
             if(allocated(self%osum)) deallocate(self%osum)
             if(allocated(self%obsum)) deallocate(self%obsum)
