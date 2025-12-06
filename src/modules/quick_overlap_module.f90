@@ -308,32 +308,30 @@ subroutine fullx
 
    do I=1,nbasis
       if (quick_scratch%Sminhalf(I).gt.1E-5) then
-         NBASIS_lin_ind = NBASIS_lin_ind + 1
-      endif
-   enddo
+         NBASIS_lin_ind = nbasis - I + 1
 
-   deallocate(quick_scratch%tmphold)
-   deallocate(quick_scratch%hold3)
-   deallocate(quick_scratch%tmpco)
+         deallocate(quick_scratch%tmphold)
+         deallocate(quick_scratch%hold3)
+         deallocate(quick_scratch%tmpco)
 
-   allocate(quick_scratch%tmphold(NBASIS_lin_ind,NBASIS_lin_ind))
-   allocate(quick_scratch%hold3(nbasis,NBASIS_lin_ind))
-   allocate(quick_scratch%tmpco(nbasis,NBASIS_lin_ind))
+         allocate(quick_scratch%tmphold(NBASIS_lin_ind,NBASIS_lin_ind))
+         allocate(quick_scratch%hold3(nbasis,NBASIS_lin_ind))
+         allocate(quick_scratch%tmpco(nbasis,NBASIS_lin_ind))
 
-   Write(ioutfile,'("Number of linearly independent basis functions:",2X,i5)') NBASIS_lin_ind
-   write(ioutfile,'("condition number of overlap matrix:",2X,es11.3)') maxval(quick_scratch%Sminhalf)/minval(quick_scratch%Sminhalf)
-   write(ioutfile,'("Smallest eigenvalue of overlap matrix:",2X,es11.3)') minval(quick_scratch%Sminhalf)
-   write(ioutfile,'()')
+         write(ioutfile,'("Number of total basis functions:",2X,i5)') nbasis
+         write(ioutfile,'("Number of linearly independent basis functions:",2X,i5)') NBASIS_lin_ind
+         write(ioutfile,'("condition number of overlap matrix:",2X,es11.3)') maxval(quick_scratch%Sminhalf)/minval(quick_scratch%Sminhalf)
+         write(ioutfile,'("Smallest eigenvalue of overlap matrix:",2X,es11.3)') minval(quick_scratch%Sminhalf)
+         write(ioutfile,'()')
 
-   NBASIS_lin_ind = 0
-
-   do I=1,nbasis
-      if (quick_scratch%Sminhalf(I).gt.1E-5) then
-         NBASIS_lin_ind = NBASIS_lin_ind + 1
          quick_scratch%tmphold(NBASIS_lin_ind,NBASIS_lin_ind)= quick_scratch%Sminhalf(I)**(-.5d0)
-         do J=1,nbasis
-            quick_scratch%hold3(J,NBASIS_lin_ind)= quick_scratch%hold2(J,I)
+         do J=I,nbasis
+            quick_scratch%tmphold(J-I+1,J-I+1)= quick_scratch%Sminhalf(J)**(-.5d0)
+            do K=1,nbasis
+               quick_scratch%hold3(K,J-I+1)= quick_scratch%hold2(K,J)
+            enddo
          enddo
+         exit
       endif
    enddo
 
