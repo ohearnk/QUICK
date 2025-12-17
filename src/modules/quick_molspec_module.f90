@@ -85,6 +85,7 @@ module quick_molspec_module
 
       ! basis set number
       integer, pointer:: nbasis
+      integer, pointer:: NBASIS_lin_ind
 
    end type quick_molspec_type
 

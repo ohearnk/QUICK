@@ -114,13 +114,13 @@ module quick_method_module
         integer :: ncyc = 3
 
         ! following are some cutoff criteria
-        double precision :: coreIntegralCutoff = 1.0d-12 ! cutoff for 1e integral prescreening
+        double precision :: coreIntegralCutoff = 1.0d-18 ! cutoff for 1e integral prescreening
         double precision :: integralCutoff = 1.0d-7   ! integral cutoff
         double precision :: leastIntegralCutoff = LEASTCUTOFF  ! the smallest cutoff
         double precision :: maxIntegralCutoff = 1.0d-12
         double precision :: primLimit      = 1.0d-8   ! prime cutoff
         double precision :: gradCutoff     = 1.0d-7   ! gradient cutoff
-        double precision :: DMCutoff       = 1.0d-10  ! density matrix cutoff
+        double precision :: DMCutoff       = 1.0d-18  ! density matrix cutoff
         double precision :: XCCutoff       = 1.0d-7   ! exchange correlation cutoff
         logical :: isDefaultXCCutoff       = .true.
         !tol
@@ -953,14 +953,14 @@ module quick_method_module
             self%iopt = 0
             self%ncyc = 3
 
-            self%integralCutoff = 1.0d-7   ! integral cutoff
+            self%integralCutoff = 1.0d-18   ! integral cutoff
             self%leastIntegralCutoff = LEASTCUTOFF
                                            ! smallest integral cutoff, used in conventional SCF
-            self%maxIntegralCutoff = 1.0d-12
+            self%maxIntegralCutoff = 1.0d-18
                                            ! smallest integral cutoff, used in conventional SCF
-            self%primLimit      = 1.0d-8   ! prime cutoff
+            self%primLimit      = 1.0d-18   ! prime cutoff
             self%gradCutoff     = 1.0d-7   ! gradient cutoff
-            self%DMCutoff       = 1.0d-10  ! density matrix cutoff
+            self%DMCutoff       = 1.0d-18  ! density matrix cutoff
             self%XCCutoff       = 1.0d-7   ! exchange correlation cutoff
             self%isDefaultXCCutoff = .true. ! is XCCutoff default or user specified
 

@@ -176,7 +176,8 @@ subroutine get_cshell_eri(II_arg)
          do LL = KK,jshell
 
           cutoffTest = testtmp * Ycutoff(KK,LL)
-          if (cutoffTest .gt. quick_method%integralCutoff) then
+!          if (cutoffTest .gt. quick_method%integralCutoff) then
+          if (cutoffTest .gt. 1.0D-18) then
             DNmax =  max(4.0d0*cutmatrix(II,JJ), &
                   4.0d0*cutmatrix(KK,LL), &
                   cutmatrix(II,LL), &
@@ -186,7 +187,8 @@ subroutine get_cshell_eri(II_arg)
             ! (IJ|KL)^2<=(II|JJ)*(KK|LL) if smaller than cutoff criteria, then
             ! ignore the calculation to save computation time
 
-            if ( cutoffTest * DNmax  .gt. quick_method%integralCutoff ) &
+!            if ( cutoffTest * DNmax  .gt. quick_method%integralCutoff ) &
+            if ( cutoffTest * DNmax  .gt. 1.0D-18) &
 #ifdef OSHELL 
                 call oshell
 #else
@@ -307,7 +309,8 @@ subroutine cshell
 
                ! prim cutoff: cutoffprim(I,J,K,L) = dnmax * cutprim(I,J) * cutprim(K,L)
                cutoffprim=cutoffprim1*cutprim(Nprik,Npril)
-               if(cutoffprim.gt.quick_method%primLimit)then
+!               if(cutoffprim.gt.quick_method%primLimit)then
+               if(cutoffprim.gt.1.0D-18)then
 
                   !Nita quantity of HGP Eqn 10. This is same as
                   !zita (AB) above. 
@@ -519,7 +522,8 @@ subroutine iclass_cshell(I,J,K,L,NNA,NNC,NNAB,NNCD)
             do KKK=1,quick_basis%kprim(KK)
                Nprik=quick_basis%kstart(KK)+KKK-1
                cutoffprim=cutoffprim1*cutprim(Nprik,Npril)
-               if(cutoffprim.gt.quick_method%primLimit)then
+!               if(cutoffprim.gt.quick_method%primLimit)then
+               if(cutoffprim.gt.1.0D-18)then
 
                   itt = itt+1
                   !This is the KAB x KCD value reqired for HGP 12.
@@ -581,7 +585,8 @@ subroutine iclass_cshell(I,J,K,L,NNA,NNC,NNAB,NNCD)
                do LLL=max(KKK,LLL1),LLL2
                   if (III.lt.JJJ .and. III.lt. KKK .and. KKK.lt. LLL) then
                      call hrrwhole
-                     if (abs(Y).gt.quick_method%maxIntegralCutoff) then
+!                     if (abs(Y).gt.quick_method%maxIntegralCutoff) then
+                     if (abs(Y).gt.1.0D-18) then
                         A = (III-1)*nbasis+JJJ-1
                         B = (KKK-1)*nbasis+LLL-1
                         INTNUM=INTNUM+1
@@ -608,7 +613,8 @@ subroutine iclass_cshell(I,J,K,L,NNA,NNC,NNAB,NNCD)
                      endif
                   else if((III.LT.KKK).OR.(JJJ.LE.LLL))then
                      call hrrwhole
-                     if (abs(Y).gt.quick_method%maxintegralCutoff) then
+!                     if (abs(Y).gt.quick_method%maxintegralCutoff) then
+                     if (abs(Y).gt.1.0D-18) then
 
                         A = (III-1)*nbasis+JJJ-1
                         B = (KKK-1)*nbasis+LLL-1
@@ -1155,7 +1161,8 @@ subroutine aoint(ierr)
       INTNUM = 0
       do JJ = II,jshell;
          do KK = II,jshell; do LL = KK,jshell
-            if ( Ycutoff(II,JJ)*Ycutoff(KK,LL).gt. quick_method%leastIntegralCutoff) then
+!            if ( Ycutoff(II,JJ)*Ycutoff(KK,LL).gt. quick_method%leastIntegralCutoff) then
+            if ( Ycutoff(II,JJ)*Ycutoff(KK,LL).gt. 1.0D-18) then
                dnmax = 1.0
 #ifdef OSHELL
                call oshell
@@ -1437,9 +1444,12 @@ subroutine addInt
                      cutmatrix(JJ,LL))
                ! (IJ|KL)^2<=(II|JJ)*(KK|LL) if smaller than cutoff criteria, then
                ! ignore the calculation to save computation time
-               if ( (Ycutoff(II,JJ)*Ycutoff(KK,LL)        .gt. quick_method%integralCutoff).and. &
-                     (Ycutoff(II,JJ)*Ycutoff(KK,LL)*DNmax  .gt. quick_method%integralCutoff) .and. &
-                     (Ycutoff(II,JJ)*Ycutoff(KK,LL)  .lt. quick_method%leastIntegralCutoff))  &
+!               if ( (Ycutoff(II,JJ)*Ycutoff(KK,LL)        .gt. quick_method%integralCutoff).and. &
+!                     (Ycutoff(II,JJ)*Ycutoff(KK,LL)*DNmax  .gt. quick_method%integralCutoff) .and. &
+!                     (Ycutoff(II,JJ)*Ycutoff(KK,LL)  .lt. quick_method%leastIntegralCutoff))  &
+        !       if ( (Ycutoff(II,JJ)*Ycutoff(KK,LL)        .gt. 1.0D-18).and. &
+        !             (Ycutoff(II,JJ)*Ycutoff(KK,LL)*DNmax  .gt. 1.0D-18) .and. &
+        !             (Ycutoff(II,JJ)*Ycutoff(KK,LL)  .lt. 1.0D-18))  &
                      call cshell
 
             enddo

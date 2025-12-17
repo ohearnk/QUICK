@@ -51,5 +51,10 @@
 | #AUG-PC-1                         | AUG-PC1.BAS                         |
 | #AUG-PC-2                         | AUG-PC2.BAS                         |
 | #CUSTOM                           | CUSTOM.BAS                          |
+| #MYBAS                            | MYBAS.BAS                           |
+| #MYBAS2                           | MYBAS2.BAS                          |
+| #MYBAS3                           | MYBAS3.BAS                          |
+| #MYBAS4                           | MYBAS4.BAS                          |
+| #AUG-MYBAS3                       | AUG-MYBAS3.BAS                      |
 |_________________________________________________________________________|
 

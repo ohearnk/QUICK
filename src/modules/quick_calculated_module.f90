@@ -34,6 +34,7 @@ module quick_calculated_module
 
       ! Basis Set Number
       integer,pointer :: nbasis
+      integer,pointer :: NBASIS_Lin_ind
 
       ! overlap matrix, will be calculated once, independent on
       ! orbital coefficent. Its dimension is nbasis*nbasis
@@ -48,6 +49,7 @@ module quick_calculated_module
 
       ! operator matrix, the dimension is nbasis*nbasis. For HF, it's Fock Matrix
       double precision,dimension(:,:), allocatable :: o
+      double precision,dimension(:,:), allocatable :: ouse
 
       ! matrix for saving XC potential, required for incremental KS build
       double precision,dimension(:,:), allocatable :: oxc 
@@ -76,6 +78,10 @@ module quick_calculated_module
       ! matrix to hold eigenvectors after diagonalization,
       ! the dimension is nbasis*nbasis.
       double precision,dimension(:,:), allocatable :: vec
+
+      ! matrix to hold eigenvectors for level shifting,
+      ! the dimension is nbasis*nbasis.
+      double precision,dimension(:,:), allocatable :: oldvec
 
       ! Density matrix, when it's unrestricted system, it presents alpha density
       ! the dimension is nbasis*nbasis.
@@ -241,9 +247,11 @@ contains
       if(.not. allocated(self%x)) allocate(self%x(nbasis,nbasis))
       if(.not. allocated(self%oneElecO)) allocate(self%oneElecO(nbasis,nbasis))
       if(.not. allocated(self%o)) allocate(self%o(nbasis,nbasis))
+      if(.not. allocated(self%ouse)) allocate(self%ouse(nbasis,nbasis))
       if(.not. allocated(self%oSave)) allocate(self%oSave(nbasis,nbasis))
       if(.not. allocated(self%co)) allocate(self%co(nbasis,nbasis))
       if(.not. allocated(self%vec)) allocate(self%vec(nbasis,nbasis))
+      if(.not. allocated(self%oldvec)) allocate(self%oldvec(nbasis,nbasis))
       if(.not. allocated(self%dense)) allocate(self%dense(nbasis,nbasis))
       if(.not. allocated(self%denseSave)) allocate(self%denseSave(nbasis,nbasis))
       if(.not. allocated(self%denseOld)) allocate(self%denseOld(nbasis,nbasis))
@@ -368,6 +376,7 @@ contains
       call wchk_darray(idatafile, "s",        nbasis, nbasis, 1, self%s,        fail)
       call wchk_darray(idatafile, "x",        nbasis, nbasis, 1, self%x,        fail)
       call wchk_darray(idatafile, "o",        nbasis, nbasis, 1, self%o,        fail)
+      call wchk_darray(idatafile, "ouse",     nbasis, nbasis, 1, self%ouse,     fail)
       call wchk_darray(idatafile, "co",       nbasis, nbasis, 1, self%co,       fail)
       call wchk_darray(idatafile, "vec",      nbasis, nbasis, 1, self%vec,      fail)
       call wchk_darray(idatafile, "dense",    nbasis, nbasis, 1, self%dense,    fail)
@@ -397,7 +406,7 @@ contains
       implicit none
       integer io
 
-      integer nbasis
+      integer nbasis, NBASIS_Lin_ind
       integer natom
       integer nelec
       integer idimA
@@ -406,14 +415,17 @@ contains
       type (quick_qm_struct_type) self
 
       nullify(self%nbasis)
+      nullify(self%NBASIS_Lin_ind)
       ! those matrices is necessary for all calculation or the basic of other calculation
       if (allocated(self%s)) deallocate(self%s)
       if (allocated(self%x)) deallocate(self%x)
       if (allocated(self%oneElecO)) deallocate(self%oneElecO)
       if (allocated(self%o)) deallocate(self%o)
+      if (allocated(self%ouse)) deallocate(self%ouse)
       if (allocated(self%oSave)) deallocate(self%oSave)
       if (allocated(self%co)) deallocate(self%co)
       if (allocated(self%vec)) deallocate(self%vec)
+      if (allocated(self%oldvec)) deallocate(self%oldvec)
       if (allocated(self%dense)) deallocate(self%dense)
       if (allocated(self%denseSave)) deallocate(self%denseSave)
       if (allocated(self%denseOld)) deallocate(self%denseOld)
@@ -495,6 +507,7 @@ contains
       call MPI_BCAST(self%oSave,nbasis2,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
       call MPI_BCAST(self%co,nbasis2,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
       call MPI_BCAST(self%vec,nbasis2,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
+      call MPI_BCAST(self%oldvec,nbasis2,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
       call MPI_BCAST(self%dense,nbasis2,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
       call MPI_BCAST(self%denseSave,nbasis2,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
       call MPI_BCAST(self%denseOld,nbasis2,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
@@ -567,12 +580,14 @@ contains
       nelecb=quick_molspec%nelecb
 
       call zeroMatrix(self%s,nbasis)
-      call zeroMatrix(self%x,nbasis)
+      call zeroMatrix2(self%x,nbasis,nbasis)
       call zeroMatrix(self%oneElecO,nbasis)
       call zeroMatrix(self%o,nbasis)
+      call zeroMatrix(self%ouse,nbasis)
       call zeroMatrix(self%oSave,nbasis)
-      call zeroMatrix(self%co,nbasis)
+      call zeroMatrix2(self%co,nbasis,nbasis)
       call zeroMatrix(self%vec,nbasis)
+      call zeroMatrix(self%oldvec,nbasis)
       call zeroMatrix(self%dense,nbasis)
       call zeroMatrix(self%denseSave,nbasis)
       call zeroMatrix(self%denseOld,nbasis)

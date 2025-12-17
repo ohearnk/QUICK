@@ -40,6 +40,8 @@ module quick_scf_module
 
     double precision, allocatable, dimension(:)     :: RHS
 
+    double precision, allocatable, dimension(:,:) :: itererror
+
     double precision, allocatable, dimension(:,:,:) :: allerror
 
     double precision, allocatable, dimension(:,:,:) :: alloperator
@@ -66,7 +68,8 @@ contains
     if(.not. allocated(W))           allocate(W(quick_method%maxdiisscf+1), stat=ierr)
     if(.not. allocated(COEFF))       allocate(COEFF(quick_method%maxdiisscf+1), stat=ierr)
     if(.not. allocated(RHS))         allocate(RHS(quick_method%maxdiisscf+1), stat=ierr)
-    if(.not. allocated(allerror))    allocate(allerror(nbasis, nbasis, quick_method%maxdiisscf), stat=ierr)
+    if(.not. allocated(itererror))    allocate(itererror(nbasis, nbasis), stat=ierr)
+    if(.not. allocated(allerror))    allocate(allerror(NBASIS_Lin_ind, NBASIS_Lin_ind, quick_method%maxdiisscf), stat=ierr)
     if(.not. allocated(alloperator)) allocate(alloperator(nbasis, nbasis, quick_method%maxdiisscf), stat=ierr)
 
     !initialize values to zero
@@ -77,6 +80,7 @@ contains
     W           = 0.0d0
     COEFF       = 0.0d0
     RHS         = 0.0d0
+    itererror   = 0.0d0
     allerror    = 0.0d0
     alloperator = 0.0d0
   end subroutine allocate_quick_scf 
@@ -94,6 +98,7 @@ contains
     if(allocated(W))           deallocate(W, stat=ierr)
     if(allocated(COEFF))       deallocate(COEFF, stat=ierr)
     if(allocated(RHS))         deallocate(RHS, stat=ierr)
+    if(allocated(itererror))   deallocate(itererror, stat=ierr)
     if(allocated(allerror))    deallocate(allerror, stat=ierr)
     if(allocated(alloperator)) deallocate(alloperator, stat=ierr)
   end subroutine deallocate_quick_scf
@@ -191,8 +196,8 @@ contains
      integer :: lsolerr = 0
      integer :: IDIIS_Error_Start, IDIIS_Error_End
      double precision :: BIJ,DENSEJI,errormax,OJK,temp
-     double precision :: Sum2Mat,rms
-     integer :: I,J,K,L,IERROR
+     double precision :: Sum2Mat,rms, shift
+     integer :: I,J,K,L,IERROR, homo
   
      double precision :: oldEnergy=0.0d0,E1e ! energy for last iteration, and 1e-energy
      double precision :: PRMS,PCHANGE, tmp
@@ -320,8 +325,7 @@ contains
 !
 !     call computeLRI(c_coords,c_zeta,c_chg)
 !-----------------------------------------------
-
-  
+ 
      bCalc1e = .true.
      diisdone = .false.
      deltaO = .false.
@@ -387,7 +391,7 @@ contains
            ! matrix.
   
            ! The first part is ODS
-  
+ 
 #if defined(GPU) || defined(MPIV_GPU)
            call GPU_DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_qm_struct%dense, &
                  nbasis, quick_qm_struct%s, nbasis, 0.0d0, quick_scratch%hold,nbasis)
@@ -402,7 +406,7 @@ contains
                  nbasis, quick_scratch%hold, nbasis, 0.0d0, quick_scratch%hold2,nbasis)
 #endif
   
-           allerror(:,:,iidiis) = quick_scratch%hold2(:,:)
+           itererror(:,:) = quick_scratch%hold2(:,:)
   
            ! Calculate D O. then calculate S (do) and subtract that from the allerror matrix.
            ! This means we now have the e(i) matrix.
@@ -423,33 +427,33 @@ contains
            errormax = 0.d0
            do I=1,nbasis
               do J=1,nbasis
-                 allerror(J,I,iidiis) = allerror(J,I,iidiis) - quick_scratch%hold2(J,I) !e=ODS=SDO
-                 errormax = max(allerror(J,I,iidiis),errormax)
+                 itererror(J,I) = itererror(J,I) - quick_scratch%hold2(J,I) !e=ODS-SDO
+                 errormax = max(itererror(J,I),errormax)
               enddo
-           enddo
-  
-           !-----------------------------------------------
-           ! 3)  Move e to an orthogonal basis.  e'(i) = Transpose[X] .e(i). X
-           ! X is symmetric, but we do not know anything about the symmetry of e.
-           ! The easiest way to do this is to calculate e(i) . X , store
-           ! this in HOLD, and then calculate Transpose[X] (.e(i) . X)
-           !-----------------------------------------------
-           quick_scratch%hold2(:,:) = allerror(:,:,iidiis)
+          enddo
+
+          !-----------------------------------------------
+          ! 3)  Move e to an orthogonal basis.  e'(i) = Transpose[X] .e(i). X
+          ! X is symmetric, but we do not know anything about the symmetry of e.
+          ! The easiest way to do this is to calculate e(i) . X , store
+          ! this in HOLD, and then calculate Transpose[X] (.e(i) . X)
+          !-----------------------------------------------
+           quick_scratch%hold2(:,:) = itererror(:,:)
   
 #if defined(GPU) || defined(MPIV_GPU)
            call GPU_DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_scratch%hold2, &
                  nbasis, quick_qm_struct%x, nbasis, 0.0d0, quick_scratch%hold,nbasis)
   
-           call GPU_DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_qm_struct%x, &
+           call GPU_DGEMM ('t', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_qm_struct%x, &
                  nbasis, quick_scratch%hold, nbasis, 0.0d0, quick_scratch%hold2,nbasis)
 #else
-           call DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_scratch%hold2, &
-                 nbasis, quick_qm_struct%x, nbasis, 0.0d0, quick_scratch%hold,nbasis)
+           call DGEMM ('n', 'n', nbasis, NBASIS_lin_ind, nbasis, 1.0d0, quick_scratch%hold2, &
+                 nbasis, quick_qm_struct%x, nbasis, 0.0d0, quick_scratch%hold4,nbasis)
   
-           call DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_qm_struct%x, &
-                 nbasis, quick_scratch%hold, nbasis, 0.0d0, quick_scratch%hold2,nbasis)
+           call DGEMM ('t', 'n', NBASIS_lin_ind, NBASIS_lin_ind, nbasis, 1.0d0, quick_qm_struct%x, &
+                 nbasis, quick_scratch%hold4, nbasis, 0.0d0, quick_scratch%hold5, NBASIS_lin_ind)
 #endif
-           allerror(:,:,iidiis) = quick_scratch%hold2(:,:)
+           allerror(:,:,iidiis) = quick_scratch%hold5(:,:)
            !-----------------------------------------------
            ! 4)  Store the e'(I) and O(i).
            ! e'(i) is already stored.  Simply store the operator matrix in
@@ -501,14 +505,14 @@ contains
   
            ! Now copy the current matrix into HOLD2 transposed.  This will be the
            ! Transpose[ej] used in B(i,j) = Trace(e(i) Transpose(e(j)))
-           quick_scratch%hold2(:,:) = allerror(:,:,iidiis)
+           quick_scratch%hold5(:,:) = allerror(:,:,iidiis)
   
            do I=1,IDIISfinal
               ! Copy the transpose of error matrix I into HOLD.
-              quick_scratch%hold(:,:) = allerror(:,:,I) 
+              quick_scratch%hold6(:,:) = allerror(:,:,I) 
   
               ! Calculate and sum together the diagonal elements of e(i) Transpose(e(j))).
-              BIJ=Sum2Mat(quick_scratch%hold2,quick_scratch%hold,nbasis)
+              BIJ=Sum2Mat(quick_scratch%hold5,quick_scratch%hold6,NBASIS_Lin_ind)
               
               ! Now place this in the B matrix.
               if(idiis.le.quick_method%maxdiisscf)then
@@ -525,11 +529,11 @@ contains
            enddo
   
            if(idiis.gt.quick_method%maxdiisscf)then
-              quick_scratch%hold(:,:) = allerror(:,:,1)
+              quick_scratch%hold5(:,:) = allerror(:,:,1)
               do J=1,quick_method%maxdiisscf-1
                  allerror(:,:,J) = allerror(:,:,J+1)
               enddo
-              allerror(:,:,quick_method%maxdiisscf) = quick_scratch%hold(:,:)
+              allerror(:,:,quick_method%maxdiisscf) = quick_scratch%hold5(:,:)
            endif
   
            ! Now that all the BIJ elements are in place, fill in all the column
@@ -627,15 +631,31 @@ contains
            call GPU_DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_qm_struct%o, &
                  nbasis, quick_qm_struct%x, nbasis, 0.0d0, quick_scratch%hold, nbasis)
 
-           call GPU_DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_qm_struct%x, &
+           call GPU_DGEMM ('t', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_qm_struct%x, &
                  nbasis, quick_scratch%hold, nbasis, 0.0d0, quick_qm_struct%o, nbasis)
 #else
-           call DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_qm_struct%o, &
-                 nbasis, quick_qm_struct%x, nbasis, 0.0d0, quick_scratch%hold, nbasis)
+           call DGEMM ('n', 'n', nbasis, NBASIS_lin_ind, nbasis, 1.0d0, quick_qm_struct%o, &
+                 nbasis, quick_qm_struct%x, nbasis, 0.0d0, quick_scratch%hold4, nbasis)
   
-           call DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_qm_struct%x, &
-                 nbasis, quick_scratch%hold, nbasis, 0.0d0, quick_qm_struct%o, nbasis)
-#endif  
+           call DGEMM ('t', 'n', NBASIS_lin_ind, NBASIS_lin_ind, nbasis, 1.0d0, quick_qm_struct%x, &
+                 nbasis, quick_scratch%hold4, nbasis, 0.0d0, quick_qm_struct%ouse, NBASIS_lin_ind)
+
+          if(idiis .gt. 1 .and. errormax .gt. 0.1)then
+              call DGEMM ('n', 'n', NBASIS_lin_ind, NBASIS_lin_ind, NBASIS_lin_ind, 1.0d0, quick_qm_struct%ouse, &
+                    NBASIS_lin_ind, quick_qm_struct%oldvec, NBASIS_lin_ind, 0.0d0, quick_scratch%hold5, NBASIS_lin_ind)
+  
+              call DGEMM ('t', 'n', NBASIS_lin_ind, NBASIS_lin_ind, NBASIS_lin_ind, 1.0d0, quick_qm_struct%oldvec, &
+                    NBASIS_lin_ind, quick_scratch%hold5, NBASIS_lin_ind, 0.0d0, quick_qm_struct%ouse, NBASIS_lin_ind)
+
+              homo = quick_molspec%nelec/2
+              shift = quick_qm_struct%ouse(homo+1,homo+1) - quick_qm_struct%ouse(homo,homo)
+              do I=homo+1,NBASIS_lin_ind
+                quick_qm_struct%ouse(I,I) = quick_qm_struct%ouse(I,I) + (0.2D0 - shift) !!Converges of CC-PVDZ.
+              enddo
+          endif
+ 
+#endif
+
            ! Now diagonalize the operator matrix.
            RECORD_TIME(timer_begin%TDiag)
 #if defined(HIP) || defined(HIP_MPIV)
@@ -653,8 +673,9 @@ contains
 #endif
 #else
 #if defined(LAPACK) || defined(MKL)
-           call DIAGMKL(nbasis, quick_qm_struct%o, quick_qm_struct%E, quick_qm_struct%vec, IERROR)
+           call DIAGMKL(NBASIS_lin_ind, quick_qm_struct%ouse, quick_qm_struct%E, quick_qm_struct%vec, IERROR)
 #else
+!           write(*,*)'Using DIAG at 662'
            call DIAG(nbasis, quick_qm_struct%o, nbasis, quick_method%DMCutoff, V2, quick_qm_struct%E, &
                  quick_qm_struct%idegen, quick_qm_struct%vec, IERROR)
 #endif
@@ -677,11 +698,23 @@ contains
            call GPU_DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_qm_struct%x, &
                  nbasis, quick_qm_struct%vec, nbasis, 0.0d0, quick_qm_struct%co,nbasis)
 #else
-           call DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_qm_struct%x, &
-                 nbasis, quick_qm_struct%vec, nbasis, 0.0d0, quick_qm_struct%co,nbasis)
+           if(idiis .gt. 1 .and. errormax .gt. 0.1)then
+               call DGEMM ('n', 'n', NBASIS_lin_ind, NBASIS_lin_ind, NBASIS_lin_ind, 1.0d0, quick_qm_struct%oldvec, &
+                     NBASIS_lin_ind, quick_qm_struct%vec, NBASIS_lin_ind, 0.0d0, quick_scratch%hold5, NBASIS_lin_ind)
+               call DGEMM ('n', 'n', nbasis, NBASIS_lin_ind, NBASIS_lin_ind, 1.0d0, quick_qm_struct%x, &
+                     nbasis, quick_scratch%hold5, NBASIS_lin_ind, 0.0d0, quick_qm_struct%co,nbasis)
+
+               quick_qm_struct%oldvec(:,:) = quick_scratch%hold5(:,:)
+           else
+               call DGEMM ('n', 'n', nbasis, NBASIS_lin_ind, NBASIS_lin_ind, 1.0d0, quick_qm_struct%x, &
+                     nbasis, quick_qm_struct%vec, NBASIS_lin_ind, 0.0d0, quick_qm_struct%co,nbasis)
+
+               quick_qm_struct%oldvec(:,:) = quick_qm_struct%vec(:,:)
+           endif
 #endif
+
   
-           quick_scratch%hold(:,:) = quick_qm_struct%dense(:,:) 
+!           quick_scratch%hold(:,:) = quick_qm_struct%dense(:,:) 
   
            ! Form new density matrix using MO coefficients
 #if defined(GPU) || defined(MPIV_GPU)
@@ -692,6 +725,10 @@ contains
                  nbasis, quick_qm_struct%co, nbasis, 0.0d0, quick_qm_struct%dense,nbasis)         
 #endif
   
+!           if(idiis .ge. 3)then
+!               quick_qm_struct%dense(:,:) = 0.8*quick_qm_struct%denseold(:,:) + 0.2*quick_qm_struct%dense(:,:)
+!           endif
+ 
            RECORD_TIME(timer_end%TDII)
   
            ! Now check for convergence. pchange is the max change
@@ -699,10 +736,10 @@ contains
            PCHANGE=0.d0
            do I=1,nbasis
               do J=1,nbasis
-                 PCHANGE=max(PCHANGE,abs(quick_qm_struct%dense(J,I)-quick_scratch%hold(J,I)))
+                 PCHANGE=max(PCHANGE,abs(quick_qm_struct%dense(J,I)-quick_qm_struct%denseold(J,I)))
               enddo
            enddo
-           PRMS = rms(quick_qm_struct%dense,quick_scratch%hold,nbasis)
+           PRMS = rms(quick_qm_struct%dense,quick_qm_struct%denseold,nbasis)
   
            tmp = quick_method%integralCutoff
            call adjust_cutoff(PRMS,PCHANGE,quick_method,ierr)  !from quick_method_module
@@ -743,7 +780,6 @@ contains
            !do i=1,10 ! DELETE ME
            !   write(6,'(A,I3,f20.10)')"MO",i,quick_qm_struct%E(i) ! DELETE ME
            !end do ! DELETE ME
-           
            
            write (ioutfile,'("|",I3,1x)',advance="no") jscf
            if(quick_method%printEnergy)then

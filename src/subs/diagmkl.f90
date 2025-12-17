@@ -31,11 +31,13 @@ SUBROUTINE DIAGMKL(NDIM,A,EVAL1,EVEC1,IERROR)
 #if defined LAPACK || defined MKL
 
   LDA = NDIM
-  LWMAX = 1+2*NDIM+6*NDIM**2
+!  LWMAX = 1+2*NDIM+6*NDIM**2
   EVEC1 = A
 
-  allocate(IWORK(LWMAX))
-  allocate(WORK(LWMAX))
+!  allocate(IWORK(LWMAX))
+  allocate(IWORK(1))
+!  allocate(WORK(LWMAX))
+  allocate(WORK(1))
 
   if(NDIM == 1)then
      EVAL1(1) = A(1,1)
@@ -46,13 +48,20 @@ SUBROUTINE DIAGMKL(NDIM,A,EVAL1,EVEC1,IERROR)
   ! Query the optimal workspace
   LWORK = -1
   LIWORK = -1
-  call dsyevd('Vectors', 'Upper', NDIM, EVEC1, LDA, EVAL1, WORK, LWORK, &
+  call dsyevd('V', 'U', NDIM, EVEC1, LDA, EVAL1, WORK, LWORK, &
 IWORK, LIWORK, IERROR)
-  LWORK = min(LWMAX, int(WORK(1)))
-  LIWORK = min(LWMAX, IWORK(1))
+!  call dsyevd('Vectors', 'Upper', NDIM, EVEC1, LDA, EVAL1, WORK, LWORK, &
+!IWORK, LIWORK, IERROR)
+!  LWORK = min(LWMAX, int(WORK(1)))
+!  LIWORK = min(LWMAX, IWORK(1))
+  LWORK  = int(WORK(1))
+  LIWORK = IWORK(1)
+
+  deallocate(WORK, IWORK)
+  allocate(WORK(LWORK), IWORK(LIWORK))
 
   ! Solve eigenproblem
-  call dsyevd('Vectors', 'Upper', NDIM, EVEC1, LDA, EVAL1, WORK, LWORK, &
+  call dsyevd('V', 'U', NDIM, EVEC1, LDA, EVAL1, WORK, LWORK, &
 IWORK, LIWORK, IERROR)
 
   deallocate(IWORK)
