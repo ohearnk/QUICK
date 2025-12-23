@@ -324,7 +324,7 @@ subroutine fullx
    ! half. (Lower Diagonal)
 
    do I=1,nbasis
-      if (quick_scratch%Sminhalf(I).gt.1E-5) then
+      if (quick_scratch%Sminhalf(I).gt.1E-6) then
          NBASIS_lin_ind = nbasis - I + 1
 
          deallocate(quick_scratch%tmphold)
