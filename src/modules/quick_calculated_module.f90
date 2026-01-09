@@ -32,9 +32,11 @@ module quick_calculated_module
    ! the elements will be introduced following
    type quick_qm_struct_type
 
-      ! Basis Set Number
+      ! number of basis functions
       integer,pointer :: nbasis
-      integer,pointer :: NBASIS_Lin_ind
+
+      ! number of basis functions accounting for near-linear dependency
+      integer,pointer :: NBSuse
 
       ! overlap matrix, will be calculated once, independent on
       ! orbital coefficent. Its dimension is nbasis*nbasis
@@ -49,7 +51,9 @@ module quick_calculated_module
 
       ! operator matrix, the dimension is nbasis*nbasis. For HF, it's Fock Matrix
       double precision,dimension(:,:), allocatable :: o
-      double precision,dimension(:,:), allocatable :: ouse
+
+      ! effective operator matrix if basis functions are eliminated to remove near-linear dependency
+      double precision,dimension(:,:), allocatable :: oeff
 
       ! matrix for saving XC potential, required for incremental KS build
       double precision,dimension(:,:), allocatable :: oxc 
@@ -222,6 +226,34 @@ module quick_calculated_module
 contains
 
    !--------------------------------------
+   ! subroutine to allocate lists whose
+   ! dimensions depend on near-linear
+   ! dependency
+   !--------------------------------------
+   subroutine allocate_quick_qm_struct_fullx(self)
+       use quick_molspec_module, only: quick_molspec
+
+       implicit none
+
+       type (quick_qm_struct_type) self
+
+       allocate(self%x(self%nbasis,self%NBSuse))
+       allocate(self%oeff(self%NBSuse,self%NBSuse))
+       allocate(self%vec(self%NBSuse,self%NBSuse))
+       allocate(self%oldvec(self%NBSuse,self%NBSuse))
+       allocate(self%co(self%nbasis,self%NBSuse))
+       allocate(self%E(self%NBSuse))
+
+       self%x = 0.0d0
+       self%oeff = 0.0d0
+       self%vec = 0.0d0
+       self%oldvec = 0.0d0
+       self%co = 0.0d0
+       self%E = 0.0d0
+
+   end subroutine
+
+   !--------------------------------------
    ! subroutine to allocate variables
    !---------------------------------------
    subroutine allocate_quick_qm_struct(self)
@@ -244,18 +276,18 @@ contains
 
       ! those matrices is necessary for all calculation or the basic of other calculation
       if(.not. allocated(self%s)) allocate(self%s(nbasis,nbasis))
-      if(.not. allocated(self%x)) allocate(self%x(nbasis,nbasis))
+!      if(.not. allocated(self%x)) allocate(self%x(nbasis,nbasis))
       if(.not. allocated(self%oneElecO)) allocate(self%oneElecO(nbasis,nbasis))
       if(.not. allocated(self%o)) allocate(self%o(nbasis,nbasis))
-      if(.not. allocated(self%ouse)) allocate(self%ouse(nbasis,nbasis))
+!      if(.not. allocated(self%oeff)) allocate(self%oeff(nbasis,nbasis))
       if(.not. allocated(self%oSave)) allocate(self%oSave(nbasis,nbasis))
-      if(.not. allocated(self%co)) allocate(self%co(nbasis,nbasis))
-      if(.not. allocated(self%vec)) allocate(self%vec(nbasis,nbasis))
-      if(.not. allocated(self%oldvec)) allocate(self%oldvec(nbasis,nbasis))
+!      if(.not. allocated(self%co)) allocate(self%co(nbasis,nbasis))
+!      if(.not. allocated(self%vec)) allocate(self%vec(nbasis,nbasis))
+!      if(.not. allocated(self%oldvec)) allocate(self%oldvec(nbasis,nbasis))
       if(.not. allocated(self%dense)) allocate(self%dense(nbasis,nbasis))
       if(.not. allocated(self%denseSave)) allocate(self%denseSave(nbasis,nbasis))
       if(.not. allocated(self%denseOld)) allocate(self%denseOld(nbasis,nbasis))
-      if(.not. allocated(self%E)) allocate(self%E(nbasis))
+!      if(.not. allocated(self%E)) allocate(self%E(nbasis))
       if(.not. allocated(self%iDegen)) allocate(self%iDegen(nbasis))
 
       if(.not. allocated(self%Mulliken)) allocate(self%Mulliken(natom))
@@ -376,7 +408,7 @@ contains
       call wchk_darray(idatafile, "s",        nbasis, nbasis, 1, self%s,        fail)
       call wchk_darray(idatafile, "x",        nbasis, nbasis, 1, self%x,        fail)
       call wchk_darray(idatafile, "o",        nbasis, nbasis, 1, self%o,        fail)
-      call wchk_darray(idatafile, "ouse",     nbasis, nbasis, 1, self%ouse,     fail)
+      call wchk_darray(idatafile, "oeff",     nbasis, nbasis, 1, self%oeff,     fail)
       call wchk_darray(idatafile, "co",       nbasis, nbasis, 1, self%co,       fail)
       call wchk_darray(idatafile, "vec",      nbasis, nbasis, 1, self%vec,      fail)
       call wchk_darray(idatafile, "dense",    nbasis, nbasis, 1, self%dense,    fail)
@@ -406,7 +438,7 @@ contains
       implicit none
       integer io
 
-      integer nbasis, NBASIS_Lin_ind
+      integer nbasis, NBSuse
       integer natom
       integer nelec
       integer idimA
@@ -415,13 +447,13 @@ contains
       type (quick_qm_struct_type) self
 
       nullify(self%nbasis)
-      nullify(self%NBASIS_Lin_ind)
+      nullify(self%NBSuse)
       ! those matrices is necessary for all calculation or the basic of other calculation
       if (allocated(self%s)) deallocate(self%s)
       if (allocated(self%x)) deallocate(self%x)
       if (allocated(self%oneElecO)) deallocate(self%oneElecO)
       if (allocated(self%o)) deallocate(self%o)
-      if (allocated(self%ouse)) deallocate(self%ouse)
+      if (allocated(self%oeff)) deallocate(self%oeff)
       if (allocated(self%oSave)) deallocate(self%oSave)
       if (allocated(self%co)) deallocate(self%co)
       if (allocated(self%vec)) deallocate(self%vec)
@@ -580,18 +612,18 @@ contains
       nelecb=quick_molspec%nelecb
 
       call zeroMatrix(self%s,nbasis)
-      call zeroMatrix2(self%x,nbasis,nbasis)
+!      call zeroMatrix(self%x,nbasis)
       call zeroMatrix(self%oneElecO,nbasis)
       call zeroMatrix(self%o,nbasis)
-      call zeroMatrix(self%ouse,nbasis)
+!      call zeroMatrix(self%oeff,nbasis)
       call zeroMatrix(self%oSave,nbasis)
-      call zeroMatrix2(self%co,nbasis,nbasis)
-      call zeroMatrix(self%vec,nbasis)
-      call zeroMatrix(self%oldvec,nbasis)
+!      call zeroMatrix(self%co,nbasis)
+!      call zeroMatrix(self%vec,nbasis)
+!      call zeroMatrix(self%oldvec,nbasis)
       call zeroMatrix(self%dense,nbasis)
       call zeroMatrix(self%denseSave,nbasis)
       call zeroMatrix(self%denseOld,nbasis)
-      call zeroVec(self%E,nbasis)
+!      call zeroVec(self%E,nbasis)
       call zeroiVec(self%iDegen,nbasis)
       call zeroVec(self%Mulliken,natom)
       call zeroVec(self%Lowdin,natom)

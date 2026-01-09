@@ -156,33 +156,16 @@ function overlap(a,b,i,j,k,ii,jj,kk,Ax,Ay,Az,Bx,By,Bz,Px,Py,Pz,g_table) result(o
 
    implicit none
    ! INPUT PARAMETERS
-
-   integer, parameter :: qp = selected_real_kind(33)     ! ~34 digits
-
    double precision :: a,b                               ! exponent of basis set 1 and 2
-   real(kind=qp) :: a_qp,b_qp           
    integer i,j,k,ii,jj,kk                                ! i,j,k are itype for basis set 1 and ii,jj,kk for 2
    double precision :: Ax,Ay,Az,Bx,By,Bz                 ! Ax,Ay,Az are position for basis set 1 and Bx,By,Bz for 2
-   real(kind=qp) :: Ax_qp,Ay_qp,Az_qp,Bx_qp,By_qp,Bz_qp   
 
    ! INNER VARIBLES
    double precision g_table(200)
-   double precision Px,py,pz
-   real(kind=qp) :: ovlp
-
-   a_qp = a
-   b_qp = b
-
-   Ax_qp = Ax
-   Ay_qp = Ay
-   Az_qp = Az
-
-   Bx_qp = Bx
-   By_qp = By
-   Bz_qp = Bz
+   double precision Px,py,pz,ovlp
 
    ovlp = overlap_core(a,b,i,j,k,ii,jj,kk,Ax,Ay,Az,Bx,By,Bz,Px,Py,Pz,g_table)
-   ovlp = ovlp*exp(-((a_qp*b_qp*((Ax_qp-Bx_qp)**2_qp + (Ay_qp-By_qp)**2_qp+(Az_qp-Bz_qp)**2_qp))/(a_qp+b_qp)))
+   ovlp = ovlp*exp(-((a*b*((Ax-Bx)**2.d0 + (Ay-By)**2.d0+(Az-Bz)**2.d0))/(a+b)))
 
 end function overlap
 
@@ -244,7 +227,8 @@ subroutine fullx
                      Ax,Ay,Az,Bx,By,Bz,Px,Py,Pz,g_table)
             enddo
          enddo
-         if (abs(SJI).gt.1.0D-6)then
+         ! do not consider small overlap matrix elements
+         if (abs(SJI).gt.quick_method%ovmatelems)then
              quick_qm_struct%s(Jbas,Ibas) = SJI
          else
              quick_qm_struct%s(Jbas,Ibas) = 0.0D0
@@ -324,74 +308,46 @@ subroutine fullx
    ! half. (Lower Diagonal)
 
    do I=1,nbasis
-      if (quick_scratch%Sminhalf(I).gt.1E-6) then
-         NBASIS_lin_ind = nbasis - I + 1
+      if (quick_scratch%Sminhalf(I).gt.quick_method%overlapCutoff) then
+         NBSuse = nbasis - I + 1
 
-         deallocate(quick_scratch%tmphold)
-         deallocate(quick_scratch%hold3)
-         deallocate(quick_scratch%tmpco)
+         quick_molspec%NBSuse   => NBSuse
+         quick_qm_struct%NBSuse => NBSuse
 
-         allocate(quick_scratch%tmphold(NBASIS_lin_ind,NBASIS_lin_ind))
-         allocate(quick_scratch%hold3(nbasis,NBASIS_lin_ind))
-!         allocate(quick_scratch%tmpco(nbasis,NBASIS_lin_ind))
+         allocate(quick_scratch%tmpS(NBSuse,NBSuse))
+         allocate(quick_scratch%tmpU(nbasis,NBSuse))
+
+         quick_scratch%tmpS = 0.0d0
+         quick_scratch%tmpU = 0.0d0
 
          write(ioutfile,'("Number of total basis functions:",2X,i5)') nbasis
-         write(ioutfile,'("Number of linearly independent basis functions:",2X,i5)') NBASIS_lin_ind
+         write(ioutfile,'("Number of linearly independent basis functions:",2X,i5)') NBSuse
          write(ioutfile,'("condition number of overlap matrix:",2X,es11.3)') maxval(quick_scratch%Sminhalf)/minval(quick_scratch%Sminhalf)
          write(ioutfile,'("Smallest eigenvalue of overlap matrix:",2X,es11.3)') minval(quick_scratch%Sminhalf)
          write(ioutfile,'()')
 
-!         quick_scratch%tmphold(NBASIS_lin_ind,NBASIS_lin_ind)= quick_scratch%Sminhalf(I)**(-.5d0)
          do J=I,nbasis
-            quick_scratch%tmphold(J-I+1,J-I+1)= quick_scratch%Sminhalf(J)**(-.5d0)
+            quick_scratch%tmpS(J-I+1,J-I+1)= quick_scratch%Sminhalf(J)**(-.5d0)
             do K=1,nbasis
-               quick_scratch%hold3(K,J-I+1)= quick_scratch%hold2(K,J)
+               quick_scratch%tmpU(K,J-I+1)= quick_scratch%hold2(K,J)
             enddo
          enddo
          exit
       endif
    enddo
 
-   if(NBASIS_lin_ind .ne. nbasis)then
-       deallocate(quick_qm_struct%x)
-       deallocate(quick_qm_struct%ouse)
-       deallocate(quick_qm_struct%vec)
-       deallocate(quick_qm_struct%oldvec)
-       deallocate(quick_qm_struct%co)
-       deallocate(quick_qm_struct%E)
-       deallocate(quick_scratch%hold4)
-       deallocate(quick_scratch%hold5)
-       deallocate(quick_scratch%hold6)
+   call allocate_quick_qm_struct_fullx(quick_qm_struct)
 
-       allocate(quick_qm_struct%x(nbasis,NBASIS_Lin_ind))
-       allocate(quick_qm_struct%ouse(NBASIS_Lin_ind,NBASIS_Lin_ind))
-       allocate(quick_qm_struct%vec(NBASIS_Lin_ind,NBASIS_Lin_ind))
-       allocate(quick_qm_struct%oldvec(NBASIS_Lin_ind,NBASIS_Lin_ind))
-       allocate(quick_qm_struct%co(nbasis,NBASIS_Lin_ind))
-       allocate(quick_qm_struct%E(NBASIS_Lin_ind))
-       allocate(quick_scratch%hold4(nbasis,NBASIS_Lin_ind))
-       allocate(quick_scratch%hold5(NBASIS_Lin_ind,NBASIS_Lin_ind))
-       allocate(quick_scratch%hold6(NBASIS_Lin_ind,NBASIS_Lin_ind))
-   endif
+!   allocate(quick_scratch%hold4(nbasis,NBSuse))
+!   allocate(quick_scratch%hold5(NBSuse,NBSuse))
+!   allocate(quick_scratch%hold6(NBSuse,NBSuse))
 
 #if defined(GPU) || defined(MPIV_GPU)
-!   call GPU_DGEMM ('n', 'n', nbasis, NBASIS_Lin_ind, NBASIS_Lin_ind, 1.0d0,quick_scratch%hold3, &
-!   nbasis, quick_scratch%tmphold, NBASIS_Lin_ind, 0.0d0, quick_scratch%tmpco,nbasis)
-!
-!   call GPU_DGEMM ('n', 't', nbasis, nbasis, NBASIS_Lin_ind, 1.0d0,quick_scratch%tmpco, &
-!   nbasis, quick_scratch%hold3, nbasis, 0.0d0, quick_qm_struct%x,nbasis)
-
-   call GPU_DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0,quick_scratch%hold3, &
-   nbasis, quick_scratch%tmphold, nbasis, 0.0d0, quick_qm_struct%x,nbasis)
+   call GPU_DGEMM ('n', 'n', nbasis, NBSuse, NBSuse, 1.0d0,quick_scratch%tmpU, &
+   nbasis, quick_scratch%tmpS, NBSuse, 0.0d0, quick_qm_struct%x,nbasis)
 #else
-!   call DGEMM ('n', 'n', nbasis, NBASIS_Lin_ind, NBASIS_Lin_ind, 1.0d0, quick_scratch%hold3, &
-!   nbasis, quick_scratch%tmphold, NBASIS_Lin_ind, 0.0d0, quick_scratch%tmpco,nbasis)
-!
-!   call DGEMM ('n', 't', nbasis, nbasis, NBASIS_Lin_ind, 1.0d0, quick_scratch%tmpco, &
-!   nbasis, quick_scratch%hold3, nbasis, 0.0d0, quick_qm_struct%x,nbasis)
-
-   call DGEMM ('n', 'n', nbasis, NBASIS_Lin_ind, NBASIS_Lin_ind, 1.0d0, quick_scratch%hold3, &
-   nbasis, quick_scratch%tmphold, NBASIS_Lin_ind, 0.0d0, quick_qm_struct%x,nbasis)
+   call DGEMM ('n', 'n', nbasis, NBSuse, NBSuse, 1.0d0, quick_scratch%tmpU, &
+   nbasis, quick_scratch%tmpS, NBSuse, 0.0d0, quick_qm_struct%x,nbasis)
 #endif
 
    ! Transpose U onto X then copy on to U.  Now U contains U transpose.

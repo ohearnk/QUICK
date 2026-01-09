@@ -225,7 +225,38 @@ void CUDA_DIAG (double* M, const double* E, const double* vec, const int* nbasis
     cudaStat4 = cudaMemcpy((void*) E, devPtr_E, sizeof(double)*dim, cudaMemcpyDeviceToHost);
     assert(cudaSuccess == cudaStat3 && cudaSuccess == cudaStat4);
 
+<<<<<<< HEAD
     if (devPtr_M) cudaFree(devPtr_M);
+=======
+    //stat1=cublasGetMatrix(dim, dim, sizeof(vec[0]), devPtr_o, dim, vec, dim);
+
+    /*
+       stat1=cublasGetMatrix(dim, dim, sizeof(o[0]), devPtr_o, dim, o, dim);
+       printf("o\n");
+       for(int i=0; i<dim*dim; i++)
+       {
+       printf("%d %f\n", i, o[i]);
+       }
+
+       stat1=cublasGetMatrix(dim, dim, sizeof(o[0]), devPtr_E, dim, o, dim);
+       printf("E\n");
+       for(int i=0; i<dim*dim; i++)
+       {
+       printf("%d %f\n", i, o[i]);
+       }
+
+       stat1=cublasGetMatrix(dim, dim, sizeof(o[0]), devPtr_work, dim, o, dim);
+       printf("work\n");
+       for(int i=0; i<dim*dim; i++)
+       {
+       printf("%d %f\n", i, o[i]);
+       }
+*/
+
+    if (devPtr_o) cudaFree(devPtr_o);
+    if (devPtr_x) cudaFree(devPtr_x);
+    if (devPtr_hold) cudaFree(devPtr_hold);
+>>>>>>> 571b7e04 (Code cleanup and proper array allocation)
     if (devPtr_E) cudaFree(devPtr_E);
     if (devPtr_devInfo) cudaFree(devPtr_devInfo);
     if (devPtr_work) cudaFree(devPtr_work);

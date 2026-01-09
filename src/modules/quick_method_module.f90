@@ -114,18 +114,20 @@ module quick_method_module
         integer :: ncyc = 3
 
         ! following are some cutoff criteria
-        double precision :: coreIntegralCutoff = 1.0d-18 ! cutoff for 1e integral prescreening
+        double precision :: coreIntegralCutoff = 1.0d-12 ! cutoff for 1e integral prescreening
         double precision :: integralCutoff = 1.0d-7   ! integral cutoff
         double precision :: leastIntegralCutoff = LEASTCUTOFF  ! the smallest cutoff
         double precision :: maxIntegralCutoff = 1.0d-12
         double precision :: primLimit      = 1.0d-8   ! prime cutoff
         double precision :: gradCutoff     = 1.0d-7   ! gradient cutoff
-        double precision :: DMCutoff       = 1.0d-18  ! density matrix cutoff
+        double precision :: DMCutoff       = 1.0d-10  ! density matrix cutoff
         double precision :: XCCutoff       = 1.0d-7   ! exchange correlation cutoff
         logical :: isDefaultXCCutoff       = .true.
         !tol
         double precision :: pmaxrms        = 1.0d-6   ! density matrix convergence criteria
         double precision :: basisCutoff    = 1.0d-6  ! basis set cutoff
+        double precision :: overlapCutoff  = 1.0d-6  ! cutoff for near-linear dependency
+        double precision :: ovmatelems     = 1.0d-6  ! cutoff to consider overlap matrix elements
         !signif
 
         ! following are some gradient cutoff criteria
@@ -524,10 +526,11 @@ module quick_method_module
 
             ! cutoff size
             write (io,'(" COMPUTATIONAL CUTOFF: ")')
-            write (io,'("      TWO-e INTEGRAL   = ",E10.3)') self%integralcutoff
-            write (io,'("      BASIS SET PRIME  = ",E10.3)') self%primLimit
-            write (io,'("      MATRIX ELEMENTS  = ",E10.3)') self%DMCutoff
-            write (io,'("      BASIS FUNCTION   = ",E10.3)') self%basisCutoff
+            write (io,'("      TWO-e INTEGRAL         = ",E10.3)') self%integralcutoff
+            write (io,'("      BASIS SET PRIME        = ",E10.3)') self%primLimit
+            write (io,'("      MATRIX ELEMENTS        = ",E10.3)') self%DMCutoff
+            write (io,'("      BASIS FUNCTION         = ",E10.3)') self%basisCutoff
+            write (io,'("      NEAR-LINEAR DEPENDENCY = ",E10.3)') self%overlapCutoff
             if (self%grad) then
                 write (io,'("      GRADIENT CUTOFF  = ",E10.3)') self%gradCutoff
             endif
@@ -766,6 +769,11 @@ module quick_method_module
                 self%primLimit=self%integralCutoff*1.0d-1
             endif
 
+            ! Overlap-cutoff
+            if (index(keywd,'OVCUT') /= 0) then
+                call read(keywd, 'OVCUT', self%overlapCutoff)
+            endif
+
             ! Grad cutoff
             if (index(keywd,'GRADCUTOFF') /= 0) then
                 call read(keywd, 'GRADCUTOFF', self%gradCutoff)
@@ -953,19 +961,21 @@ module quick_method_module
             self%iopt = 0
             self%ncyc = 3
 
-            self%integralCutoff = 1.0d-18   ! integral cutoff
+            self%integralCutoff = 1.0d-7   ! integral cutoff
             self%leastIntegralCutoff = LEASTCUTOFF
                                            ! smallest integral cutoff, used in conventional SCF
-            self%maxIntegralCutoff = 1.0d-18
+            self%maxIntegralCutoff = 1.0d-12
                                            ! smallest integral cutoff, used in conventional SCF
-            self%primLimit      = 1.0d-18   ! prime cutoff
+            self%primLimit      = 1.0d-8   ! prime cutoff
             self%gradCutoff     = 1.0d-7   ! gradient cutoff
-            self%DMCutoff       = 1.0d-18  ! density matrix cutoff
+            self%DMCutoff       = 1.0d-10  ! density matrix cutoff
             self%XCCutoff       = 1.0d-7   ! exchange correlation cutoff
             self%isDefaultXCCutoff = .true. ! is XCCutoff default or user specified
 
             self%pmaxrms        = 1.0d-6   ! density matrix convergence criteria
             self%basisCutoff    = 1.0d-6  ! basis set cutoff
+            self%overlapCutoff  = 1.0d-6  ! Near-linear dependency check cutoff
+            self%ovmatelems     = 1.0d-6  ! cutoff to consider overlap matrix elements
 
             self%stepMax        = .1d0/0.529177249d0
                                            ! max change of one step
