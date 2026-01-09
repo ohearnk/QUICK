@@ -138,7 +138,7 @@ void Fock_DIAG (double* o, const double* x, const double* E, const double* vec, 
             devPtr_x, dim, &h_zero, devPtr_hold, dim);
 
     // o = x * hold
-    cublasDgemm_v2(cublasH, CUBLAS_OP_N,CUBLAS_OP_N, dim, dim, dim, &h_one, devPtr_x, dim,
+    cublasDgemm_v2(cublasH, CUBLAS_OP_T,CUBLAS_OP_N, dim, dim, dim, &h_one, devPtr_x, dim,
             devPtr_hold, dim, &h_zero, devPtr_o, dim);
 
     err3 = cudaMemcpy(o, devPtr_o, sizeof(double)*dim*dim, cudaMemcpyDeviceToHost);

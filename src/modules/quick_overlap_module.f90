@@ -329,7 +329,11 @@ subroutine fullx
          do J=I,nbasis
             quick_scratch%tmpS(J-I+1,J-I+1)= quick_scratch%Sminhalf(J)**(-.5d0)
             do K=1,nbasis
+#if defined(CUDA)
+               quick_scratch%tmpU(K,J-I+1)= (-1)*quick_scratch%hold2(K,J)
+#else
                quick_scratch%tmpU(K,J-I+1)= quick_scratch%hold2(K,J)
+#endif
             enddo
          enddo
          exit
@@ -337,10 +341,6 @@ subroutine fullx
    enddo
 
    call allocate_quick_qm_struct_fullx(quick_qm_struct)
-
-!   allocate(quick_scratch%hold4(nbasis,NBSuse))
-!   allocate(quick_scratch%hold5(NBSuse,NBSuse))
-!   allocate(quick_scratch%hold6(NBSuse,NBSuse))
 
 #if defined(GPU) || defined(MPIV_GPU)
    call GPU_DGEMM ('n', 'n', nbasis, NBSuse, NBSuse, 1.0d0,quick_scratch%tmpU, &

@@ -402,7 +402,7 @@ contains
            ! matrix.
   
            ! The first part is ODS
- 
+
 #if defined(GPU) || defined(MPIV_GPU)
            call GPU_DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_qm_struct%dense, &
                  nbasis, quick_qm_struct%s, nbasis, 0.0d0, quick_scratch%hold,nbasis)
@@ -416,7 +416,7 @@ contains
            call DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_qm_struct%o, &
                  nbasis, quick_scratch%hold, nbasis, 0.0d0, quick_scratch%hold2,nbasis)
 #endif
-  
+
            itererror(:,:) = quick_scratch%hold2(:,:)
   
            ! Calculate D O. then calculate S (do) and subtract that from the itererror matrix.
@@ -434,7 +434,6 @@ contains
            call DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_qm_struct%s, &
                  nbasis, quick_scratch%hold, nbasis, 0.0d0, quick_scratch%hold2,nbasis)
 #endif
-  
            errormax = 0.d0
            do I=1,nbasis
               do J=1,nbasis
@@ -705,10 +704,19 @@ contains
            ! The C' is from the above diagonalization.  Also, save the previous
            ! Density matrix to check for convergence.
            !        call DMatMul(nbasis,X,VEC,CO)    ! C=XC'
-  
+ 
 #if defined(GPU) || defined(MPIV_GPU)
-           call GPU_DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_qm_struct%x, &
-                 nbasis, quick_qm_struct%vec, nbasis, 0.0d0, quick_qm_struct%co,nbasis)
+           if(idiis .gt. 1 .and. errormax .gt. 0.1)then
+               call GPU_DGEMM ('n', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, quick_qm_struct%oldvec, &
+                     NBSuse, quick_qm_struct%vec, NBSuse, 0.0d0, quick_scratch%hold4, NBSuse)
+               call GPU_DGEMM ('n', 'n', nbasis, NBSuse, NBSuse, 1.0d0, quick_qm_struct%x, &
+                     nbasis, quick_scratch%hold4, NBSuse, 0.0d0, quick_qm_struct%co,nbasis)
+               quick_qm_struct%oldvec(:,:) = quick_scratch%hold4(:,:)
+           else
+               call GPU_DGEMM ('n', 'n', nbasis, NBSuse, NBSuse, 1.0d0, quick_qm_struct%x, &
+                     nbasis, quick_qm_struct%vec, NBSuse, 0.0d0, quick_qm_struct%co,nbasis)
+               quick_qm_struct%oldvec(:,:) = quick_qm_struct%vec(:,:)
+           endif
 #else
            if(idiis .gt. 1 .and. errormax .gt. 0.1)then
                call DGEMM ('n', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, quick_qm_struct%oldvec, &
@@ -725,7 +733,6 @@ contains
            endif
 #endif
 
-  
            ! Form new density matrix using MO coefficients
 #if defined(GPU) || defined(MPIV_GPU)
            call GPU_DGEMM ('n', 't', nbasis, nbasis, quick_molspec%nelec/2, 2.0d0, quick_qm_struct%co, &
@@ -734,7 +741,6 @@ contains
            call DGEMM ('n', 't', nbasis, nbasis, quick_molspec%nelec/2, 2.0d0, quick_qm_struct%co, &
                  nbasis, quick_qm_struct%co, nbasis, 0.0d0, quick_qm_struct%dense,nbasis)         
 #endif
-  
            RECORD_TIME(timer_end%TDII)
   
            ! Now check for convergence. pchange is the max change
