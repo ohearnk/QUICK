@@ -93,6 +93,7 @@ contains
 
 
   subroutine deallocate_quick_scf(ierr)
+    use quick_scratch_module, only: quick_scratch
     implicit none
 
     integer, intent(inout) :: ierr
@@ -107,6 +108,10 @@ contains
     if(allocated(itererror))   deallocate(itererror, stat=ierr)
     if(allocated(allerror))    deallocate(allerror, stat=ierr)
     if(allocated(alloperator)) deallocate(alloperator, stat=ierr)
+
+    if(allocated(quick_scratch%hold3)) deallocate(quick_scratch%hold3)
+    if(allocated(quick_scratch%hold4)) deallocate(quick_scratch%hold4)
+    if(allocated(quick_scratch%hold5)) deallocate(quick_scratch%hold5)
   end subroutine deallocate_quick_scf
 
 
@@ -249,7 +254,7 @@ contains
      ! As in scf.F, each step wil be reviewed as we pass through the code.
      !---------------------------------------------------------------------------
   
-     call allocate_quick_scf(ierr)
+     if(master) call allocate_quick_scf(ierr)
   
      if(master) then
         write(ioutfile,'(40x," SCF ENERGY")')
@@ -290,8 +295,8 @@ contains
      if (bMPI) then
   !      call MPI_BCAST(quick_qm_struct%o,nbasis*nbasis,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
         call MPI_BCAST(quick_qm_struct%dense,nbasis*nbasis,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
-        call MPI_BCAST(quick_qm_struct%co,nbasis*nbasis,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
-        call MPI_BCAST(quick_qm_struct%E,nbasis,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
+        call MPI_BCAST(quick_qm_struct%co,nbasis*NBSuse,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
+        call MPI_BCAST(quick_qm_struct%E,NBSuse,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
         call MPI_BCAST(quick_method%integralCutoff,1,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
         call MPI_BCAST(quick_method%primLimit,1,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
         call MPI_BARRIER(MPI_COMM_WORLD,mpierror)
@@ -846,8 +851,8 @@ contains
            call MPI_BCAST(diisdone,1,mpi_logical,0,MPI_COMM_WORLD,mpierror)
            call MPI_BCAST(quick_method%scf_conv,1,mpi_logical,0,MPI_COMM_WORLD,mpierror)
            call MPI_BCAST(quick_qm_struct%dense,nbasis*nbasis,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
-           call MPI_BCAST(quick_qm_struct%co,nbasis*nbasis,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
-           call MPI_BCAST(quick_qm_struct%E,nbasis,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
+           call MPI_BCAST(quick_qm_struct%co,nbasis*NBSuse,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
+           call MPI_BCAST(quick_qm_struct%E,NBSuse,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
            call MPI_BCAST(quick_method%integralCutoff,1,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
            call MPI_BCAST(quick_method%primLimit,1,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
            call MPI_BARRIER(MPI_COMM_WORLD,mpierror)
@@ -863,7 +868,7 @@ contains
 #if (defined CUDA || defined CUDA_MPIV) && !defined(HIP)
      ! sign of the coefficient matrix resulting from cusolver is not consistent
      ! with rest of the code (e.g. gradients). We have to correct this.
-     call scalarMatMul(quick_qm_struct%co,nbasis,nbasis,-1.0d0)
+     call scalarMatMul(quick_qm_struct%co,NBSuse,nbasis,-1.0d0)
 #endif
   
 #if defined(GPU) || defined(MPIV_GPU)
@@ -880,7 +885,7 @@ contains
     endif
 #endif
   
-     call deallocate_quick_scf(ierr)
+     if(master) call deallocate_quick_scf(ierr)
   
      return
   end subroutine electdiis

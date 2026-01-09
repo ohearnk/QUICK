@@ -237,12 +237,12 @@ contains
 
        type (quick_qm_struct_type) self
 
-       allocate(self%x(self%nbasis,self%NBSuse))
-       allocate(self%oeff(self%NBSuse,self%NBSuse))
-       allocate(self%vec(self%NBSuse,self%NBSuse))
-       allocate(self%oldvec(self%NBSuse,self%NBSuse))
-       allocate(self%co(self%nbasis,self%NBSuse))
-       allocate(self%E(self%NBSuse))
+       if(.not. allocated(self%x)) allocate(self%x(self%nbasis,self%NBSuse))
+       if(.not. allocated(self%oeff))allocate(self%oeff(self%NBSuse,self%NBSuse))
+       if(.not. allocated(self%vec))allocate(self%vec(self%NBSuse,self%NBSuse))
+       if(.not. allocated(self%oldvec))allocate(self%oldvec(self%NBSuse,self%NBSuse))
+       if(.not. allocated(self%co))allocate(self%co(self%nbasis,self%NBSuse))
+       if(.not. allocated(self%E))allocate(self%E(self%NBSuse))
 
        self%x = 0.0d0
        self%oeff = 0.0d0
