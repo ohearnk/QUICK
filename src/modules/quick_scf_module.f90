@@ -379,10 +379,10 @@ contains
            ! The first part is ODS
   
            call MAT_DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_qm_struct%dense, &
-                 nbasis, quick_qm_struct%s, nbasis, 0.0d0, quick_scratch%hold,nbasis)
+                 nbasis, quick_qm_struct%s, nbasis, 0.0d0, quick_scratch%hold, nbasis)
   
            call MAT_DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_qm_struct%o, &
-                 nbasis, quick_scratch%hold, nbasis, 0.0d0, quick_scratch%hold2,nbasis)
+                 nbasis, quick_scratch%hold, nbasis, 0.0d0, quick_scratch%hold2, nbasis)
   
            allerror(:,:,iidiis) = quick_scratch%hold2(:,:)
   
