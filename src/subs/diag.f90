@@ -18,7 +18,7 @@
   !                                                                     !
   !---------------------------------------------------------------------!
 
-SUBROUTINE CPU_DIAG(NDIM,A,EVAL1,EVEC1,IERROR)
+SUBROUTINE CPU_DIAG(NDIM, A, EVAL1, EVEC1, IERROR)
 
   IMPLICIT doUBLE PRECISION (A-H,O-Z)
   integer :: NDIM,LWMAX

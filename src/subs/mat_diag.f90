@@ -18,7 +18,7 @@ subroutine MAT_DIAG(Mat, Eig, Vec, Cutoff, idegen, V2, nbasis)
 #endif
 #endif
 
-    integer :: nbasis,IERROR
+    integer :: nbasis, IERROR
     double precision :: Mat(nbasis,nbasis), Eig(nbasis), Vec(nbasis,nbasis)
     double precision :: V2(3, nbasis), idegen(nbasis), Cutoff
 

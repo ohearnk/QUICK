@@ -174,13 +174,6 @@ subroutine fullx
    !   matrix X.  The first step is forming the overlap matrix (Smatrix).
    !
    use allmod
-#if defined(HIP) || defined(HIP_MPIV)
-#if defined(WITH_MAGMA)
-     use quick_magma_module, only: magmaDIAG
-#elif defined(WITH_ROCSOLVER)
-     use quick_rocsolver_module, only: rocDIAG
-#endif
-#endif
 
    implicit none
 

@@ -712,9 +712,9 @@ contains
   
         ! Now diagonalize the operator matrix.
   
-        call MAT_DIAG(nbasis, quick_qm_struct%o, nbasis, quick_method%DMCutoff, &
-                V2, quick_qm_struct%E, quick_qm_struct%idegen, quick_qm_struct%vec, IERROR)
-
+        call MAT_DIAG(quick_qm_struct%o, quick_qm_struct%E, &
+                quick_qm_struct%vec, quick_method%DMCutoff, &
+                quick_qm_struct%idegen, V2, nbasis)
   
         ! Calculate C = XC' and form a new density matrix.
         ! The C' is from the above diagonalization.  Also, save the previous
@@ -775,8 +775,9 @@ contains
 
         ! Now diagonalize the operator matrix.
 
-        call MAT_DIAG(nbasis, quick_qm_struct%ob, nbasis, quick_method%DMCutoff, V2, &
-                quick_qm_struct%EB, quick_qm_struct%idegen, quick_qm_struct%vec, IERROR)
+        call MAT_DIAG(quick_qm_struct%ob, quick_qm_struct%EB, &
+                quick_qm_struct%vec, quick_method%DMCutoff, &
+                quick_qm_struct%idegen, V2, nbasis)
 
         ! Calculate C = XC' and form a new density matrix.
         ! The C' is from the above diagonalization.  Also, save the previous
