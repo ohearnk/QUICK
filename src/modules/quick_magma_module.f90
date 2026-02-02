@@ -34,7 +34,7 @@ module quick_magma_module
 
 contains
 
-    ! Driver for dsyevd, similar to DIAG and DIAGMKL. 
+    ! Driver for dsyevd, similar to CPU_DIAG
     subroutine quick_magma_dsyevd(n, A, Eval, Evec, ierr)
  
         use magma

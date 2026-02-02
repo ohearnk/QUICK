@@ -175,7 +175,6 @@ subroutine fullx
    !
    use allmod
 #if defined(HIP) || defined(HIP_MPIV)
-     use quick_rocblas_module, only: rocDGEMM
 #if defined(WITH_MAGMA)
      use quick_magma_module, only: magmaDIAG
 #elif defined(WITH_ROCSOLVER)
@@ -241,7 +240,7 @@ subroutine fullx
 
    ! Now diagonalize HOLD to generate the eigenvectors and eigenvalues.
    RECORD_TIME(timer_begin%T1eSD)
-   call MatDiag(quick_scratch%hold, quick_scratch%Sminhalf, quick_scratch%hold2, &
+   call MAT_DIAG(quick_scratch%hold, quick_scratch%Sminhalf, quick_scratch%hold2, &
      quick_method%DMCutoff, quick_scratch%IDEGEN1, quick_scratch%V, nbasis)
    RECORD_TIME(timer_end%T1eSD)
    timer_cumer%T1eSD = timer_cumer%T1eSD + timer_end%T1eSD - timer_begin%T1eSD
@@ -283,19 +282,11 @@ subroutine fullx
       endif
    enddo
 
-#if defined(GPU) || defined(MPIV_GPU)
-   call GPU_DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0,quick_scratch%hold2, &
-   nbasis, quick_scratch%tmphold, nbasis, 0.0d0, quick_scratch%tmpco,nbasis)
+   call MAT_DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_scratch%hold2, &
+           nbasis, quick_scratch%tmphold, nbasis, 0.0d0, quick_scratch%tmpco,nbasis)
 
-   call GPU_DGEMM ('n', 't', nbasis, nbasis, nbasis, 1.0d0,quick_scratch%tmpco, &
-   nbasis, quick_scratch%hold2, nbasis, 0.0d0, quick_qm_struct%x,nbasis)
-#else
-   call DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_scratch%hold2, &
-   nbasis, quick_scratch%tmphold, nbasis, 0.0d0, quick_scratch%tmpco,nbasis)
-
-   call DGEMM ('n', 't', nbasis, nbasis, nbasis, 1.0d0, quick_scratch%tmpco, &
-   nbasis, quick_scratch%hold2, nbasis, 0.0d0, quick_qm_struct%x,nbasis)
-#endif
+   call MAT_DGEMM ('n', 't', nbasis, nbasis, nbasis, 1.0d0, quick_scratch%tmpco, &
+           nbasis, quick_scratch%hold2, nbasis, 0.0d0, quick_qm_struct%x,nbasis)
 
    ! Transpose U onto X then copy on to U.  Now U contains U transpose.
 

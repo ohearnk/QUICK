@@ -333,12 +333,12 @@ module quick_oeproperties_module
 
      ! Using the inverse distance matrix to form the matrix A and vector B.
 #if defined CUDA
-     call CUBLAS_DGEMV('N',natom,npoints,One,invdist_arr,natom,esp,1,Zero,B,1)
-     call CUBLAS_DGEMM('N', 'T', natom, natom, npoints, One, invdist_arr, natom, invdist_arr, natom, Zero, A(1:natom,1:natom), natom)
+     call CUBLAS_DGEMV('N', natom, npoints, One, invdist_arr, natom, esp, 1, Zero, B, 1)
 #else
-     call DGEMV('N',natom,npoints,One,invdist_arr,natom,esp,1,Zero,B,1)
-     call DGEMM('N', 'T', natom, natom, npoints, One, invdist_arr, natom, invdist_arr, natom, Zero, A(1:natom,1:natom), natom)
+     call DGEMV('N', natom, npoints, One, invdist_arr, natom, esp, 1, Zero, B, 1)
 #endif
+     call MAT_DGEMM('N', 'T', natom, natom, npoints, One, invdist_arr, natom, &
+             invdist_arr, natom, Zero, A(1:natom,1:natom), natom)
 
      deallocate(invdist_arr)
 
