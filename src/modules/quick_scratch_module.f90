@@ -78,11 +78,11 @@ module quick_scratch_module
             if(.not. allocated(self%obsum)) allocate(self%obsum(nbasis,nbasis))
 #endif
 
-            self%hold=0.0d0
-            self%hold2=0.0d0
+            self%hold = 0.0d0
+            self%hold2 = 0.0d0
 #ifdef MPIV
-            self%osum=0.0d0
-            self%obsum=0.0d0
+            self%osum = 0.0d0
+            self%obsum = 0.0d0
 #endif
 
             return
