@@ -590,8 +590,8 @@ contains
 
            ! Now diagonalize the operator matrix.
            RECORD_TIME(timer_begin%TDiag)
-           call MAT_DIAG(quick_qm_struct%o, quick_qm_struct%E, quick_qm_struct%vec, &
-             quick_method%DMCutoff, quick_qm_struct%idegen, V2, nbasis)
+           call MAT_DIAG(quick_qm_struct%o, nbasis, nbasis, quick_qm_struct%E, &
+                   quick_qm_struct%vec)
            RECORD_TIME(timer_end%TDiag)
 
            timer_cumer%TDiag = timer_end%TDiag - timer_begin%TDiag
@@ -652,8 +652,8 @@ contains
 
            ! Now diagonalize the operator matrix.
            RECORD_TIME(timer_begin%TDiag)
-           call MAT_DIAG(quick_qm_struct%ob, quick_qm_struct%EB, quick_qm_struct%vec, &
-             quick_method%DMCutoff, quick_qm_struct%idegen, V2, nbasis)
+           call MAT_DIAG(quick_qm_struct%ob, nbasis, nbasis, quick_qm_struct%EB, &
+                   quick_qm_struct%vec)
            RECORD_TIME(timer_end%TDiag)
 
            timer_cumer%TDiag=timer_cumer%TDiag+timer_end%TDiag-timer_begin%TDiag

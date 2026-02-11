@@ -20,12 +20,9 @@ module quick_scf_module
   private
 
   public :: allocate_quick_scf, deallocate_quick_scf, scf 
-  public :: V2, B, BSAVE, BCOPY, W, COEFF, RHS, allerror, alloperator
+  public :: B, BSAVE, BCOPY, W, COEFF, RHS, allerror, alloperator
 
 !  type quick_scf_type
-
-    ! a workspace matrix of size 3,nbasis to be passed into the diagonalizer 
-    double precision, allocatable, dimension(:,:) :: V2
 
     ! matrices required for diis procedure
     double precision, allocatable, dimension(:,:)   :: B
@@ -59,7 +56,6 @@ contains
 
     integer, intent(inout) :: ierr
 
-    if(.not. allocated(V2))          allocate(V2(3, nbasis), stat=ierr)
     if(.not. allocated(B))           allocate(B(quick_method%maxdiisscf+1,quick_method%maxdiisscf+1), stat=ierr)
     if(.not. allocated(BSAVE))       allocate(BSAVE(quick_method%maxdiisscf+1,quick_method%maxdiisscf+1), stat=ierr)
     if(.not. allocated(BCOPY))       allocate(BCOPY(quick_method%maxdiisscf+1,quick_method%maxdiisscf+1), stat=ierr)
@@ -70,7 +66,6 @@ contains
     if(.not. allocated(alloperator)) allocate(alloperator(nbasis, nbasis, quick_method%maxdiisscf), stat=ierr)
 
     !initialize values to zero
-    V2          = 0.0d0
     B           = 0.0d0
     BSAVE       = 0.0d0
     BCOPY       = 0.0d0
@@ -87,7 +82,6 @@ contains
 
     integer, intent(inout) :: ierr
 
-    if(allocated(V2))          deallocate(V2, stat=ierr)
     if(allocated(B))           deallocate(B, stat=ierr)
     if(allocated(BSAVE))       deallocate(BSAVE, stat=ierr)
     if(allocated(BCOPY))       deallocate(BCOPY, stat=ierr)
@@ -390,9 +384,9 @@ contains
            ! This means we now have the e(i) matrix.
            ! allerror=ODS-SDO
            call MAT_DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_qm_struct%dense, &
-                 nbasis, quick_qm_struct%o, nbasis, 0.0d0, quick_scratch%hold,nbasis)
+                 nbasis, quick_qm_struct%o, nbasis, 0.0d0, quick_scratch%hold, nbasis)
            call MAT_DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_qm_struct%s, &
-                 nbasis, quick_scratch%hold, nbasis, 0.0d0, quick_scratch%hold2,nbasis)
+                 nbasis, quick_scratch%hold, nbasis, 0.0d0, quick_scratch%hold2, nbasis)
   
            errormax = 0.d0
            do I=1,nbasis
@@ -411,10 +405,10 @@ contains
            quick_scratch%hold2(:,:) = allerror(:,:,iidiis)
   
            call MAT_DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_scratch%hold2, &
-                 nbasis, quick_qm_struct%x, nbasis, 0.0d0, quick_scratch%hold,nbasis)
+                 nbasis, quick_qm_struct%x, nbasis, 0.0d0, quick_scratch%hold, nbasis)
   
            call MAT_DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_qm_struct%x, &
-                 nbasis, quick_scratch%hold, nbasis, 0.0d0, quick_scratch%hold2,nbasis)
+                 nbasis, quick_scratch%hold, nbasis, 0.0d0, quick_scratch%hold2, nbasis)
 
            allerror(:,:,iidiis) = quick_scratch%hold2(:,:)
            !-----------------------------------------------
@@ -592,8 +586,8 @@ contains
 
            ! Now diagonalize the operator matrix.
            RECORD_TIME(timer_begin%TDiag)
-           call MAT_DIAG(quick_qm_struct%o, quick_qm_struct%E, quick_qm_struct%vec, &
-             quick_method%DMCutoff, quick_qm_struct%idegen, V2, nbasis)
+           call MAT_DIAG(quick_qm_struct%o, nbasis, nbasis, quick_qm_struct%E, &
+                   quick_qm_struct%vec)
            RECORD_TIME(timer_end%TDiag)
 
            ! Calculate C = XC' and form a new density matrix.
@@ -602,13 +596,13 @@ contains
            !        call DMatMul(nbasis,X,VEC,CO)    ! C=XC'
   
            call MAT_DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_qm_struct%x, &
-                 nbasis, quick_qm_struct%vec, nbasis, 0.0d0, quick_qm_struct%co,nbasis)
+                 nbasis, quick_qm_struct%vec, nbasis, 0.0d0, quick_qm_struct%co, nbasis)
   
            quick_scratch%hold(:,:) = quick_qm_struct%dense(:,:) 
   
            ! Form new density matrix using MO coefficients
            call MAT_DGEMM ('n', 't', nbasis, nbasis, quick_molspec%nelec/2, 2.0d0, quick_qm_struct%co, &
-                 nbasis, quick_qm_struct%co, nbasis, 0.0d0, quick_qm_struct%dense,nbasis)         
+                 nbasis, quick_qm_struct%co, nbasis, 0.0d0, quick_qm_struct%dense, nbasis)         
   
            RECORD_TIME(timer_end%TDII)
   

@@ -9,7 +9,7 @@
 !
 !-----------------------------------------------------------
 
-subroutine MAT_DIAG(Mat, Eig, Vec, Cutoff, idegen, V2, nbasis)
+subroutine MAT_DIAG(A, N, M, eval, evec)
 #if defined(HIP) || defined(HIP_MPIV)
 #if defined(WITH_MAGMA)
      use quick_magma_module, only: magmaDIAG
@@ -18,24 +18,26 @@ subroutine MAT_DIAG(Mat, Eig, Vec, Cutoff, idegen, V2, nbasis)
 #endif
 #endif
 
-    integer :: nbasis, IERROR
-    double precision :: Mat(nbasis,nbasis), Eig(nbasis), Vec(nbasis,nbasis)
-    double precision :: V2(3, nbasis), idegen(nbasis), Cutoff
+    integer, intent(in) :: N, M
+    double precision, intent(in) :: A(N,M)
+    double precision, intent(out) :: eval(M), evec(N,M)
+
+    integer :: IERROR
 
 #if defined(HIP) || defined(HIP_MPIV)                                          
 #if defined(WITH_MAGMA)
-    call magmaDIAG(nbasis, Mat, Eig, Vec, IERROR)
+    call magmaDIAG(A, N, M, eval, evec, IERROR)
 #elif defined(WITH_ROCSOLVER) 
-    call rocDIAG(nbasis, Mat, Eig, Vec, IERROR)
+    call rocDIAG(A, N, M, eval, evec, IERROR)
 #else
     ! CPU fallback for older HIP versions with poor rocSOLVER performance
-    call CPU_DIAG(nbasis, Mat, Eig, Vec, IERROR)
+    call CPU_DIAG(A, N, M, eval, evec, IERROR)
 #endif
 #elif defined(CUDA) || defined(CUDA_MPIV)
-    call CUDA_DIAG(Mat, Eig, Vec, nbasis)    
+    call CUDA_DIAG(A, N, M, eval, evec)    
 #else  
     ! CPU-based diagonalization via LAPACK-style libraries (bundled or external)
-    call CPU_DIAG(nbasis, Mat, Eig, Vec, IERROR)
+    call CPU_DIAG(A, N, M, eval, evec, IERROR)
 #endif
 
 end subroutine MAT_DIAG

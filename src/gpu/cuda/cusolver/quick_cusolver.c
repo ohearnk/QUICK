@@ -84,11 +84,12 @@ static void wrapperError (const char *funcName, int error)
     fflush (stdout);
 }
 
-void CUDA_DIAG (double* M, const double* E, const double* vec, const int* nbasis)
+void CUDA_DIAG (double* M, const int * dim1, const int * dim2, const double* E,
+        const double* vec)
 {
-    if (nbasis == 0) return;
+    if (dim1 == 0 || dim2 == 0) return;
 
-    int dim = *nbasis;
+    int dim = *dim1;
 
     cusolverDnHandle_t cusolverH = NULL;
     cusolverStatus_t cusolver_status = CUSOLVER_STATUS_SUCCESS;

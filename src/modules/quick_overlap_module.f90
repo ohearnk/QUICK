@@ -233,8 +233,8 @@ subroutine fullx
 
    ! Now diagonalize HOLD to generate the eigenvectors and eigenvalues.
    RECORD_TIME(timer_begin%T1eSD)
-   call MAT_DIAG(quick_scratch%hold, quick_scratch%Sminhalf, quick_scratch%hold2, &
-     quick_method%DMCutoff, quick_scratch%IDEGEN1, quick_scratch%V, nbasis)
+   call MAT_DIAG(quick_scratch%hold, nbasis, nbasis, quick_scratch%Sminhalf, &
+           quick_scratch%hold2)
    RECORD_TIME(timer_end%T1eSD)
    timer_cumer%T1eSD = timer_cumer%T1eSD + timer_end%T1eSD - timer_begin%T1eSD
 
