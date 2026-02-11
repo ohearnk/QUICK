@@ -361,12 +361,9 @@ module quick_oeproperties_module
      end do
 
      ! Using the inverse distance matrix to form the matrix A and vector B.
-     call DGEMV('N',natom,npoints,One,invdist_arr,natom,esp,1,Zero,B,1)
-#if defined CUDA
-     call CUBLAS_DGEMM('N', 'T', natom, natom, npoints, One, invdist_arr, natom, invdist_arr, natom, Zero, A(1:natom,1:natom), natom)
-#else
-     call DGEMM('N', 'T', natom, natom, npoints, One, invdist_arr, natom, invdist_arr, natom, Zero, A(1:natom,1:natom), natom)
-#endif
+     call DGEMV('N', natom, npoints, One, invdist_arr, natom, esp, 1, Zero, B, 1)
+     call MAT_DGEMM('N', 'T', natom, natom, npoints, One, invdist_arr, natom, &
+             invdist_arr, natom, Zero, A(1:natom,1:natom), natom)
 
      deallocate(invdist_arr)
 
@@ -397,7 +394,7 @@ module quick_oeproperties_module
 
 !  q = A-1*B
 
-   call DGEMV('N',natom+1,natom+1,One,A,LDA,B,1,Zero,q,1)
+   call DGEMV('N', natom+1, natom+1, One, A, LDA, B, 1, Zero, q, 1)
 
 !  B is copied to charge array.
 
