@@ -297,7 +297,7 @@ __device__ static inline void iclass_cshell_spdf10
                 const QUICKDouble Qy = LOC2(weightedCenterY, kk_start + KKK, ll_start + LLL, prim_total, prim_total);
                 const QUICKDouble Qz = LOC2(weightedCenterZ, kk_start + KKK, ll_start + LLL, prim_total, prim_total);
                 
-                double YVerticalTemp[PRIM_INT_ERI_LEN];
+                QUICKDouble YVerticalTemp[PRIM_INT_ERI_LEN];
                 FmT(I + J + K + L, AB * CD * ABCD * (SQR(Px - Qx) + SQR(Py - Qy) + SQR(Pz - Qz)),
                         YVerticalTemp);
 
@@ -669,6 +669,61 @@ To understand the following comments better, please refer to Figure 2(b) and 2(d
  finally,  kernel 4: zone 4(get2e_kernel_spdf4())
 
  */
+#if defined(SINGLE_PRECISION)
+#if defined(OSHELL)
+  #if defined(int_sp)
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_sp_f
+  #elif defined(int_spd)
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_spd_f
+  #elif defined(int_spdf)
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_spdf_f
+  #elif defined(int_spdf2)
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_spdf2_f
+  #elif defined(int_spdf3)
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_spdf3_f
+  #elif defined(int_spdf4)
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_spdf4_f
+  #elif defined(int_spdf5)
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_spdf5_f
+  #elif defined(int_spdf6)
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_spdf6_f
+  #elif defined(int_spdf7)
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_spdf7_f
+  #elif defined(int_spdf8)
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_spdf8_f
+  #elif defined(int_spdf9)
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_spdf9_f
+  #elif defined(int_spdf10)
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_spdf10_f
+  #endif
+#else
+  #if defined(int_sp)
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_sp_f
+  #elif defined(int_spd)
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_spd_f
+  #elif defined(int_spdf)
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_spdf_f
+  #elif defined(int_spdf2)
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_spdf2_f
+  #elif defined(int_spdf3)
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_spdf3_f
+  #elif defined(int_spdf4)
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_spdf4_f
+  #elif defined(int_spdf5)
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_spdf5_f
+  #elif defined(int_spdf6)
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_spdf6_f
+  #elif defined(int_spdf7)
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_spdf7_f
+  #elif defined(int_spdf8)
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_spdf8_f
+  #elif defined(int_spdf9)
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_spdf9_f
+  #elif defined(int_spdf10)
+__global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_spdf10_f
+  #endif
+#endif
+#else
 #if defined(OSHELL)
   #if defined(int_sp)
 __global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_oshell_sp
@@ -721,6 +776,7 @@ __global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_sp
   #elif defined(int_spdf10)
 __global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_spdf10
   #endif
+#endif
 #endif
     (QUICKDouble hyb_coeff, uint32_t natom, uint32_t nbasis,
         uint32_t nshell, uint32_t jbasis, QUICKDouble const * const xyz, uint32_t fStart,
@@ -975,6 +1031,15 @@ __global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_sp
                         MAX(LOC2(cutMatrix, jj, kk, nshell, nshell), LOC2(cutMatrix, jj, ll, nshell, nshell))));
 #endif
 
+#if defined(SINGLE_PRECISION)
+            //TODO: enable setting mixed precision integral cutoff parameter via control file
+            if (LOC2(YCutoff, kk, ll, nshell, nshell) * LOC2(YCutoff, ii, jj, nshell, nshell) < 0.00000001
+                    && LOC2(YCutoff, kk, ll, nshell, nshell) * LOC2(YCutoff, ii, jj, nshell, nshell) * DNMax < 0.00000001) {
+#else
+            if (!(LOC2(YCutoff, kk, ll, nshell, nshell) * LOC2(YCutoff, ii, jj, nshell, nshell) < 0.00000001
+                    && LOC2(YCutoff, kk, ll, nshell, nshell) * LOC2(YCutoff, ii, jj, nshell, nshell) * DNMax < 0.00000001)) {
+#endif
+
 #if defined(USE_TEXTURE) && defined(USE_TEXTURE_YCUTOFF)
             tmpInt2Val = tex1Dfetch(tex_YCutoff, kk + ll * nshell);
             val_kk_ll = __hiloint2double(tmpInt2Val.y, tmpInt2Val.x);
@@ -1091,8 +1156,9 @@ __global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_sp
                         store, strans, sSumindex);
                 }
             }
+            }
 #if defined(int_sp) || defined(int_spd)
-        }
+            }
 #endif
         }
 #if defined(MPIV_GPU)
@@ -1386,7 +1452,7 @@ __device__ static inline void iclass_AOInt_spdf10
                 QUICKDouble Qy = LOC2(weightedCenterY, kk_start + KKK, ll_start + LLL, prim_total, prim_total);
                 QUICKDouble Qz = LOC2(weightedCenterZ, kk_start + KKK, ll_start + LLL, prim_total, prim_total);
                 
-                double YVerticalTemp[PRIM_INT_ERI_LEN];
+                QUICKDouble YVerticalTemp[PRIM_INT_ERI_LEN];
                 FmT(I + J + K + L, AB * CD * ABCD * (SQR(Px - Qx) + SQR(Py - Qy) + SQR(Pz - Qz)),
                         YVerticalTemp);
 

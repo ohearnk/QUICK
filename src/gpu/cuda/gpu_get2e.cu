@@ -37,6 +37,516 @@ texture <int2, cudaTextureType1D, cudaReadModeElementType> tex_Xcoeff;
 //  #define STORE_OPERATOR =  
 //#endif
 
+#define SINGLE_PRECISION
+#undef QUICKDouble
+#define QUICKDouble float
+#undef QUICKULL
+#define QUICKULL unsigned int
+
+#include "../gpu_get2e_subs_hrr.h"
+#if defined(COMPILE_GPU_AOINT)
+  #include "../gpu_eri_vertical_int.h"
+#endif
+
+#define int_sp
+#undef int_spd
+#undef int_spdf
+#undef int_spdf2
+#undef int_spdf3
+#undef int_spdf4
+#undef int_spdf5
+#undef int_spdf6
+#undef int_spdf7
+#undef int_spdf8
+#undef int_spdf9
+#undef int_spdf10
+#include "../gpu_eri_assembler_sp.h"
+#include "../gpu_get2e_subs.h"
+#include "../gpu_eri_grad_assembler_sp.h"
+#include "../gpu_get2e_subs_grad.h"
+
+#undef int_sp
+#define int_spd
+#undef int_spdf
+#undef int_spdf2
+#undef int_spdf3
+#undef int_spdf4
+#undef int_spdf5
+#undef int_spdf6
+#undef int_spdf7
+#undef int_spdf8
+#undef int_spdf9
+#undef int_spdf10
+#include "../gpu_eri_assembler_spd.h"
+#include "../gpu_get2e_subs.h"
+#include "../gpu_eri_grad_assembler_spd.h"
+#include "../gpu_get2e_subs_grad.h"
+
+
+//===================================
+
+#undef int_spd
+#define int_spdf
+#undef int_spdf2
+#undef int_spdf3
+#undef int_spdf4
+#undef int_spdf5
+#undef int_spdf6
+#undef int_spdf7
+#undef int_spdf8
+#undef int_spdf9
+#undef int_spdf10
+#include "../gpu_eri_grad_vrr_dddd_1.h"
+#include "../gpu_get2e_subs_grad.h"
+
+#undef int_spd
+#undef int_spdf
+#define int_spdf2
+#undef int_spdf3
+#undef int_spdf4
+#undef int_spdf5
+#undef int_spdf6
+#undef int_spdf7
+#undef int_spdf8
+#undef int_spdf9
+#undef int_spdf10
+#include "../gpu_eri_grad_vrr_dddd_2.h"
+#include "../gpu_get2e_subs_grad.h"
+
+
+/*
+#undef int_spd
+#undef int_spdf
+#undef int_spdf2
+#define int_spdf3
+#undef int_spdf4
+#undef int_spdf5
+#undef int_spdf6
+#undef int_spdf7
+#undef int_spdf8
+#undef int_spdf9
+#undef int_spdf10
+#include "../gpu_get2e_subs_grad.h"
+*/
+
+#ifdef GPU_SPDF
+//===================================
+
+#undef int_spd
+#define int_spdf
+#undef int_spdf2
+#undef int_spdf3
+#undef int_spdf4
+#undef int_spdf5
+#undef int_spdf6
+#undef int_spdf7
+#undef int_spdf8
+#undef int_spdf9
+#undef int_spdf10
+#include "../gpu_eri_assembler_spdf_1.h"
+#include "../gpu_get2e_subs.h"
+
+#undef int_spd
+#undef int_spdf
+#define int_spdf2
+#undef int_spdf3
+#undef int_spdf4
+#undef int_spdf5
+#undef int_spdf6
+#undef int_spdf7
+#undef int_spdf8
+#undef int_spdf9
+#undef int_spdf10
+#include "../gpu_eri_assembler_spdf_2.h"
+#include "../gpu_get2e_subs.h"
+
+#undef int_spd
+#undef int_spdf
+#undef int_spdf2
+#define int_spdf3
+#undef int_spdf4
+#undef int_spdf5
+#undef int_spdf6
+#undef int_spdf7
+#undef int_spdf8
+#undef int_spdf9
+#undef int_spdf10
+#include "../gpu_eri_assembler_spdf_3.h"
+#include "../gpu_get2e_subs.h"
+
+#include "../gpu_eri_assembler_spdf_1_2.h"
+#include "../gpu_eri_assembler_spdf_2_2.h"
+#include "../gpu_eri_assembler_spdf_3_2.h"
+#include "../gpu_eri_assembler_spdf_4_2.h"
+#include "../gpu_eri_assembler_spdf_5_2.h"
+#include "../gpu_eri_assembler_spdf_6_2.h"
+#include "../gpu_eri_assembler_spdf_7_2.h"
+#include "../gpu_eri_assembler_spdf_8_2.h"
+
+#include "../gpu_eri_grad_assembler_spd_2.h"
+#include "../gpu_eri_grad_assembler_spdf_1.h" 
+#include "../gpu_eri_grad_assembler_spdf_2.h"
+#include "../gpu_eri_grad_assembler_spdf_3.h"
+#include "../gpu_eri_grad_assembler_spdf_4.h"
+#include "../gpu_eri_grad_assembler_spdf_5.h"
+#include "../gpu_eri_grad_assembler_spdf_6.h"
+//#include "../gpu_eri_grad_assembler_spdf_7_1.h"
+//#include "../gpu_eri_grad_assembler_spdf_7_2.h"
+//#include "../gpu_eri_grad_assembler_spdf_7_3.h"
+#include "../gpu_get2e_subs_grad.h"
+
+#undef int_spd
+#undef int_spdf
+#undef int_spdf2
+#undef int_spdf3
+#define int_spdf4
+#undef int_spdf5
+#undef int_spdf6
+#undef int_spdf7
+#undef int_spdf8
+#undef int_spdf9
+#undef int_spdf10
+#include "../gpu_eri_assembler_spdf_4.h"
+//#include "../gpu_eri_grad_vrr_ffff.h"
+#include "../gpu_get2e_subs.h"
+//#include "../gpu_get2e_subs_grad.h"
+
+#undef int_spd
+#undef int_spdf
+#undef int_spdf2
+#undef int_spdf3
+#undef int_spdf4
+#define int_spdf5
+#undef int_spdf6
+#undef int_spdf7
+#undef int_spdf8
+#undef int_spdf9
+#undef int_spdf10
+#include "../gpu_eri_assembler_spdf_5.h"
+#include "../gpu_get2e_subs.h"
+
+
+#undef int_spd
+#undef int_spdf
+#undef int_spdf2
+#undef int_spdf3
+#undef int_spdf4
+#undef int_spdf5
+#define int_spdf6
+#undef int_spdf7
+#undef int_spdf8
+#undef int_spdf9
+#undef int_spdf10
+#include "../gpu_eri_assembler_spdf_6.h"
+#include "../gpu_get2e_subs.h"
+
+
+#undef int_spd
+#undef int_spdf
+#undef int_spdf2
+#undef int_spdf3
+#undef int_spdf4
+#undef int_spdf5
+#undef int_spdf6
+#define int_spdf7
+#undef int_spdf8
+#undef int_spdf9
+#undef int_spdf10
+#include "../gpu_eri_assembler_spdf_7.h"
+#include "../gpu_get2e_subs.h"
+
+
+#undef int_spd
+#undef int_spdf
+#undef int_spdf2
+#undef int_spdf3
+#undef int_spdf4
+#undef int_spdf5
+#undef int_spdf6
+#undef int_spdf7
+#define int_spdf8
+#undef int_spdf9
+#undef int_spdf10
+#include "../gpu_eri_assembler_spdf_8.h"
+#include "../gpu_get2e_subs.h"
+
+
+#undef int_spd
+#undef int_spdf
+#undef int_spdf2
+#undef int_spdf3
+#undef int_spdf4
+#undef int_spdf5
+#undef int_spdf6
+#undef int_spdf7
+#undef int_spdf8
+#define int_spdf9
+#undef int_spdf10
+#include "../gpu_get2e_subs.h"
+
+#undef int_spd
+#undef int_spdf
+#undef int_spdf2
+#undef int_spdf3
+#undef int_spdf4
+#undef int_spdf5
+#undef int_spdf6
+#undef int_spdf7
+#undef int_spdf8
+#undef int_spdf9
+#define int_spdf10
+#include "../gpu_get2e_subs.h"
+
+#endif
+
+#undef int_spd
+#undef int_spdf
+#undef int_spdf2
+#undef int_spdf3
+#undef int_spdf4
+#undef int_spdf5
+#undef int_spdf6
+#undef int_spdf7
+#undef int_spdf8
+#undef int_spdf9
+#undef int_spdf10
+
+//Include the kernels for open shell eri calculations
+#define OSHELL
+
+#define int_sp
+#undef int_spd
+#undef int_spdf
+#undef int_spdf2
+#undef int_spdf3
+#undef int_spdf4
+#undef int_spdf5
+#undef int_spdf6
+#undef int_spdf7
+#undef int_spdf8
+#undef int_spdf9
+#undef int_spdf10
+#undef new_quick_2_gpu_get2e_subs_h
+#include "../gpu_get2e_subs.h"
+#include "../gpu_get2e_subs_grad.h"
+
+#undef int_sp
+#define int_spd
+#undef int_spdf
+#undef int_spdf2
+#undef int_spdf3
+#undef int_spdf4
+#undef int_spdf5
+#undef int_spdf6
+#undef int_spdf7
+#undef int_spdf8
+#undef int_spdf9
+#undef int_spdf10
+#include "../gpu_get2e_subs.h"
+#include "../gpu_get2e_subs_grad.h"
+
+//===================================
+
+#undef int_spd
+#define int_spdf
+#undef int_spdf2
+#undef int_spdf3
+#undef int_spdf4
+#undef int_spdf5
+#undef int_spdf6
+#undef int_spdf7
+#undef int_spdf8
+#undef int_spdf9
+#undef int_spdf10
+#include "../gpu_get2e_subs_grad.h"
+
+#undef int_spd
+#undef int_spdf
+#define int_spdf2
+#undef int_spdf3
+#undef int_spdf4
+#undef int_spdf5
+#undef int_spdf6
+#undef int_spdf7
+#undef int_spdf8
+#undef int_spdf9
+#undef int_spdf10
+#include "../gpu_get2e_subs_grad.h"
+
+/*
+#undef int_spd
+#undef int_spdf
+#undef int_spdf2
+#define int_spdf3
+#undef int_spdf4
+#undef int_spdf5
+#undef int_spdf6
+#undef int_spdf7
+#undef int_spdf8
+#undef int_spdf9
+#undef int_spdf10
+#include "../gpu_get2e_subs_grad.h"
+*/
+
+#ifdef GPU_SPDF
+//===================================
+
+#undef int_spd
+#define int_spdf
+#undef int_spdf2
+#undef int_spdf3
+#undef int_spdf4
+#undef int_spdf5
+#undef int_spdf6
+#undef int_spdf7
+#undef int_spdf8
+#undef int_spdf9
+#undef int_spdf10
+#include "../gpu_get2e_subs.h"
+
+#undef int_spd
+#undef int_spdf
+#define int_spdf2
+#undef int_spdf3
+#undef int_spdf4
+#undef int_spdf5
+#undef int_spdf6
+#undef int_spdf7
+#undef int_spdf8
+#undef int_spdf9
+#undef int_spdf10
+#include "../gpu_get2e_subs.h"
+
+#undef int_spd
+#undef int_spdf
+#undef int_spdf2
+#define int_spdf3
+#undef int_spdf4
+#undef int_spdf5
+#undef int_spdf6
+#undef int_spdf7
+#undef int_spdf8
+#undef int_spdf9
+#undef int_spdf10
+#include "../gpu_get2e_subs.h"
+
+#undef int_spd
+#undef int_spdf
+#undef int_spdf2
+#undef int_spdf3
+#define int_spdf4
+#undef int_spdf5
+#undef int_spdf6
+#undef int_spdf7
+#undef int_spdf8
+#undef int_spdf9
+#undef int_spdf10
+#include "../gpu_get2e_subs.h"
+
+#undef int_spd
+#undef int_spdf
+#undef int_spdf2
+#undef int_spdf3
+#undef int_spdf4
+#define int_spdf5
+#undef int_spdf6
+#undef int_spdf7
+#undef int_spdf8
+#undef int_spdf9
+#undef int_spdf10
+#include "../gpu_get2e_subs.h"
+
+#undef int_spd
+#undef int_spdf
+#undef int_spdf2
+#undef int_spdf3
+#undef int_spdf4
+#undef int_spdf5
+#define int_spdf6
+#undef int_spdf7
+#undef int_spdf8
+#undef int_spdf9
+#undef int_spdf10
+#include "../gpu_get2e_subs.h"
+
+#undef int_spd
+#undef int_spdf
+#undef int_spdf2
+#undef int_spdf3
+#undef int_spdf4
+#undef int_spdf5
+#undef int_spdf6
+#define int_spdf7
+#undef int_spdf8
+#undef int_spdf9
+#undef int_spdf10
+#include "../gpu_get2e_subs.h"
+
+#undef int_spd
+#undef int_spdf
+#undef int_spdf2
+#undef int_spdf3
+#undef int_spdf4
+#undef int_spdf5
+#undef int_spdf6
+#undef int_spdf7
+#define int_spdf8
+#undef int_spdf9
+#undef int_spdf10
+#include "../gpu_get2e_subs.h"
+
+
+#undef int_spd
+#undef int_spdf
+#undef int_spdf2
+#undef int_spdf3
+#undef int_spdf4
+#undef int_spdf5
+#undef int_spdf6
+#undef int_spdf7
+#undef int_spdf8
+#define int_spdf9
+#undef int_spdf10
+#include "../gpu_get2e_subs.h"
+
+#undef int_spd
+#undef int_spdf
+#undef int_spdf2
+#undef int_spdf3
+#undef int_spdf4
+#undef int_spdf5
+#undef int_spdf6
+#undef int_spdf7
+#undef int_spdf8
+#undef int_spdf9
+#define int_spdf10
+#include "../gpu_get2e_subs.h"
+
+#endif
+
+#undef int_spd
+#undef int_spdf
+#undef int_spdf2
+#undef int_spdf3
+#undef int_spdf4
+#undef int_spdf5
+#undef int_spdf6
+#undef int_spdf7
+#undef int_spdf8
+#undef int_spdf9
+#undef int_spdf10
+
+
+#undef SINGLE_PRECISION
+#undef QUICKDouble
+#define QUICKDouble double
+#undef QUICKULL
+#define QUICKULL unsigned long long
+#undef OSHELL
+#undef __QUICK_GPU_FMT_H_
+#undef gpu_get2e_subs_hrr_h
+#undef gpu_get2e_subs_grad_h
+
 #include "../gpu_get2e_subs_hrr.h"
 #if defined(COMPILE_GPU_AOINT)
   #include "../gpu_eri_vertical_int.h"
@@ -916,6 +1426,311 @@ void get2e(_gpu_type gpu)
     }
 #endif 
 
+    QUICK_SAFE_CALL((k_eri_cshell_sp_f <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u)>>>
+                (gpu->gpu_sim.hyb_coeff_f, gpu->gpu_sim.natom,
+                 gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
+                 gpu->gpu_sim.xyz_f, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
+                 gpu->gpu_sim.katom, gpu->gpu_sim.kprim, gpu->gpu_sim.Qstart,
+                 gpu->gpu_sim.Qsbasis, gpu->gpu_sim.Qfbasis, gpu->gpu_sim.sorted_Qnumber,
+                 gpu->gpu_sim.sorted_Q, gpu->gpu_sim.cons_f, gpu->gpu_sim.KLMN,
+                 gpu->gpu_sim.prim_total, gpu->gpu_sim.prim_start,
+#if defined(USE_LEGACY_ATOMICS)
+                 gpu->gpu_sim.oULL,
+#else
+                 gpu->gpu_sim.o_f,
+#endif
+                 gpu->gpu_sim.dense_f,
+                 gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
+                 gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
+                 gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+                 gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
+#if defined(MPIV_GPU)
+                 gpu->gpu_sim.mpi_bcompute,
+#endif
+                 gpu->gpu_sim.store_f, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
+
+    QUICK_SAFE_CALL((k_eri_cshell_spd_f <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u)>>>
+                (gpu->gpu_sim.hyb_coeff_f, gpu->gpu_sim.natom,
+                 gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
+                 gpu->gpu_sim.xyz_f, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
+                 gpu->gpu_sim.katom, gpu->gpu_sim.kprim, gpu->gpu_sim.Qstart,
+                 gpu->gpu_sim.Qsbasis, gpu->gpu_sim.Qfbasis, gpu->gpu_sim.sorted_Qnumber,
+                 gpu->gpu_sim.sorted_Q, gpu->gpu_sim.cons_f, gpu->gpu_sim.KLMN,
+                 gpu->gpu_sim.prim_total, gpu->gpu_sim.prim_start,
+#if defined(USE_LEGACY_ATOMICS)
+                 gpu->gpu_sim.oULL,
+#else
+                 gpu->gpu_sim.o_f,
+#endif
+                 gpu->gpu_sim.dense_f,
+                 gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
+                 gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
+                 gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+                 gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
+#if defined(MPIV_GPU)
+                 gpu->gpu_sim.mpi_bcompute,
+#endif
+                 gpu->gpu_sim.store_f, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
+ 
+#ifdef GPU_SPDF
+    if (gpu->maxL >= 3) {
+        // Part f-1
+        QUICK_SAFE_CALL((k_eri_cshell_spdf_f <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u)>>>
+                (gpu->gpu_sim.hyb_coeff_f, gpu->gpu_sim.natom,
+                 gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
+                 gpu->gpu_sim.xyz_f, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
+                 gpu->gpu_sim.katom, gpu->gpu_sim.kprim, gpu->gpu_sim.Qstart,
+                 gpu->gpu_sim.Qsbasis, gpu->gpu_sim.Qfbasis, gpu->gpu_sim.sorted_Qnumber,
+                 gpu->gpu_sim.sorted_Q, gpu->gpu_sim.cons_f, gpu->gpu_sim.KLMN,
+                 gpu->gpu_sim.prim_total, gpu->gpu_sim.prim_start,
+#if defined(USE_LEGACY_ATOMICS)
+                 gpu->gpu_sim.oULL,
+#else
+                 gpu->gpu_sim.o_f,
+#endif
+                 gpu->gpu_sim.dense_f,
+                 gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
+                 gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
+                 gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+                 gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
+#if defined(MPIV_GPU)
+                 gpu->gpu_sim.mpi_bcompute,
+#endif
+                 gpu->gpu_sim.store_f, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
+        // Part f-2
+        QUICK_SAFE_CALL((k_eri_cshell_spdf2_f <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u)>>>
+                (gpu->gpu_sim.hyb_coeff_f, gpu->gpu_sim.natom,
+                 gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
+                 gpu->gpu_sim.xyz_f, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
+                 gpu->gpu_sim.katom, gpu->gpu_sim.kprim, gpu->gpu_sim.Qstart,
+                 gpu->gpu_sim.Qsbasis, gpu->gpu_sim.Qfbasis, gpu->gpu_sim.sorted_Qnumber,
+                 gpu->gpu_sim.sorted_Q, gpu->gpu_sim.cons_f, gpu->gpu_sim.KLMN,
+                 gpu->gpu_sim.prim_total, gpu->gpu_sim.prim_start,
+#if defined(USE_LEGACY_ATOMICS)
+                 gpu->gpu_sim.oULL,
+#else
+                 gpu->gpu_sim.o_f,
+#endif
+                 gpu->gpu_sim.dense_f,
+                 gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
+                 gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
+                 gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+                 gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
+#if defined(MPIV_GPU)
+                 gpu->gpu_sim.mpi_bcompute,
+#endif
+                 gpu->gpu_sim.store_f, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
+        // Part f-3
+        QUICK_SAFE_CALL((k_eri_cshell_spdf3_f <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u)>>>
+                (gpu->gpu_sim.hyb_coeff_f, gpu->gpu_sim.natom,
+                 gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
+                 gpu->gpu_sim.xyz_f, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
+                 gpu->gpu_sim.katom, gpu->gpu_sim.kprim, gpu->gpu_sim.Qstart,
+                 gpu->gpu_sim.Qsbasis, gpu->gpu_sim.Qfbasis, gpu->gpu_sim.sorted_Qnumber,
+                 gpu->gpu_sim.sorted_Q, gpu->gpu_sim.cons_f, gpu->gpu_sim.KLMN,
+                 gpu->gpu_sim.prim_total, gpu->gpu_sim.prim_start,
+#if defined(USE_LEGACY_ATOMICS)
+                 gpu->gpu_sim.oULL,
+#else
+                 gpu->gpu_sim.o_f,
+#endif
+                 gpu->gpu_sim.dense_f,
+                 gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
+                 gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
+                 gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+                 gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
+#if defined(MPIV_GPU)
+                 gpu->gpu_sim.mpi_bcompute,
+#endif
+                 gpu->gpu_sim.store_f, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
+        // Part f-4
+        QUICK_SAFE_CALL((k_eri_cshell_spdf4_f <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u)>>>
+                (gpu->gpu_sim.hyb_coeff_f, gpu->gpu_sim.natom,
+                 gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
+                 gpu->gpu_sim.xyz_f, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
+                 gpu->gpu_sim.katom, gpu->gpu_sim.kprim, gpu->gpu_sim.Qstart,
+                 gpu->gpu_sim.Qsbasis, gpu->gpu_sim.Qfbasis, gpu->gpu_sim.sorted_Qnumber,
+                 gpu->gpu_sim.sorted_Q, gpu->gpu_sim.cons_f, gpu->gpu_sim.KLMN,
+                 gpu->gpu_sim.prim_total, gpu->gpu_sim.prim_start,
+#if defined(USE_LEGACY_ATOMICS)
+                 gpu->gpu_sim.oULL,
+#else
+                 gpu->gpu_sim.o_f,
+#endif
+                 gpu->gpu_sim.dense_f,
+                 gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
+                 gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
+                 gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+                 gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
+#if defined(MPIV_GPU)
+                 gpu->gpu_sim.mpi_bcompute,
+#endif
+                 gpu->gpu_sim.store_f, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
+        // Part f-5
+        QUICK_SAFE_CALL((k_eri_cshell_spdf5_f <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u)>>>
+                (gpu->gpu_sim.hyb_coeff_f, gpu->gpu_sim.natom,
+                 gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
+                 gpu->gpu_sim.xyz_f, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
+                 gpu->gpu_sim.katom, gpu->gpu_sim.kprim, gpu->gpu_sim.Qstart,
+                 gpu->gpu_sim.Qsbasis, gpu->gpu_sim.Qfbasis, gpu->gpu_sim.sorted_Qnumber,
+                 gpu->gpu_sim.sorted_Q, gpu->gpu_sim.cons_f, gpu->gpu_sim.KLMN,
+                 gpu->gpu_sim.prim_total, gpu->gpu_sim.prim_start,
+#if defined(USE_LEGACY_ATOMICS)
+                 gpu->gpu_sim.oULL,
+#else
+                 gpu->gpu_sim.o_f,
+#endif
+                 gpu->gpu_sim.dense_f,
+                 gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
+                 gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
+                 gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+                 gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
+#if defined(MPIV_GPU)
+                 gpu->gpu_sim.mpi_bcompute,
+#endif
+                 gpu->gpu_sim.store_f, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
+        // Part f-6
+        QUICK_SAFE_CALL((k_eri_cshell_spdf6_f <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u)>>>
+                (gpu->gpu_sim.hyb_coeff_f, gpu->gpu_sim.natom,
+                 gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
+                 gpu->gpu_sim.xyz_f, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
+                 gpu->gpu_sim.katom, gpu->gpu_sim.kprim, gpu->gpu_sim.Qstart,
+                 gpu->gpu_sim.Qsbasis, gpu->gpu_sim.Qfbasis, gpu->gpu_sim.sorted_Qnumber,
+                 gpu->gpu_sim.sorted_Q, gpu->gpu_sim.cons_f, gpu->gpu_sim.KLMN,
+                 gpu->gpu_sim.prim_total, gpu->gpu_sim.prim_start,
+#if defined(USE_LEGACY_ATOMICS)
+                 gpu->gpu_sim.oULL,
+#else
+                 gpu->gpu_sim.o_f,
+#endif
+                 gpu->gpu_sim.dense_f,
+                 gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
+                 gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
+                 gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+                 gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
+#if defined(MPIV_GPU)
+                 gpu->gpu_sim.mpi_bcompute,
+#endif
+                 gpu->gpu_sim.store_f, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
+        // Part f-7
+        QUICK_SAFE_CALL((k_eri_cshell_spdf7_f <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u)>>>
+                (gpu->gpu_sim.hyb_coeff_f, gpu->gpu_sim.natom,
+                 gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
+                 gpu->gpu_sim.xyz_f, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
+                 gpu->gpu_sim.katom, gpu->gpu_sim.kprim, gpu->gpu_sim.Qstart,
+                 gpu->gpu_sim.Qsbasis, gpu->gpu_sim.Qfbasis, gpu->gpu_sim.sorted_Qnumber,
+                 gpu->gpu_sim.sorted_Q, gpu->gpu_sim.cons_f, gpu->gpu_sim.KLMN,
+                 gpu->gpu_sim.prim_total, gpu->gpu_sim.prim_start,
+#if defined(USE_LEGACY_ATOMICS)
+                 gpu->gpu_sim.oULL,
+#else
+                 gpu->gpu_sim.o_f,
+#endif
+                 gpu->gpu_sim.dense_f,
+                 gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
+                 gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
+                 gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+                 gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
+#if defined(MPIV_GPU)
+                 gpu->gpu_sim.mpi_bcompute,
+#endif
+                 gpu->gpu_sim.store_f, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
+        // Part f-8
+        QUICK_SAFE_CALL((k_eri_cshell_spdf8_f <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u)>>>
+                (gpu->gpu_sim.hyb_coeff_f, gpu->gpu_sim.natom,
+                 gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
+                 gpu->gpu_sim.xyz_f, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
+                 gpu->gpu_sim.katom, gpu->gpu_sim.kprim, gpu->gpu_sim.Qstart,
+                 gpu->gpu_sim.Qsbasis, gpu->gpu_sim.Qfbasis, gpu->gpu_sim.sorted_Qnumber,
+                 gpu->gpu_sim.sorted_Q, gpu->gpu_sim.cons_f, gpu->gpu_sim.KLMN,
+                 gpu->gpu_sim.prim_total, gpu->gpu_sim.prim_start,
+#if defined(USE_LEGACY_ATOMICS)
+                 gpu->gpu_sim.oULL,
+#else
+                 gpu->gpu_sim.o_f,
+#endif
+                 gpu->gpu_sim.dense_f,
+                 gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
+                 gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
+                 gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+                 gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
+#if defined(MPIV_GPU)
+                 gpu->gpu_sim.mpi_bcompute,
+#endif
+                 gpu->gpu_sim.store_f, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
+        // Part f-9
+//        QUICK_SAFE_CALL((k_eri_cshell_spdf9_f <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+//                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u)>>>
+//                (gpu->gpu_sim.hyb_coeff_f, gpu->gpu_sim.natom,
+//                 gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
+//                 gpu->gpu_sim.xyz_f, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
+//                 gpu->gpu_sim.katom, gpu->gpu_sim.kprim, gpu->gpu_sim.Qstart,
+//                 gpu->gpu_sim.Qsbasis, gpu->gpu_sim.Qfbasis, gpu->gpu_sim.sorted_Qnumber,
+//                 gpu->gpu_sim.sorted_Q, gpu->gpu_sim.cons_f, gpu->gpu_sim.KLMN,
+//                 gpu->gpu_sim.prim_total, gpu->gpu_sim.prim_start,
+//#if defined(USE_LEGACY_ATOMICS)
+//                 gpu->gpu_sim.oULL,
+//#else
+//                 gpu->gpu_sim.o_f,
+//#endif
+//                 gpu->gpu_sim.dense_f,
+//                 gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
+//                 gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
+//                 gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
+//                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+//                 gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
+//#if defined(MPIV_GPU)
+//                 gpu->gpu_sim.mpi_bcompute,
+//#endif
+//                 gpu->gpu_sim.store_f, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
+        // Part f-10
+//        QUICK_SAFE_CALL((k_eri_cshell_spdf10_f <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+//                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u)>>>
+//                (gpu->gpu_sim.hyb_coeff_f, gpu->gpu_sim.natom,
+//                 gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
+//                 gpu->gpu_sim.xyz_f, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
+//                 gpu->gpu_sim.katom, gpu->gpu_sim.kprim, gpu->gpu_sim.Qstart,
+//                 gpu->gpu_sim.Qsbasis, gpu->gpu_sim.Qfbasis, gpu->gpu_sim.sorted_Qnumber,
+//                 gpu->gpu_sim.sorted_Q, gpu->gpu_sim.cons_f, gpu->gpu_sim.KLMN,
+//                 gpu->gpu_sim.prim_total, gpu->gpu_sim.prim_start,
+//#if defined(USE_LEGACY_ATOMICS)
+//                 gpu->gpu_sim.oULL,
+//#else
+//                 gpu->gpu_sim.o_f,
+//#endif
+//                 gpu->gpu_sim.dense_f,
+//                 gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
+//                 gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
+//                 gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
+//                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+//                 gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
+//#if defined(MPIV_GPU)
+//                 gpu->gpu_sim.mpi_bcompute,
+//#endif
+//                 gpu->gpu_sim.store_f, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
+    }
+#endif 
+
 #if defined(USE_TEXTURE)
     unbind_eri_texture();
 #endif
@@ -1240,6 +2055,312 @@ void get_oshell_eri(_gpu_type gpu)
     }
 #endif
 
+    QUICK_SAFE_CALL((k_eri_oshell_sp_f <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u)>>> 
+                (gpu->gpu_sim.hyb_coeff_f, gpu->gpu_sim.natom,
+                 gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
+                 gpu->gpu_sim.xyz_f, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
+                 gpu->gpu_sim.katom, gpu->gpu_sim.kprim, gpu->gpu_sim.Qstart,
+                 gpu->gpu_sim.Qsbasis, gpu->gpu_sim.Qfbasis, gpu->gpu_sim.sorted_Qnumber,
+                 gpu->gpu_sim.sorted_Q, gpu->gpu_sim.cons_f, gpu->gpu_sim.KLMN,
+                 gpu->gpu_sim.prim_total, gpu->gpu_sim.prim_start,
+#if defined(USE_LEGACY_ATOMICS)
+                 gpu->gpu_sim.oULL, gpu->gpu_sim.obULL,
+#else
+                 gpu->gpu_sim.o_f, gpu->gpu_sim.ob_f,
+#endif
+                 gpu->gpu_sim.dense_f, gpu->gpu_sim.denseb_f,
+                 gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
+                 gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
+                 gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+                 gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
+#if defined(MPIV_GPU)
+                 gpu->gpu_sim.mpi_bcompute,
+#endif
+                 gpu->gpu_sim.store_f, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
+
+    QUICK_SAFE_CALL((k_eri_oshell_spd_f <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u)>>> 
+                (gpu->gpu_sim.hyb_coeff_f, gpu->gpu_sim.natom,
+                 gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
+                 gpu->gpu_sim.xyz_f, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
+                 gpu->gpu_sim.katom, gpu->gpu_sim.kprim, gpu->gpu_sim.Qstart,
+                 gpu->gpu_sim.Qsbasis, gpu->gpu_sim.Qfbasis, gpu->gpu_sim.sorted_Qnumber,
+                 gpu->gpu_sim.sorted_Q, gpu->gpu_sim.cons_f, gpu->gpu_sim.KLMN,
+                 gpu->gpu_sim.prim_total, gpu->gpu_sim.prim_start,
+#if defined(USE_LEGACY_ATOMICS)
+                 gpu->gpu_sim.oULL, gpu->gpu_sim.obULL,
+#else
+                 gpu->gpu_sim.o_f, gpu->gpu_sim.ob_f,
+#endif
+                 gpu->gpu_sim.dense_f, gpu->gpu_sim.denseb_f,
+                 gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
+                 gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
+                 gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+                 gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
+#if defined(MPIV_GPU)
+                 gpu->gpu_sim.mpi_bcompute,
+#endif
+                 gpu->gpu_sim.store_f, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
+
+#ifdef GPU_SPDF
+    if (gpu->maxL >= 3) {
+        // Part f-1
+        QUICK_SAFE_CALL((k_eri_oshell_spdf_f <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u)>>> 
+                (gpu->gpu_sim.hyb_coeff_f, gpu->gpu_sim.natom,
+                 gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
+                 gpu->gpu_sim.xyz_f, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
+                 gpu->gpu_sim.katom, gpu->gpu_sim.kprim, gpu->gpu_sim.Qstart,
+                 gpu->gpu_sim.Qsbasis, gpu->gpu_sim.Qfbasis, gpu->gpu_sim.sorted_Qnumber,
+                 gpu->gpu_sim.sorted_Q, gpu->gpu_sim.cons_f, gpu->gpu_sim.KLMN,
+                 gpu->gpu_sim.prim_total, gpu->gpu_sim.prim_start,
+#if defined(USE_LEGACY_ATOMICS)
+                 gpu->gpu_sim.oULL, gpu->gpu_sim.obULL,
+#else
+                 gpu->gpu_sim.o_f, gpu->gpu_sim.ob_f,
+#endif
+                 gpu->gpu_sim.dense_f, gpu->gpu_sim.denseb_f,
+                 gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
+                 gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
+                 gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+                 gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
+#if defined(MPIV_GPU)
+                 gpu->gpu_sim.mpi_bcompute,
+#endif
+                 gpu->gpu_sim.store_f, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
+
+        // Part f-2
+        QUICK_SAFE_CALL((k_eri_oshell_spdf2_f <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u)>>>
+                (gpu->gpu_sim.hyb_coeff_f, gpu->gpu_sim.natom,
+                 gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
+                 gpu->gpu_sim.xyz_f, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
+                 gpu->gpu_sim.katom, gpu->gpu_sim.kprim, gpu->gpu_sim.Qstart,
+                 gpu->gpu_sim.Qsbasis, gpu->gpu_sim.Qfbasis, gpu->gpu_sim.sorted_Qnumber,
+                 gpu->gpu_sim.sorted_Q, gpu->gpu_sim.cons_f, gpu->gpu_sim.KLMN,
+                 gpu->gpu_sim.prim_total, gpu->gpu_sim.prim_start,
+#if defined(USE_LEGACY_ATOMICS)
+                 gpu->gpu_sim.oULL, gpu->gpu_sim.obULL,
+#else
+                 gpu->gpu_sim.o_f, gpu->gpu_sim.ob_f,
+#endif
+                 gpu->gpu_sim.dense_f, gpu->gpu_sim.denseb_f,
+                 gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
+                 gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
+                 gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+                 gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
+#if defined(MPIV_GPU)
+                 gpu->gpu_sim.mpi_bcompute,
+#endif
+                 gpu->gpu_sim.store_f, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
+        // Part f-3
+        QUICK_SAFE_CALL((k_eri_oshell_spdf3_f <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u)>>>
+                (gpu->gpu_sim.hyb_coeff_f, gpu->gpu_sim.natom,
+                 gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
+                 gpu->gpu_sim.xyz_f, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
+                 gpu->gpu_sim.katom, gpu->gpu_sim.kprim, gpu->gpu_sim.Qstart,
+                 gpu->gpu_sim.Qsbasis, gpu->gpu_sim.Qfbasis, gpu->gpu_sim.sorted_Qnumber,
+                 gpu->gpu_sim.sorted_Q, gpu->gpu_sim.cons_f, gpu->gpu_sim.KLMN,
+                 gpu->gpu_sim.prim_total, gpu->gpu_sim.prim_start,
+#if defined(USE_LEGACY_ATOMICS)
+                 gpu->gpu_sim.oULL, gpu->gpu_sim.obULL,
+#else
+                 gpu->gpu_sim.o_f, gpu->gpu_sim.ob_f,
+#endif
+                 gpu->gpu_sim.dense_f, gpu->gpu_sim.denseb_f,
+                 gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
+                 gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
+                 gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+                 gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
+#if defined(MPIV_GPU)
+                 gpu->gpu_sim.mpi_bcompute,
+#endif
+                 gpu->gpu_sim.store_f, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
+        // Part f-4
+        QUICK_SAFE_CALL((k_eri_oshell_spdf4_f <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u)>>>
+                (gpu->gpu_sim.hyb_coeff_f, gpu->gpu_sim.natom,
+                 gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
+                 gpu->gpu_sim.xyz_f, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
+                 gpu->gpu_sim.katom, gpu->gpu_sim.kprim, gpu->gpu_sim.Qstart,
+                 gpu->gpu_sim.Qsbasis, gpu->gpu_sim.Qfbasis, gpu->gpu_sim.sorted_Qnumber,
+                 gpu->gpu_sim.sorted_Q, gpu->gpu_sim.cons_f, gpu->gpu_sim.KLMN,
+                 gpu->gpu_sim.prim_total, gpu->gpu_sim.prim_start,
+#if defined(USE_LEGACY_ATOMICS)
+                 gpu->gpu_sim.oULL, gpu->gpu_sim.obULL,
+#else
+                 gpu->gpu_sim.o_f, gpu->gpu_sim.ob_f,
+#endif
+                 gpu->gpu_sim.dense_f, gpu->gpu_sim.denseb_f,
+                 gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
+                 gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
+                 gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+                 gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
+#if defined(MPIV_GPU)
+                 gpu->gpu_sim.mpi_bcompute,
+#endif
+                 gpu->gpu_sim.store_f, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
+        // Part f-5
+        QUICK_SAFE_CALL((k_eri_oshell_spdf5_f <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u)>>>
+                (gpu->gpu_sim.hyb_coeff_f, gpu->gpu_sim.natom,
+                 gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
+                 gpu->gpu_sim.xyz_f, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
+                 gpu->gpu_sim.katom, gpu->gpu_sim.kprim, gpu->gpu_sim.Qstart,
+                 gpu->gpu_sim.Qsbasis, gpu->gpu_sim.Qfbasis, gpu->gpu_sim.sorted_Qnumber,
+                 gpu->gpu_sim.sorted_Q, gpu->gpu_sim.cons_f, gpu->gpu_sim.KLMN,
+                 gpu->gpu_sim.prim_total, gpu->gpu_sim.prim_start,
+#if defined(USE_LEGACY_ATOMICS)
+                 gpu->gpu_sim.oULL, gpu->gpu_sim.obULL,
+#else
+                 gpu->gpu_sim.o_f, gpu->gpu_sim.ob_f,
+#endif
+                 gpu->gpu_sim.dense_f, gpu->gpu_sim.denseb_f,
+                 gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
+                 gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
+                 gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+                 gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
+#if defined(MPIV_GPU)
+                 gpu->gpu_sim.mpi_bcompute,
+#endif
+                 gpu->gpu_sim.store_f, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
+        // Part f-6
+        QUICK_SAFE_CALL((k_eri_oshell_spdf6_f <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u)>>>
+                (gpu->gpu_sim.hyb_coeff_f, gpu->gpu_sim.natom,
+                 gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
+                 gpu->gpu_sim.xyz_f, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
+                 gpu->gpu_sim.katom, gpu->gpu_sim.kprim, gpu->gpu_sim.Qstart,
+                 gpu->gpu_sim.Qsbasis, gpu->gpu_sim.Qfbasis, gpu->gpu_sim.sorted_Qnumber,
+                 gpu->gpu_sim.sorted_Q, gpu->gpu_sim.cons_f, gpu->gpu_sim.KLMN,
+                 gpu->gpu_sim.prim_total, gpu->gpu_sim.prim_start,
+#if defined(USE_LEGACY_ATOMICS)
+                 gpu->gpu_sim.oULL, gpu->gpu_sim.obULL,
+#else
+                 gpu->gpu_sim.o_f, gpu->gpu_sim.ob_f,
+#endif
+                 gpu->gpu_sim.dense_f, gpu->gpu_sim.denseb_f,
+                 gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
+                 gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
+                 gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+                 gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
+#if defined(MPIV_GPU)
+                 gpu->gpu_sim.mpi_bcompute,
+#endif
+                 gpu->gpu_sim.store_f, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
+        // Part f-7
+        QUICK_SAFE_CALL((k_eri_oshell_spdf7_f <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u)>>>
+                (gpu->gpu_sim.hyb_coeff_f, gpu->gpu_sim.natom,
+                 gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
+                 gpu->gpu_sim.xyz_f, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
+                 gpu->gpu_sim.katom, gpu->gpu_sim.kprim, gpu->gpu_sim.Qstart,
+                 gpu->gpu_sim.Qsbasis, gpu->gpu_sim.Qfbasis, gpu->gpu_sim.sorted_Qnumber,
+                 gpu->gpu_sim.sorted_Q, gpu->gpu_sim.cons_f, gpu->gpu_sim.KLMN,
+                 gpu->gpu_sim.prim_total, gpu->gpu_sim.prim_start,
+#if defined(USE_LEGACY_ATOMICS)
+                 gpu->gpu_sim.oULL, gpu->gpu_sim.obULL,
+#else
+                 gpu->gpu_sim.o_f, gpu->gpu_sim.ob_f,
+#endif
+                 gpu->gpu_sim.dense_f, gpu->gpu_sim.denseb_f,
+                 gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
+                 gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
+                 gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+                 gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
+#if defined(MPIV_GPU)
+                 gpu->gpu_sim.mpi_bcompute,
+#endif
+                 gpu->gpu_sim.store_f, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
+        // Part f-8
+        QUICK_SAFE_CALL((k_eri_oshell_spdf8_f <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u)>>>
+                (gpu->gpu_sim.hyb_coeff_f, gpu->gpu_sim.natom,
+                 gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
+                 gpu->gpu_sim.xyz_f, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
+                 gpu->gpu_sim.katom, gpu->gpu_sim.kprim, gpu->gpu_sim.Qstart,
+                 gpu->gpu_sim.Qsbasis, gpu->gpu_sim.Qfbasis, gpu->gpu_sim.sorted_Qnumber,
+                 gpu->gpu_sim.sorted_Q, gpu->gpu_sim.cons_f, gpu->gpu_sim.KLMN,
+                 gpu->gpu_sim.prim_total, gpu->gpu_sim.prim_start,
+#if defined(USE_LEGACY_ATOMICS)
+                 gpu->gpu_sim.oULL, gpu->gpu_sim.obULL,
+#else
+                 gpu->gpu_sim.o_f, gpu->gpu_sim.ob_f,
+#endif
+                 gpu->gpu_sim.dense_f, gpu->gpu_sim.denseb_f,
+                 gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
+                 gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
+                 gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+                 gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
+#if defined(MPIV_GPU)
+                 gpu->gpu_sim.mpi_bcompute,
+#endif
+                 gpu->gpu_sim.store_f, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
+        // Part f-9
+//        QUICK_SAFE_CALL((k_eri_oshell_spdf9_f <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+//                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u)>>>
+//                (gpu->gpu_sim.hyb_coeff_f, gpu->gpu_sim.natom,
+//                 gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
+//                 gpu->gpu_sim.xyz_f, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
+//                 gpu->gpu_sim.katom, gpu->gpu_sim.kprim, gpu->gpu_sim.Qstart,
+//                 gpu->gpu_sim.Qsbasis, gpu->gpu_sim.Qfbasis, gpu->gpu_sim.sorted_Qnumber,
+//                 gpu->gpu_sim.sorted_Q, gpu->gpu_sim.cons_f, gpu->gpu_sim.KLMN,
+//                 gpu->gpu_sim.prim_total, gpu->gpu_sim.prim_start,
+//#if defined(USE_LEGACY_ATOMICS)
+//                 gpu->gpu_sim.oULL, gpu->gpu_sim.obULL,
+//#else
+//                 gpu->gpu_sim.o_f, gpu->gpu_sim.ob_f,
+//#endif
+//                 gpu->gpu_sim.dense_f, gpu->gpu_sim.denseb_f,
+//                 gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
+//                 gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
+//                 gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
+//                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+//                 gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
+//#if defined(MPIV_GPU)
+//                 gpu->gpu_sim.mpi_bcompute,
+//#endif
+//                 gpu->gpu_sim.store_f, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
+        // Part f-10
+//        QUICK_SAFE_CALL((k_eri_oshell_spdf10_f <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+//                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u + 3 * gpu->nbasis)>>>
+//                (gpu->gpu_sim.hyb_coeff_f, gpu->gpu_sim.natom,
+//                 gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
+//                 gpu->gpu_sim.xyz_f, gpu->gpu_sim.fStart, gpu->gpu_sim.ffStart, gpu->gpu_sim.kstart,
+//                 gpu->gpu_sim.katom, gpu->gpu_sim.kprim, gpu->gpu_sim.Qstart,
+//                 gpu->gpu_sim.Qsbasis, gpu->gpu_sim.Qfbasis, gpu->gpu_sim.sorted_Qnumber,
+//                 gpu->gpu_sim.sorted_Q, gpu->gpu_sim.cons_f, gpu->gpu_sim.KLMN,
+//                 gpu->gpu_sim.prim_total, gpu->gpu_sim.prim_start,
+//#if defined(USE_LEGACY_ATOMICS)
+//                 gpu->gpu_sim.oULL, gpu->gpu_sim.obULL,
+//#else
+//                 gpu->gpu_sim.o_f, gpu->gpu_sim.ob_f,
+//#endif
+//                 gpu->gpu_sim.dense_f, gpu->gpu_sim.denseb_f,
+//                 gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
+//                 gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
+//                 gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
+//                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+//                 gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
+//#if defined(MPIV_GPU)
+//                 gpu->gpu_sim.mpi_bcompute,
+//#endif
+//                 gpu->gpu_sim.store_f, gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
+    }
+#endif
+
 #if defined(USE_TEXTURE)
     unbind_eri_texture();
 #endif
@@ -1476,6 +2597,204 @@ void getGrad(_gpu_type gpu)
         }
     }
 
+    QUICK_SAFE_CALL((k_get_grad_cshell_sp_f <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u)
+#if defined(USE_LEGACY_ATOMICS)
+                + sizeof(QUICKULL) * 3u * gpu->natom>>>
+#else
+                + sizeof(QUICKDouble) * 3u * gpu->natom>>>
+#endif
+                (gpu->gpu_sim.hyb_coeff_f, gpu->gpu_sim.natom,
+                 gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
+                 gpu->gpu_sim.xyz_f, gpu->gpu_sim.kstart, gpu->gpu_sim.katom,
+                 gpu->gpu_sim.kprim, gpu->gpu_sim.Ksumtype, gpu->gpu_sim.Qstart,
+                 gpu->gpu_sim.Qsbasis, gpu->gpu_sim.Qfbasis, gpu->gpu_sim.sorted_Qnumber,
+                 gpu->gpu_sim.sorted_Q, gpu->gpu_sim.cons_f, gpu->gpu_sim.gcexpo_f,
+                 gpu->gpu_sim.KLMN, gpu->gpu_sim.prim_total, gpu->gpu_sim.prim_start,
+                 gpu->gpu_sim.dense_f, gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
+                 gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
+                 gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.primLimit_f,
+                 gpu->gpu_sim.gradCutoff_f,
+#if defined(USE_LEGACY_ATOMICS)
+                 gpu->gpu_sim.gradULL,
+#else
+                 gpu->gpu_sim.grad_f,
+#endif
+#if defined(MPIV_GPU)
+                 gpu->gpu_sim.mpi_bcompute,
+#endif
+                 gpu->gpu_sim.store_f, gpu->gpu_sim.store2_f,
+                 gpu->gpu_sim.storeAA_f, gpu->gpu_sim.storeBB_f, gpu->gpu_sim.storeCC_f,
+                 gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
+
+    QUICK_SAFE_CALL((k_get_grad_cshell_spd_f <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u)
+#if defined(USE_LEGACY_ATOMICS)
+                + sizeof(QUICKULL) * 3u * gpu->natom>>>
+#else
+                + sizeof(QUICKDouble) * 3u * gpu->natom>>>
+#endif
+                (gpu->gpu_sim.hyb_coeff_f, gpu->gpu_sim.natom,
+                 gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
+                 gpu->gpu_sim.xyz_f, gpu->gpu_sim.kstart, gpu->gpu_sim.katom,
+                 gpu->gpu_sim.kprim, gpu->gpu_sim.Ksumtype, gpu->gpu_sim.Qstart,
+                 gpu->gpu_sim.Qsbasis, gpu->gpu_sim.Qfbasis, gpu->gpu_sim.sorted_Qnumber,
+                 gpu->gpu_sim.sorted_Q, gpu->gpu_sim.cons_f, gpu->gpu_sim.gcexpo_f,
+                 gpu->gpu_sim.KLMN, gpu->gpu_sim.prim_total, gpu->gpu_sim.prim_start,
+                 gpu->gpu_sim.dense_f, gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
+                 gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
+                 gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.primLimit_f,
+                 gpu->gpu_sim.gradCutoff_f,
+#if defined(USE_LEGACY_ATOMICS)
+                 gpu->gpu_sim.gradULL,
+#else
+                 gpu->gpu_sim.grad_f,
+#endif
+#if defined(MPIV_GPU)
+                 gpu->gpu_sim.mpi_bcompute,
+#endif
+                 gpu->gpu_sim.store_f, gpu->gpu_sim.store2_f,
+                 gpu->gpu_sim.storeAA_f, gpu->gpu_sim.storeBB_f, gpu->gpu_sim.storeCC_f,
+                 gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
+
+    // compute one electron gradients in the meantime
+    //get_oneen_grad_();
+
+    if (gpu->maxL >= 2) {
+        // Part f-1
+        QUICK_SAFE_CALL((k_get_grad_cshell_spdf_f <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                    sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u)
+#if defined(USE_LEGACY_ATOMICS)
+                    + sizeof(QUICKULL) * 3u * gpu->natom>>>
+#else
+                    + sizeof(QUICKDouble) * 3u * gpu->natom>>>
+#endif
+                (gpu->gpu_sim.hyb_coeff_f, gpu->gpu_sim.natom,
+                 gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
+                 gpu->gpu_sim.xyz_f, gpu->gpu_sim.kstart, gpu->gpu_sim.katom,
+                 gpu->gpu_sim.kprim, gpu->gpu_sim.Ksumtype, gpu->gpu_sim.Qstart,
+                 gpu->gpu_sim.Qsbasis, gpu->gpu_sim.Qfbasis, gpu->gpu_sim.sorted_Qnumber,
+                 gpu->gpu_sim.sorted_Q, gpu->gpu_sim.cons_f, gpu->gpu_sim.gcexpo_f,
+                 gpu->gpu_sim.KLMN, gpu->gpu_sim.prim_total, gpu->gpu_sim.prim_start,
+                 gpu->gpu_sim.dense_f, gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
+                 gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
+                 gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.primLimit_f,
+                 gpu->gpu_sim.gradCutoff_f,
+#if defined(USE_LEGACY_ATOMICS)
+                 gpu->gpu_sim.gradULL,
+#else
+                 gpu->gpu_sim.grad_f,
+#endif
+#if defined(MPIV_GPU)
+                 gpu->gpu_sim.mpi_bcompute,
+#endif
+                 gpu->gpu_sim.store_f, gpu->gpu_sim.store2_f,
+                 gpu->gpu_sim.storeAA_f, gpu->gpu_sim.storeBB_f, gpu->gpu_sim.storeCC_f,
+                 gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
+        
+        // Part f-2
+        QUICK_SAFE_CALL((k_get_grad_cshell_spdf2_f <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                    sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u)
+#if defined(USE_LEGACY_ATOMICS)
+                    + sizeof(QUICKULL) * 3u * gpu->natom>>>
+#else
+                    + sizeof(QUICKDouble) * 3u * gpu->natom>>>
+#endif
+                (gpu->gpu_sim.hyb_coeff_f, gpu->gpu_sim.natom,
+                 gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
+                 gpu->gpu_sim.xyz_f, gpu->gpu_sim.kstart, gpu->gpu_sim.katom,
+                 gpu->gpu_sim.kprim, gpu->gpu_sim.Ksumtype, gpu->gpu_sim.Qstart,
+                 gpu->gpu_sim.Qsbasis, gpu->gpu_sim.Qfbasis, gpu->gpu_sim.sorted_Qnumber,
+                 gpu->gpu_sim.sorted_Q, gpu->gpu_sim.cons_f, gpu->gpu_sim.gcexpo_f,
+                 gpu->gpu_sim.KLMN, gpu->gpu_sim.prim_total, gpu->gpu_sim.prim_start,
+                 gpu->gpu_sim.dense_f, gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
+                 gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
+                 gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.primLimit_f,
+                 gpu->gpu_sim.gradCutoff_f,
+#if defined(USE_LEGACY_ATOMICS)
+                 gpu->gpu_sim.gradULL,
+#else
+                 gpu->gpu_sim.grad_f,
+#endif
+#if defined(MPIV_GPU)
+                 gpu->gpu_sim.mpi_bcompute,
+#endif
+                 gpu->gpu_sim.store_f, gpu->gpu_sim.store2_f,
+                 gpu->gpu_sim.storeAA_f, gpu->gpu_sim.storeBB_f, gpu->gpu_sim.storeCC_f,
+                 gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
+
+        if (gpu->maxL >= 3) {
+#ifdef GPU_SPDF
+            // Part f-3
+            QUICK_SAFE_CALL((k_get_grad_cshell_spdf3_f <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+                        sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u)
+#if defined(USE_LEGACY_ATOMICS)
+                        + sizeof(QUICKULL) * 3u * gpu->natom>>>
+#else
+                        + sizeof(QUICKDouble) * 3u * gpu->natom>>>
+#endif
+                (gpu->gpu_sim.hyb_coeff_f, gpu->gpu_sim.natom,
+                 gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
+                 gpu->gpu_sim.xyz_f, gpu->gpu_sim.kstart, gpu->gpu_sim.katom,
+                 gpu->gpu_sim.kprim, gpu->gpu_sim.Ksumtype, gpu->gpu_sim.Qstart,
+                 gpu->gpu_sim.Qsbasis, gpu->gpu_sim.Qfbasis, gpu->gpu_sim.sorted_Qnumber,
+                 gpu->gpu_sim.sorted_Q, gpu->gpu_sim.cons_f, gpu->gpu_sim.gcexpo_f,
+                 gpu->gpu_sim.KLMN, gpu->gpu_sim.prim_total, gpu->gpu_sim.prim_start,
+                 gpu->gpu_sim.dense_f, gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
+                 gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
+                 gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.primLimit_f,
+                 gpu->gpu_sim.gradCutoff_f,
+#if defined(USE_LEGACY_ATOMICS)
+                 gpu->gpu_sim.gradULL,
+#else
+                 gpu->gpu_sim.grad_f,
+#endif
+#if defined(MPIV_GPU)
+                 gpu->gpu_sim.mpi_bcompute,
+#endif
+                 gpu->gpu_sim.store_f, gpu->gpu_sim.store2_f,
+                 gpu->gpu_sim.storeAA_f, gpu->gpu_sim.storeBB_f, gpu->gpu_sim.storeCC_f,
+                 gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
+
+//            QUICK_SAFE_CALL((k_get_grad_cshell_spdf4_f <<<gpu->blocks, gpu->twoEThreadsPerBlock,
+//                        sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u)
+//#if defined(USE_LEGACY_ATOMICS)
+//                        + sizeof(QUICKULL) * 3u * gpu->natom>>>
+//#else
+//                        + sizeof(QUICKDouble) * 3u * gpu->natom>>>
+//#endif
+//                (gpu->gpu_sim.hyb_coeff_f, gpu->gpu_sim.natom,
+//                 gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
+//                 gpu->gpu_sim.xyz_f, gpu->gpu_sim.kstart, gpu->gpu_sim.katom,
+//                 gpu->gpu_sim.kprim, gpu->gpu_sim.Ksumtype, gpu->gpu_sim.Qstart,
+//                 gpu->gpu_sim.Qsbasis, gpu->gpu_sim.Qfbasis, gpu->gpu_sim.sorted_Qnumber,
+//                 gpu->gpu_sim.sorted_Q, gpu->gpu_sim.cons_f, gpu->gpu_sim.gcexpo_f,
+//                 gpu->gpu_sim.KLMN, gpu->gpu_sim.prim_total, gpu->gpu_sim.prim_start,
+//                 gpu->gpu_sim.dense_f, gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
+//                 gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
+//                 gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
+//                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.primLimit_f,
+//                 gpu->gpu_sim.gradCutoff_f,
+//#if defined(USE_LEGACY_ATOMICS)
+//                 gpu->gpu_sim.gradULL,
+//#else
+//                 gpu->gpu_sim.grad_f,
+//#endif
+//#if defined(MPIV_GPU)
+//                 gpu->gpu_sim.mpi_bcompute,
+//#endif
+//                 gpu->gpu_sim.store_f, gpu->gpu_sim.store2_f,
+//                 gpu->gpu_sim.storeAA_f, gpu->gpu_sim.storeBB_f, gpu->gpu_sim.storeCC_f,
+//                 gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
+#endif
+        }
+    }
+
 //    nvtxRangePop();
 }
 
@@ -1648,6 +2967,172 @@ void get_oshell_eri_grad(_gpu_type gpu)
 //                     gpu->gpu_sim.storeAA, gpu->gpu_sim.storeBB, gpu->gpu_sim.storeCC,
 //                     gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
 //#endif
+	}
+    }
+
+    QUICK_SAFE_CALL((k_get_grad_oshell_sp_f <<<gpu->blocks, gpu->gradThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u)
+#if defined(USE_LEGACY_ATOMICS)
+                + sizeof(QUICKULL) * 3u * gpu->natom>>>
+#else
+                + sizeof(QUICKDouble) * 3u * gpu->natom>>>
+#endif
+                (gpu->gpu_sim.hyb_coeff_f, gpu->gpu_sim.natom,
+                 gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
+                 gpu->gpu_sim.xyz_f, gpu->gpu_sim.kstart, gpu->gpu_sim.katom,
+                 gpu->gpu_sim.kprim, gpu->gpu_sim.Ksumtype, gpu->gpu_sim.Qstart,
+                 gpu->gpu_sim.Qsbasis, gpu->gpu_sim.Qfbasis, gpu->gpu_sim.sorted_Qnumber,
+                 gpu->gpu_sim.sorted_Q, gpu->gpu_sim.cons_f, gpu->gpu_sim.gcexpo_f,
+                 gpu->gpu_sim.KLMN, gpu->gpu_sim.prim_total, gpu->gpu_sim.prim_start,
+                 gpu->gpu_sim.dense_f, gpu->gpu_sim.denseb_f, gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
+                 gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
+                 gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.primLimit_f,
+                 gpu->gpu_sim.gradCutoff_f,
+#if defined(USE_LEGACY_ATOMICS)
+                 gpu->gpu_sim.gradULL,
+#else
+                 gpu->gpu_sim.grad_f,
+#endif
+#if defined(MPIV_GPU)
+                 gpu->gpu_sim.mpi_bcompute,
+#endif
+                 gpu->gpu_sim.store_f, gpu->gpu_sim.store2_f,
+                 gpu->gpu_sim.storeAA_f, gpu->gpu_sim.storeBB_f, gpu->gpu_sim.storeCC_f,
+                 gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
+
+    QUICK_SAFE_CALL((k_get_grad_oshell_spd_f <<<gpu->blocks, gpu->gradThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u)
+#if defined(USE_LEGACY_ATOMICS)
+                + sizeof(QUICKULL) * 3u * gpu->natom>>>
+#else
+                + sizeof(QUICKDouble) * 3u * gpu->natom>>>
+#endif
+                (gpu->gpu_sim.hyb_coeff_f, gpu->gpu_sim.natom,
+                 gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
+                 gpu->gpu_sim.xyz_f, gpu->gpu_sim.kstart, gpu->gpu_sim.katom,
+                 gpu->gpu_sim.kprim, gpu->gpu_sim.Ksumtype, gpu->gpu_sim.Qstart,
+                 gpu->gpu_sim.Qsbasis, gpu->gpu_sim.Qfbasis, gpu->gpu_sim.sorted_Qnumber,
+                 gpu->gpu_sim.sorted_Q, gpu->gpu_sim.cons_f, gpu->gpu_sim.gcexpo_f,
+                 gpu->gpu_sim.KLMN, gpu->gpu_sim.prim_total, gpu->gpu_sim.prim_start,
+                 gpu->gpu_sim.dense_f, gpu->gpu_sim.denseb_f, gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
+                 gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
+                 gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.primLimit_f,
+                 gpu->gpu_sim.gradCutoff_f,
+#if defined(USE_LEGACY_ATOMICS)
+                 gpu->gpu_sim.gradULL,
+#else
+                 gpu->gpu_sim.grad_f,
+#endif
+#if defined(MPIV_GPU)
+                 gpu->gpu_sim.mpi_bcompute,
+#endif
+                 gpu->gpu_sim.store_f, gpu->gpu_sim.store2_f,
+                 gpu->gpu_sim.storeAA_f, gpu->gpu_sim.storeBB_f, gpu->gpu_sim.storeCC_f,
+                 gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
+
+    // compute one electron gradients in the meantime
+    //get_oneen_grad_();
+
+    if (gpu->maxL >= 2) {
+//#ifdef GPU_SPDF
+        // Part f-1
+        QUICK_SAFE_CALL((k_get_grad_oshell_spdf_f <<<gpu->blocks, gpu->gradThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u)
+#if defined(USE_LEGACY_ATOMICS)
+                + sizeof(QUICKULL) * 3u * gpu->natom>>>
+#else
+                + sizeof(QUICKDouble) * 3u * gpu->natom>>>
+#endif
+                (gpu->gpu_sim.hyb_coeff_f, gpu->gpu_sim.natom,
+                 gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
+                 gpu->gpu_sim.xyz_f, gpu->gpu_sim.kstart, gpu->gpu_sim.katom,
+                 gpu->gpu_sim.kprim, gpu->gpu_sim.Ksumtype, gpu->gpu_sim.Qstart,
+                 gpu->gpu_sim.Qsbasis, gpu->gpu_sim.Qfbasis, gpu->gpu_sim.sorted_Qnumber,
+                 gpu->gpu_sim.sorted_Q, gpu->gpu_sim.cons_f, gpu->gpu_sim.gcexpo_f,
+                 gpu->gpu_sim.KLMN, gpu->gpu_sim.prim_total, gpu->gpu_sim.prim_start,
+                 gpu->gpu_sim.dense_f, gpu->gpu_sim.denseb_f, gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
+                 gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
+                 gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.primLimit_f,
+                 gpu->gpu_sim.gradCutoff_f,
+#if defined(USE_LEGACY_ATOMICS)
+                 gpu->gpu_sim.gradULL,
+#else
+                 gpu->gpu_sim.grad_f,
+#endif
+#if defined(MPIV_GPU)
+                 gpu->gpu_sim.mpi_bcompute,
+#endif
+                 gpu->gpu_sim.store_f, gpu->gpu_sim.store2_f,
+                 gpu->gpu_sim.storeAA_f, gpu->gpu_sim.storeBB_f, gpu->gpu_sim.storeCC_f,
+                 gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
+
+        // Part f-2
+        QUICK_SAFE_CALL((k_get_grad_oshell_spdf2_f <<<gpu->blocks, gpu->gradThreadsPerBlock,
+                sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u)
+#if defined(USE_LEGACY_ATOMICS)
+                + sizeof(QUICKULL) * 3u * gpu->natom>>>
+#else
+                + sizeof(QUICKDouble) * 3u * gpu->natom>>>
+#endif
+                (gpu->gpu_sim.hyb_coeff_f, gpu->gpu_sim.natom,
+                 gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
+                 gpu->gpu_sim.xyz_f, gpu->gpu_sim.kstart, gpu->gpu_sim.katom,
+                 gpu->gpu_sim.kprim, gpu->gpu_sim.Ksumtype, gpu->gpu_sim.Qstart,
+                 gpu->gpu_sim.Qsbasis, gpu->gpu_sim.Qfbasis, gpu->gpu_sim.sorted_Qnumber,
+                 gpu->gpu_sim.sorted_Q, gpu->gpu_sim.cons_f, gpu->gpu_sim.gcexpo_f,
+                 gpu->gpu_sim.KLMN, gpu->gpu_sim.prim_total, gpu->gpu_sim.prim_start,
+                 gpu->gpu_sim.dense_f, gpu->gpu_sim.denseb_f, gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
+                 gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
+                 gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.primLimit_f,
+                 gpu->gpu_sim.gradCutoff_f,
+#if defined(USE_LEGACY_ATOMICS)
+                 gpu->gpu_sim.gradULL,
+#else
+                 gpu->gpu_sim.grad_f,
+#endif
+#if defined(MPIV_GPU)
+                 gpu->gpu_sim.mpi_bcompute,
+#endif
+                 gpu->gpu_sim.store_f, gpu->gpu_sim.store2_f,
+                 gpu->gpu_sim.storeAA_f, gpu->gpu_sim.storeBB_f, gpu->gpu_sim.storeCC_f,
+                 gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
+
+        // Part f-3
+	if (gpu->maxL >= 3) {
+//            QUICK_SAFE_CALL((k_get_grad_oshell_spdf3_f <<<gpu->blocks, gpu->gradThreadsPerBlock,
+//                    sizeof(uint32_t) * (TRANSDIM * TRANSDIM * TRANSDIM + 10u)
+//#if defined(USE_LEGACY_ATOMICS)
+//                    + sizeof(QUICKULL) * 3u * gpu->natom>>>
+//#else
+//                    + sizeof(QUICKDouble) * 3u * gpu->natom>>>
+//#endif
+//                (gpu->gpu_sim.hyb_coeff_f, gpu->gpu_sim.natom,
+//                 gpu->gpu_sim.nbasis, gpu->gpu_sim.nshell, gpu->gpu_sim.jbasis,
+//                 gpu->gpu_sim.xyz_f, gpu->gpu_sim.kstart, gpu->gpu_sim.katom,
+//                 gpu->gpu_sim.kprim, gpu->gpu_sim.Ksumtype, gpu->gpu_sim.Qstart,
+//                 gpu->gpu_sim.Qsbasis, gpu->gpu_sim.Qfbasis, gpu->gpu_sim.sorted_Qnumber,
+//                 gpu->gpu_sim.sorted_Q, gpu->gpu_sim.cons_f, gpu->gpu_sim.gcexpo_f,
+//                 gpu->gpu_sim.KLMN, gpu->gpu_sim.prim_total, gpu->gpu_sim.prim_start,
+//                 gpu->gpu_sim.dense_f, gpu->gpu_sim.denseb_f, gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
+//                 gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
+//                 gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
+//                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.primLimit_f,
+//                 gpu->gpu_sim.gradCutoff_f,
+//#if defined(USE_LEGACY_ATOMICS)
+//                 gpu->gpu_sim.gradULL,
+//#else
+//                 gpu->gpu_sim.grad_f,
+//#endif
+//#if defined(MPIV_GPU)
+//                 gpu->gpu_sim.mpi_bcompute,
+//#endif
+//                 gpu->gpu_sim.store_f, gpu->gpu_sim.store2_f,
+//                 gpu->gpu_sim.storeAA_f, gpu->gpu_sim.storeBB_f, gpu->gpu_sim.storeCC_f,
+//                 gpu->gpu_sim.trans, gpu->gpu_sim.Sumindex)));
 	}
     }
 

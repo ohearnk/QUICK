@@ -55,7 +55,7 @@ __device__ static inline void FMT_NAME(uint32_t MaxM, const QUICKDouble X,
                         - 1.85185172458485E-02) * X + 7.14285713298222E-02) * X
                 - 1.99999999997023E-01) * X + 3.33333333333318E-01);
     } else {
-        WW1 = (1.0 - X) / (2.0 * (double) MaxM + 1.0);
+        WW1 = (1.0 - X) / (2.0 * (QUICKDouble) MaxM + 1.0);
     }
 
     if (X > 1.0E-1 || (X > 1.0E-4 && MaxM < 4)) {

@@ -245,11 +245,13 @@ extern "C" void gpu_new_(
     gpu->maxL = 0;
     gpu->iattype = NULL;
     gpu->xyz = NULL;
+    gpu->xyz_f = NULL;
     gpu->allxyz = NULL;
     gpu->chg = NULL;
     gpu->allchg = NULL;
     gpu->DFT_calculated = NULL;
     gpu->grad = NULL;
+    gpu->grad_f = NULL;
     gpu->ptchg_grad = NULL;
     gpu->gradULL = NULL;
     gpu->ptchg_gradULL = NULL;
@@ -451,7 +453,9 @@ extern "C" void gpu_allocate_scratch_(bool* allocate_gradient_scratch)
     gpu->scratch->store2->DeleteCPU( );
 
     gpu->gpu_sim.store = gpu->scratch->store->_devData;
+    gpu->gpu_sim.store_f = (float *) gpu->scratch->store->_devData;
     gpu->gpu_sim.store2 = gpu->scratch->store2->_devData;
+    gpu->gpu_sim.store2_f = (float *) gpu->scratch->store2->_devData;
 
     if (*allocate_gradient_scratch) {
         gpu->scratch->storeAA = new gpu_buffer_type<QUICKDouble>(store_size);
@@ -464,15 +468,21 @@ extern "C" void gpu_allocate_scratch_(bool* allocate_gradient_scratch)
         gpu->scratch->storeCC->DeleteCPU( );
 
         gpu->gpu_sim.storeAA = gpu->scratch->storeAA->_devData;
+        gpu->gpu_sim.storeAA_f = (float *) gpu->scratch->storeAA->_devData;
         gpu->gpu_sim.storeBB = gpu->scratch->storeBB->_devData;
+        gpu->gpu_sim.storeBB_f = (float *) gpu->scratch->storeBB->_devData;
         gpu->gpu_sim.storeCC = gpu->scratch->storeCC->_devData;
+        gpu->gpu_sim.storeCC_f = (float *) gpu->scratch->storeCC->_devData;
     } else {
         gpu->scratch->storeAA = NULL;
         gpu->scratch->storeBB = NULL;
         gpu->scratch->storeCC = NULL;
         gpu->gpu_sim.storeAA = NULL;
+        gpu->gpu_sim.storeAA_f = NULL;
         gpu->gpu_sim.storeBB = NULL;
+        gpu->gpu_sim.storeBB_f = NULL;
         gpu->gpu_sim.storeCC = NULL;
+        gpu->gpu_sim.storeCC_f = NULL;
     }
 
     gpuMemsetAsync(gpu->gpu_sim.store, 0, sizeof(QUICKDouble) * gpu->scratch->store->_length, 0);
@@ -551,9 +561,13 @@ extern "C" void gpu_setup_(int* natom, int* nbasis, int* nElec, int* imult, int*
     gpu->gpu_calculated->natom = (uint32_t) *natom;
     gpu->gpu_calculated->nbasis = (uint32_t) *nbasis;
     gpu->gpu_calculated->o = NULL;
+    gpu->gpu_calculated->o_f = NULL;
     gpu->gpu_calculated->ob = NULL;
+    gpu->gpu_calculated->ob_f = NULL;
     gpu->gpu_calculated->dense = NULL;
+    gpu->gpu_calculated->dense_f = NULL;
     gpu->gpu_calculated->denseb = NULL;
+    gpu->gpu_calculated->denseb_f = NULL;
 #if defined(USE_LEGACY_ATOMICS)
     gpu->gpu_calculated->oULL = NULL;
     gpu->gpu_calculated->obULL = NULL;
@@ -595,13 +609,20 @@ extern "C" void gpu_setup_(int* natom, int* nbasis, int* nElec, int* imult, int*
     gpu->gpu_basis->sorted_Q = NULL;
     gpu->gpu_basis->gccoeff = NULL;
     gpu->gpu_basis->Xcoeff = NULL;
+    gpu->gpu_basis->Xcoeff_f = NULL;
     gpu->gpu_basis->Xcoeff_oei = NULL;
     gpu->gpu_basis->expoSum = NULL;
+    gpu->gpu_basis->expoSum_f = NULL;
     gpu->gpu_basis->weightedCenterX = NULL;
+    gpu->gpu_basis->weightedCenterX_f = NULL;
     gpu->gpu_basis->weightedCenterY = NULL;
+    gpu->gpu_basis->weightedCenterY_f = NULL;
     gpu->gpu_basis->weightedCenterZ = NULL;
+    gpu->gpu_basis->weightedCenterZ_f = NULL;
     gpu->gpu_basis->cons = NULL;
+    gpu->gpu_basis->cons_f = NULL;
     gpu->gpu_basis->gcexpo = NULL;
+    gpu->gpu_basis->gcexpo_f = NULL;
     gpu->gpu_basis->KLMN = NULL;
     gpu->gpu_basis->Apri = NULL;
     gpu->gpu_basis->Kpri = NULL;
@@ -619,14 +640,20 @@ extern "C" void gpu_setup_(int* natom, int* nbasis, int* nElec, int* imult, int*
     gpu->gpu_cutoff->sqrQshell = 0;
     gpu->gpu_cutoff->sorted_YCutoffIJ = NULL;
     gpu->gpu_cutoff->cutMatrix = NULL;
+    gpu->gpu_cutoff->cutMatrix_f = NULL;
     gpu->gpu_cutoff->YCutoff = NULL;
+    gpu->gpu_cutoff->YCutoff_f = NULL;
     gpu->gpu_cutoff->cutPrim = NULL;
+    gpu->gpu_cutoff->cutPrim_f = NULL;
     gpu->gpu_cutoff->integralCutoff = 0.0;
+    gpu->gpu_cutoff->integralCutoff_f = 0.0;
     gpu->gpu_cutoff->coreIntegralCutoff = 0.0;
     gpu->gpu_cutoff->primLimit = 0.0;
+    gpu->gpu_cutoff->primLimit_f = 0.0;
     gpu->gpu_cutoff->DMCutoff = 0.0;
     gpu->gpu_cutoff->XCCutoff = 0.0;
     gpu->gpu_cutoff->gradCutoff = 0.0;
+    gpu->gpu_cutoff->gradCutoff_f = 0.0;
     gpu->gpu_cutoff->sorted_OEICutoffIJ = NULL;
 
     gpu->gpu_sim.natom = (uint32_t) *natom;
@@ -714,15 +741,19 @@ extern "C" void gpu_upload_method_(int* quick_method, bool* is_oshell, double* h
     if (*quick_method == 0) {
         gpu->gpu_sim.method = HF;
         gpu->gpu_sim.hyb_coeff = 1.0;
+        gpu->gpu_sim.hyb_coeff_f = 1.0;
     } else if (*quick_method == 1) {
         gpu->gpu_sim.method = B3LYP;
         gpu->gpu_sim.hyb_coeff = 0.2;
+        gpu->gpu_sim.hyb_coeff_f = 0.2;
     } else if (*quick_method == 2) {
         gpu->gpu_sim.method = BLYP;
         gpu->gpu_sim.hyb_coeff = 0.0;
+        gpu->gpu_sim.hyb_coeff_f = 0.0;
     } else if (*quick_method == 3) {
         gpu->gpu_sim.method = LIBXC;
         gpu->gpu_sim.hyb_coeff = *hyb_coeff;
+        gpu->gpu_sim.hyb_coeff_f = (float) (*hyb_coeff);
     }
 
     gpu->gpu_sim.is_oshell = (*is_oshell != 0);
@@ -775,6 +806,9 @@ extern "C" void gpu_upload_xyz_(QUICKDouble* atom_xyz)
 //    gpu->gpu_basis->xyz->Upload( );
     gpu->gpu_calculated->distance = new gpu_buffer_type<QUICKDouble>(gpu->natom, gpu->natom);
     gpu->xyz = new gpu_buffer_type<QUICKDouble>(atom_xyz, 3u, gpu->natom);
+    gpu->xyz_f = new gpu_buffer_type<float>(3u, gpu->natom);
+    for (uint32_t i = 0; i < 3u * gpu->natom; i++)
+        gpu->xyz->_hostData[i] = (float) atom_xyz[i];
 
     for (uint32_t i = 0; i < gpu->natom; i++) {
         for (uint32_t j = 0; j < gpu->natom; j++) {
@@ -789,9 +823,11 @@ extern "C" void gpu_upload_xyz_(QUICKDouble* atom_xyz)
     }
 
     gpu->xyz->Upload( );
+    gpu->xyz_f->Upload( );
     gpu->gpu_calculated->distance->Upload( );
 
     gpu->gpu_sim.xyz = gpu->xyz->_devData;
+    gpu->gpu_sim.xyz_f = gpu->xyz_f->_devData;
     gpu->gpu_sim.distance = gpu->gpu_calculated->distance->_devData;
 
 #if defined(DEBUG)
@@ -838,18 +874,28 @@ extern "C" void gpu_upload_cutoff_(QUICKDouble* cutMatrix, QUICKDouble* integral
     PRINTDEBUG("BEGIN TO UPLOAD CUTOFF");
 
     gpu->gpu_cutoff->integralCutoff = *integralCutoff;
+    gpu->gpu_cutoff->integralCutoff_f = (float) (*integralCutoff);
     gpu->gpu_cutoff->coreIntegralCutoff = *coreIntegralCutoff;
     gpu->gpu_cutoff->primLimit = *primLimit;
+    gpu->gpu_cutoff->primLimit_f = (float) (*primLimit);
     gpu->gpu_cutoff->DMCutoff = *DMCutoff;
 
     gpu->gpu_cutoff->cutMatrix = new gpu_buffer_type<QUICKDouble>(cutMatrix, gpu->nshell, gpu->nshell);
+    gpu->gpu_cutoff->cutMatrix_f = new gpu_buffer_type<float>(gpu->nshell, gpu->nshell);
+    for (uint32_t i = 0; i < SQR(gpu->nshell); i++)
+        gpu->gpu_cutoff->cutMatrix_f->_hostData[i] = (float) cutMatrix[i];
     gpu->gpu_cutoff->cutMatrix->Upload( );
+    gpu->gpu_cutoff->cutMatrix_f->Upload( );
     gpu->gpu_cutoff->cutMatrix->DeleteCPU( );
+    gpu->gpu_cutoff->cutMatrix_f->DeleteCPU( );
 
     gpu->gpu_sim.cutMatrix = gpu->gpu_cutoff->cutMatrix->_devData;
+    gpu->gpu_sim.cutMatrix_f = gpu->gpu_cutoff->cutMatrix_f->_devData;
     gpu->gpu_sim.integralCutoff = gpu->gpu_cutoff->integralCutoff;
+    gpu->gpu_sim.integralCutoff_f = gpu->gpu_cutoff->integralCutoff_f;
     gpu->gpu_sim.coreIntegralCutoff = gpu->gpu_cutoff->coreIntegralCutoff;
     gpu->gpu_sim.primLimit = gpu->gpu_cutoff->primLimit;
+    gpu->gpu_sim.primLimit_f = gpu->gpu_cutoff->primLimit_f;
     gpu->gpu_sim.DMCutoff = gpu->gpu_cutoff->DMCutoff;
 
 #if defined(DEBUG)
@@ -877,10 +923,18 @@ extern "C" void gpu_upload_cutoff_matrix_(QUICKDouble* YCutoff,QUICKDouble* cutP
 
     gpu->gpu_cutoff->natom = gpu->natom;
     gpu->gpu_cutoff->YCutoff = new gpu_buffer_type<QUICKDouble>(YCutoff, gpu->nshell, gpu->nshell);
+    gpu->gpu_cutoff->YCutoff_f = new gpu_buffer_type<float>(gpu->nshell, gpu->nshell);
+    for (uint32_t i = 0; i < SQR(gpu->nshell); i++)
+        gpu->gpu_cutoff->YCutoff_f->_hostData[i] = (float) YCutoff[i];
     gpu->gpu_cutoff->cutPrim = new gpu_buffer_type<QUICKDouble>(cutPrim, gpu->jbasis, gpu->jbasis);
+    gpu->gpu_cutoff->cutPrim_f = new gpu_buffer_type<float>(gpu->jbasis, gpu->jbasis);
+    for (uint32_t i = 0; i < SQR(gpu->jbasis); i++)
+        gpu->gpu_cutoff->cutPrim_f->_hostData[i] = (float) cutPrim[i];
 
     gpu->gpu_cutoff->YCutoff->Upload( );
+    gpu->gpu_cutoff->YCutoff_f->Upload( );
     gpu->gpu_cutoff->cutPrim->Upload( );
+    gpu->gpu_cutoff->cutPrim_f->Upload( );
 
     gpu->gpu_cutoff->sqrQshell = gpu->gpu_basis->Qshell * gpu->gpu_basis->Qshell;
     gpu->gpu_cutoff->sorted_YCutoffIJ = new gpu_buffer_type<int2>(gpu->gpu_cutoff->sqrQshell);
@@ -1465,7 +1519,9 @@ extern "C" void gpu_upload_cutoff_matrix_(QUICKDouble* YCutoff,QUICKDouble* cutP
     gpu->gpu_cutoff->sorted_YCutoffIJ->Upload();
     gpu->gpu_sim.sqrQshell = gpu->gpu_cutoff->sqrQshell;
     gpu->gpu_sim.YCutoff = gpu->gpu_cutoff->YCutoff->_devData;
+    gpu->gpu_sim.YCutoff_f = gpu->gpu_cutoff->YCutoff_f->_devData;
     gpu->gpu_sim.cutPrim = gpu->gpu_cutoff->cutPrim->_devData;
+    gpu->gpu_sim.cutPrim_f = gpu->gpu_cutoff->cutPrim_f->_devData;
     gpu->gpu_sim.sorted_YCutoffIJ = gpu->gpu_cutoff->sorted_YCutoffIJ->_devData;
 
 #if defined(MPIV_GPU)
@@ -1653,6 +1709,7 @@ extern "C" void gpu_upload_oei_(int* nextatom, QUICKDouble* extxyz, QUICKDouble*
     gpu->gpu_basis->Qfinal->DeleteCPU();
     gpu->gpu_basis->gccoeff->DeleteCPU();
     gpu->gpu_basis->gcexpo->DeleteCPU();
+    gpu->gpu_basis->gcexpo_f->DeleteCPU();
 }
 
 
@@ -1698,20 +1755,29 @@ extern "C" void gpu_upload_calculated_(QUICKDouble* o, QUICKDouble* co, QUICKDou
     PRINTDEBUG("BEGIN TO UPLOAD O MATRIX");
 
     gpu->gpu_calculated->o = new gpu_buffer_type<QUICKDouble>(gpu->nbasis, gpu->nbasis);
+    gpu->gpu_calculated->o_f = new gpu_buffer_type<float>(gpu->nbasis, gpu->nbasis);
     gpu->gpu_calculated->dense = new gpu_buffer_type<QUICKDouble>(dense, gpu->nbasis, gpu->nbasis);
+    gpu->gpu_calculated->dense_f = new gpu_buffer_type<float>(gpu->nbasis, gpu->nbasis);
+    for (uint32_t i = 0; i < SQR(gpu->nbasis); i++)
+        gpu->gpu_calculated->dense_f->_hostData[i] = 0.0;
 
 #if defined(USE_LEGACY_ATOMICS)
     gpu->gpu_calculated->o->DeleteGPU();
+    gpu->gpu_calculated->o_f->DeleteGPU();
     gpu->gpu_calculated->oULL = new gpu_buffer_type<QUICKULL>(gpu->nbasis, gpu->nbasis);
     gpu->gpu_calculated->oULL->Upload();
     gpu->gpu_sim.oULL = gpu->gpu_calculated->oULL->_devData;
 #else
     gpu->gpu_calculated->o->Upload();
+    gpu->gpu_calculated->o_f->Upload();
     gpu->gpu_sim.o = gpu->gpu_calculated->o->_devData;
+    gpu->gpu_sim.o_f = gpu->gpu_calculated->o_f->_devData;
 #endif
 
     gpu->gpu_calculated->dense->Upload();
+    gpu->gpu_calculated->dense_f->Upload();
     gpu->gpu_sim.dense = gpu->gpu_calculated->dense->_devData;
+    gpu->gpu_sim.dense_f = gpu->gpu_calculated->dense_f->_devData;
 
 #if defined(DEBUG)
     GPU_TIMER_STOP();
@@ -1736,15 +1802,19 @@ extern "C" void gpu_upload_calculated_beta_(QUICKDouble* ob, QUICKDouble* denseb
     PRINTDEBUG("BEGIN TO UPLOAD BETA O MATRIX");
 
     gpu->gpu_calculated->ob = new gpu_buffer_type<QUICKDouble>(gpu->nbasis, gpu->nbasis);
+    gpu->gpu_calculated->ob_f = new gpu_buffer_type<float>(gpu->nbasis, gpu->nbasis);
 
 #if defined(USE_LEGACY_ATOMICS)
     gpu->gpu_calculated->ob->DeleteGPU();
+    gpu->gpu_calculated->ob_f->DeleteGPU();
     gpu->gpu_calculated->obULL = new gpu_buffer_type<QUICKULL>(gpu->nbasis, gpu->nbasis);
     gpu->gpu_calculated->obULL->Upload();
     gpu->gpu_sim.obULL = gpu->gpu_calculated->obULL->_devData;
 #else
     gpu->gpu_calculated->ob->Upload();
+    gpu->gpu_calculated->ob_f->Upload();
     gpu->gpu_sim.ob = gpu->gpu_calculated->ob->_devData;
+    gpu->gpu_sim.ob_f = gpu->gpu_calculated->ob_f->_devData;
 #endif
 
     gpu_upload_beta_density_matrix_(denseb);
@@ -1764,16 +1834,26 @@ extern "C" void gpu_upload_calculated_beta_(QUICKDouble* ob, QUICKDouble* denseb
 extern "C" void gpu_upload_density_matrix_(QUICKDouble* dense)
 {
     gpu->gpu_calculated->dense = new gpu_buffer_type<QUICKDouble>(dense, gpu->nbasis, gpu->nbasis);
+    gpu->gpu_calculated->dense_f = new gpu_buffer_type<float>(gpu->nbasis, gpu->nbasis);
+    for (uint32_t i = 0; i < SQR(gpu->nbasis); i++)
+        gpu->gpu_calculated->dense_f->_hostData[i] = 0.0;
     gpu->gpu_calculated->dense->Upload();
+    gpu->gpu_calculated->dense_f->Upload();
     gpu->gpu_sim.dense = gpu->gpu_calculated->dense->_devData;
+    gpu->gpu_sim.dense_f = gpu->gpu_calculated->dense_f->_devData;
 }
 
 
 extern "C" void gpu_upload_beta_density_matrix_(QUICKDouble* denseb)
 {
     gpu->gpu_calculated->denseb = new gpu_buffer_type<QUICKDouble>(denseb, gpu->nbasis, gpu->nbasis);
+    gpu->gpu_calculated->denseb_f = new gpu_buffer_type<float>(gpu->nbasis, gpu->nbasis);
+    for (uint32_t i = 0; i < SQR(gpu->nbasis); i++)
+        gpu->gpu_calculated->denseb_f->_hostData[i] = 0.0;
     gpu->gpu_calculated->denseb->Upload();
+    gpu->gpu_calculated->denseb_f->Upload();
     gpu->gpu_sim.denseb = gpu->gpu_calculated->denseb->_devData;
+    gpu->gpu_sim.denseb_f = gpu->gpu_calculated->denseb_f->_devData;
 }
 
 
@@ -1960,7 +2040,13 @@ extern "C" void gpu_upload_basis_(int* nshell, int* nprim, int* jshell, int* jba
     gpu->gpu_basis->gccoeff = new gpu_buffer_type<QUICKDouble>(gccoeff, MAXPRIM, gpu->nbasis);
 
     gpu->gpu_basis->cons = new gpu_buffer_type<QUICKDouble>(cons, gpu->nbasis);
+    gpu->gpu_basis->cons_f = new gpu_buffer_type<float>(gpu->nbasis);
+    for (uint32_t i = 0; i < gpu->nbasis; i++)
+        gpu->gpu_basis->cons_f->_hostData[i] = (float) cons[i];
     gpu->gpu_basis->gcexpo = new gpu_buffer_type<QUICKDouble>(gcexpo, MAXPRIM, gpu->nbasis);
+    gpu->gpu_basis->gcexpo_f = new gpu_buffer_type<float>(MAXPRIM, gpu->nbasis);
+    for (uint32_t i = 0; i < MAXPRIM * gpu->nbasis; i++)
+        gpu->gpu_basis->gcexpo_f->_hostData[i] = (float) gcexpo[i];
     gpu->gpu_basis->KLMN = new gpu_buffer_type<uint32_t>(3u, gpu->nbasis);
 
     gpuMalloc((void **) &gpu->gpu_sim.trans, sizeof(uint32_t) * TRANSDIM * TRANSDIM * TRANSDIM);
@@ -1995,10 +2081,15 @@ extern "C" void gpu_upload_basis_(int* nshell, int* nprim, int* jshell, int* jba
     gpu->gpu_sim.prim_total = gpu->gpu_basis->prim_total;
 
     gpu->gpu_basis->Xcoeff = new gpu_buffer_type<QUICKDouble>(2u * gpu->jbasis, 2u * gpu->jbasis);
+    gpu->gpu_basis->Xcoeff_f = new gpu_buffer_type<float>(2u * gpu->jbasis, 2u * gpu->jbasis);
     gpu->gpu_basis->expoSum = new gpu_buffer_type<QUICKDouble>(prim_total, prim_total);
+    gpu->gpu_basis->expoSum_f = new gpu_buffer_type<float>(prim_total, prim_total);
     gpu->gpu_basis->weightedCenterX = new gpu_buffer_type<QUICKDouble>(prim_total, prim_total);
+    gpu->gpu_basis->weightedCenterX_f = new gpu_buffer_type<float>(prim_total, prim_total);
     gpu->gpu_basis->weightedCenterY = new gpu_buffer_type<QUICKDouble>(prim_total, prim_total);
+    gpu->gpu_basis->weightedCenterY_f = new gpu_buffer_type<float>(prim_total, prim_total);
     gpu->gpu_basis->weightedCenterZ = new gpu_buffer_type<QUICKDouble>(prim_total, prim_total);
+    gpu->gpu_basis->weightedCenterZ_f = new gpu_buffer_type<float>(prim_total, prim_total);
 
     /*
        After uploading basis set information, we want to do some more things on CPU so that will accelarate GPU.
@@ -2144,18 +2235,29 @@ move p orbital to the end of the sequence. so the Qshell stands for the length o
                     //expoSum(i,j) = expo(i)+expo(j)
                     LOC2(gpu->gpu_basis->expoSum->_hostData, ii_start + ii, jj_start + jj, prim_total, prim_total)
                         = II + JJ;
+                    LOC2(gpu->gpu_basis->expoSum_f->_hostData, ii_start + ii, jj_start + jj, prim_total, prim_total)
+                        = (float) (II + JJ);
 
                     //        ------------->                 ->          ->
                     //        weightedCenter(i,j) = (expo(i)*i + expo(j)*j)/(expo(i)+expo(j))
                     LOC2(gpu->gpu_basis->weightedCenterX->_hostData, ii_start + ii, jj_start + jj, prim_total, prim_total)
                         = (LOC2(gpu->xyz->_hostData, 0, kAtomI, 3, gpu->natom) * II
                                 + LOC2(gpu->xyz->_hostData, 0, kAtomJ, 3, gpu->natom) * JJ) / (II + JJ);
+                    LOC2(gpu->gpu_basis->weightedCenterX_f->_hostData, ii_start + ii, jj_start + jj, prim_total, prim_total)
+                        = (float) ((LOC2(gpu->xyz->_hostData, 0, kAtomI, 3, gpu->natom) * II
+                                + LOC2(gpu->xyz->_hostData, 0, kAtomJ, 3, gpu->natom) * JJ) / (II + JJ));
                     LOC2(gpu->gpu_basis->weightedCenterY->_hostData, ii_start + ii, jj_start + jj, prim_total, prim_total)
                         = (LOC2(gpu->xyz->_hostData, 1, kAtomI, 3, gpu->natom) * II
                                 + LOC2(gpu->xyz->_hostData, 1, kAtomJ, 3, gpu->natom) * JJ) / (II + JJ);
+                    LOC2(gpu->gpu_basis->weightedCenterY_f->_hostData, ii_start + ii, jj_start + jj, prim_total, prim_total)
+                        = ((LOC2(gpu->xyz->_hostData, 1, kAtomI, 3, gpu->natom) * II
+                                + LOC2(gpu->xyz->_hostData, 1, kAtomJ, 3, gpu->natom) * JJ) / (II + JJ));
                     LOC2(gpu->gpu_basis->weightedCenterZ->_hostData, ii_start + ii, jj_start + jj, prim_total, prim_total)
                         = (LOC2(gpu->xyz->_hostData, 2, kAtomI, 3, gpu->natom) * II
                                 + LOC2(gpu->xyz->_hostData, 2, kAtomJ, 3, gpu->natom) * JJ) / (II + JJ);
+                    LOC2(gpu->gpu_basis->weightedCenterZ_f->_hostData, ii_start + ii, jj_start + jj, prim_total, prim_total)
+                        = ((LOC2(gpu->xyz->_hostData, 2, kAtomI, 3, gpu->natom) * II
+                                + LOC2(gpu->xyz->_hostData, 2, kAtomJ, 3, gpu->natom) * JJ) / (II + JJ));
 
 
                     // Xcoeff = exp(-II*JJ/(II+JJ) * DIJ) / (II+JJ) * coeff(i) * coeff(j) * X0
@@ -2170,6 +2272,11 @@ move p orbital to the end of the sequence. so the Qshell stands for the length o
                                     gpu->jbasis, gpu->jbasis, 2, 2)
                                 = X0 * X * LOC2(gpu->gpu_basis->gccoeff->_hostData, ii, KsumtypeI + itemp, MAXPRIM, gpu->nbasis)
                                 * LOC2(gpu->gpu_basis->gccoeff->_hostData, jj, KsumtypeJ + itemp2, MAXPRIM, gpu->nbasis);
+                            LOC4(gpu->gpu_basis->Xcoeff_f->_hostData, kstartI + ii, kstartJ + jj,
+                                    itemp-gpu->gpu_basis->Qstart->_hostData[i], itemp2-gpu->gpu_basis->Qstart->_hostData[j],
+                                    gpu->jbasis, gpu->jbasis, 2, 2)
+                                = (float) (X0 * X * LOC2(gpu->gpu_basis->gccoeff->_hostData, ii, KsumtypeI + itemp, MAXPRIM, gpu->nbasis)
+                                * LOC2(gpu->gpu_basis->gccoeff->_hostData, jj, KsumtypeJ + itemp2, MAXPRIM, gpu->nbasis));
                         }
                     }
                 }
@@ -2193,27 +2300,38 @@ move p orbital to the end of the sequence. so the Qshell stands for the length o
     gpu->gpu_basis->Qfbasis->Upload();
     gpu->gpu_basis->gccoeff->Upload();
     gpu->gpu_basis->cons->Upload();
+    gpu->gpu_basis->cons_f->Upload();
     gpu->gpu_basis->Xcoeff->Upload();
+    gpu->gpu_basis->Xcoeff_f->Upload();
     gpu->gpu_basis->gcexpo->Upload();
+    gpu->gpu_basis->gcexpo_f->Upload();
     gpu->gpu_basis->KLMN->Upload();
     gpu->gpu_basis->prim_start->Upload();
-    gpu->gpu_basis->Xcoeff->Upload();
     gpu->gpu_basis->expoSum->Upload();
+    gpu->gpu_basis->expoSum_f->Upload();
     gpu->gpu_basis->weightedCenterX->Upload();
+    gpu->gpu_basis->weightedCenterX_f->Upload();
     gpu->gpu_basis->weightedCenterY->Upload();
+    gpu->gpu_basis->weightedCenterY_f->Upload();
     gpu->gpu_basis->weightedCenterZ->Upload();
+    gpu->gpu_basis->weightedCenterZ_f->Upload();
     gpu->gpu_basis->sorted_Q->Upload();
     gpu->gpu_basis->sorted_Qnumber->Upload();
     gpuMemcpy(gpu->gpu_sim.trans, trans, sizeof(uint32_t) * TRANSDIM * TRANSDIM * TRANSDIM, cudaMemcpyHostToDevice);
     gpuMemcpy(gpu->gpu_sim.Sumindex, Sumindex, sizeof(uint32_t) * 10, cudaMemcpyHostToDevice);
 
     gpu->gpu_sim.expoSum = gpu->gpu_basis->expoSum->_devData;
+    gpu->gpu_sim.expoSum_f = gpu->gpu_basis->expoSum_f->_devData;
     gpu->gpu_sim.weightedCenterX = gpu->gpu_basis->weightedCenterX->_devData;
+    gpu->gpu_sim.weightedCenterX_f = gpu->gpu_basis->weightedCenterX_f->_devData;
     gpu->gpu_sim.weightedCenterY = gpu->gpu_basis->weightedCenterY->_devData;
+    gpu->gpu_sim.weightedCenterY_f = gpu->gpu_basis->weightedCenterY_f->_devData;
     gpu->gpu_sim.weightedCenterZ = gpu->gpu_basis->weightedCenterZ->_devData;
+    gpu->gpu_sim.weightedCenterZ_f = gpu->gpu_basis->weightedCenterZ_f->_devData;
     gpu->gpu_sim.sorted_Q = gpu->gpu_basis->sorted_Q->_devData;
     gpu->gpu_sim.sorted_Qnumber = gpu->gpu_basis->sorted_Qnumber->_devData;
     gpu->gpu_sim.Xcoeff = gpu->gpu_basis->Xcoeff->_devData;
+    gpu->gpu_sim.Xcoeff_f = gpu->gpu_basis->Xcoeff_f->_devData;
     gpu->gpu_sim.ncontract = gpu->gpu_basis->ncontract->_devData;
     gpu->gpu_sim.dcoeff = gpu->gpu_basis->dcoeff->_devData;
     gpu->gpu_sim.aexp = gpu->gpu_basis->aexp->_devData;
@@ -2231,14 +2349,21 @@ move p orbital to the end of the sequence. so the Qshell stands for the length o
     gpu->gpu_sim.Qfbasis = gpu->gpu_basis->Qfbasis->_devData;
     gpu->gpu_sim.gccoeff = gpu->gpu_basis->gccoeff->_devData;
     gpu->gpu_sim.cons = gpu->gpu_basis->cons->_devData;
+    gpu->gpu_sim.cons_f = gpu->gpu_basis->cons_f->_devData;
     gpu->gpu_sim.gcexpo = gpu->gpu_basis->gcexpo->_devData;
+    gpu->gpu_sim.gcexpo_f = gpu->gpu_basis->gcexpo_f->_devData;
     gpu->gpu_sim.KLMN = gpu->gpu_basis->KLMN->_devData;
 
     gpu->gpu_basis->expoSum->DeleteCPU();
+    gpu->gpu_basis->expoSum_f->DeleteCPU();
     gpu->gpu_basis->weightedCenterX->DeleteCPU();
+    gpu->gpu_basis->weightedCenterX_f->DeleteCPU();
     gpu->gpu_basis->weightedCenterY->DeleteCPU();
+    gpu->gpu_basis->weightedCenterY_f->DeleteCPU();
     gpu->gpu_basis->weightedCenterZ->DeleteCPU();
+    gpu->gpu_basis->weightedCenterZ_f->DeleteCPU();
     gpu->gpu_basis->Xcoeff->DeleteCPU();
+    gpu->gpu_basis->Xcoeff_f->DeleteCPU();
 
     gpu->gpu_basis->ncontract->DeleteCPU();
 //    gpu->gpu_basis->dcoeff->DeleteCPU();
@@ -2256,6 +2381,7 @@ move p orbital to the end of the sequence. so the Qshell stands for the length o
     gpu->gpu_basis->Qsbasis->DeleteCPU();
     gpu->gpu_basis->Qfbasis->DeleteCPU();
     gpu->gpu_basis->cons->DeleteCPU();
+    gpu->gpu_basis->cons_f->DeleteCPU();
     gpu->gpu_basis->KLMN->DeleteCPU();
 
     // the following will be deleted inside gpu_upload_oei function
@@ -2287,6 +2413,7 @@ extern "C" void gpu_upload_grad_(QUICKDouble* gradCutoff)
     PRINTDEBUG("BEGIN TO UPLOAD GRAD");
 
     gpu->grad = new gpu_buffer_type<QUICKDouble>(3u * gpu->natom);
+    gpu->grad_f = new gpu_buffer_type<float>(3u * gpu->natom);
 
 #if defined(USE_LEGACY_ATOMICS)
     gpu->gradULL = new gpu_buffer_type<QUICKULL>(3u * gpu->natom);
@@ -2296,11 +2423,15 @@ extern "C" void gpu_upload_grad_(QUICKDouble* gradCutoff)
 
     //gpu->grad->DeleteGPU();
     gpu->gpu_sim.grad = gpu->grad->_devData;
+    gpu->gpu_sim.grad_f = gpu->grad_f->_devData;
     gpu->grad->Upload();
+    gpu->grad_f->Upload();
 
 
     gpu->gpu_cutoff->gradCutoff = *gradCutoff;
+    gpu->gpu_cutoff->gradCutoff_f = (float) (*gradCutoff);
     gpu->gpu_sim.gradCutoff = gpu->gpu_cutoff->gradCutoff;
+    gpu->gpu_sim.gradCutoff_f = gpu->gpu_cutoff->gradCutoff_f;
 
 #if defined(DEBUG)
     GPU_TIMER_STOP();
@@ -2977,23 +3108,34 @@ extern "C" void gpu_cleanup_()
     SAFE_DELETE(gpu->gpu_basis->Qfbasis);
     SAFE_DELETE(gpu->gpu_basis->gccoeff);
     SAFE_DELETE(gpu->gpu_basis->cons);
+    SAFE_DELETE(gpu->gpu_basis->cons_f);
     SAFE_DELETE(gpu->gpu_basis->gcexpo);
+    SAFE_DELETE(gpu->gpu_basis->gcexpo_f);
     SAFE_DELETE(gpu->gpu_basis->KLMN);
     SAFE_DELETE(gpu->gpu_basis->prim_start);
     SAFE_DELETE(gpu->gpu_basis->Xcoeff);
+    SAFE_DELETE(gpu->gpu_basis->Xcoeff_f);
     SAFE_DELETE(gpu->gpu_basis->Xcoeff_oei);
     SAFE_DELETE(gpu->gpu_basis->expoSum);
+    SAFE_DELETE(gpu->gpu_basis->expoSum_f);
     SAFE_DELETE(gpu->gpu_basis->weightedCenterX);
+    SAFE_DELETE(gpu->gpu_basis->weightedCenterX_f);
     SAFE_DELETE(gpu->gpu_basis->weightedCenterY);
+    SAFE_DELETE(gpu->gpu_basis->weightedCenterY_f);
     SAFE_DELETE(gpu->gpu_basis->weightedCenterZ);
+    SAFE_DELETE(gpu->gpu_basis->weightedCenterZ_f);
     SAFE_DELETE(gpu->gpu_calculated->distance);
     SAFE_DELETE(gpu->xyz);
+    SAFE_DELETE(gpu->xyz_f);
     SAFE_DELETE(gpu->gpu_basis->sorted_Q);
     SAFE_DELETE(gpu->gpu_basis->sorted_Qnumber);
     SAFE_DELETE(gpu->gpu_cutoff->cutMatrix);
+    SAFE_DELETE(gpu->gpu_cutoff->cutMatrix_f);
     SAFE_DELETE(gpu->gpu_cutoff->sorted_YCutoffIJ);
     SAFE_DELETE(gpu->gpu_cutoff->YCutoff);
+    SAFE_DELETE(gpu->gpu_cutoff->YCutoff_f);
     SAFE_DELETE(gpu->gpu_cutoff->cutPrim);
+    SAFE_DELETE(gpu->gpu_cutoff->cutPrim_f);
 
     SAFE_DELETE(gpu->allxyz);
     SAFE_DELETE(gpu->allchg);
@@ -3209,6 +3351,7 @@ extern "C" void gpu_addint_(QUICKDouble* o, int* intindex, char* intFileName)
     }
 #else
     gpu->gpu_calculated->o->Download();
+    gpu->gpu_calculated->o_f->Download();
 
     for (int i = 0; i < gpu->nbasis; i++) {
         for (int j = i; j < gpu->nbasis; j++) {
@@ -3216,8 +3359,20 @@ extern "C" void gpu_addint_(QUICKDouble* o, int* intindex, char* intFileName)
                 = LOC2(gpu->gpu_calculated->o->_hostData, j, i, gpu->nbasis, gpu->nbasis);
         }
     }
+    for (int i = 0; i < gpu->nbasis; i++) {
+        for (int j = i; j < gpu->nbasis; j++) {
+            LOC2(gpu->gpu_calculated->o_f->_hostData, i, j, gpu->nbasis, gpu->nbasis)
+                = (double) LOC2(gpu->gpu_calculated->o_f->_hostData, j, i, gpu->nbasis, gpu->nbasis);
+        }
+    }
 #endif
     gpu->gpu_calculated->o->Download(o);
+    for (int i = 0; i < gpu->nbasis; i++) {
+        for (int j = 0; j < gpu->nbasis; j++) {
+            LOC2(o, i, j, gpu->nbasis, gpu->nbasis)
+                += (double) LOC2(gpu->gpu_calculated->o_f->_hostData, i, j, gpu->nbasis, gpu->nbasis);
+        }
+    }
 
 #if defined(DEBUG)
     GPU_TIMER_STOP();
@@ -3228,11 +3383,16 @@ extern "C" void gpu_addint_(QUICKDouble* o, int* intindex, char* intFileName)
     PRINTDEBUG("DELETE TEMP VARIABLES");
 
     delete gpu->gpu_calculated->o;
+    delete gpu->gpu_calculated->o_f;
     delete gpu->gpu_calculated->dense;
+    delete gpu->gpu_calculated->dense_f;
     delete gpu->gpu_cutoff->cutMatrix;
+    delete gpu->gpu_cutoff->cutMatrix_f;
     delete gpu->gpu_cutoff->sorted_YCutoffIJ;
     delete gpu->gpu_cutoff->YCutoff;
+    delete gpu->gpu_cutoff->YCutoff_f;
     delete gpu->gpu_cutoff->cutPrim;
+    delete gpu->gpu_cutoff->cutPrim_f;
 #if defined(USE_LEGACY_ATOMICS)
     delete gpu->gpu_calculated->oULL;
 #endif    
@@ -3322,7 +3482,9 @@ extern "C" void gpu_aoint_(QUICKDouble* leastIntegralCutoff, QUICKDouble* maxInt
     }
 
     gpu->gpu_sim.leastIntegralCutoff = *leastIntegralCutoff;
+    gpu->gpu_sim.leastIntegralCutoff_f = (float) (*leastIntegralCutoff);
     gpu->gpu_sim.maxIntegralCutoff = *maxIntegralCutoff;
+    gpu->gpu_sim.maxIntegralCutoff_f = (float) (*maxIntegralCutoff);
     gpu->gpu_sim.iBatchSize = nBatchERICount;
     gpu->intCount = new gpu_buffer_type<QUICKULL>(streamNum);
     gpu->gpu_sim.intCount = gpu->intCount->_devData;

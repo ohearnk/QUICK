@@ -1176,7 +1176,7 @@ __device__ static inline void iclass_grad_ffff
                 const QUICKDouble Qz = LOC2(DEV_SIM_DBL_PTR_WEIGHTEDCENTERZ, kk_start + KKK, ll_start + LLL,
                         DEV_SIM_UINT32_PRIM_TOTAL, DEV_SIM_UINT32_PRIM_TOTAL);
 
-                double YVerticalTemp[PRIM_INT_ERI_GRAD_FFFF_LEN];
+                QUICKDouble YVerticalTemp[PRIM_INT_ERI_GRAD_FFFF_LEN];
                 FmT(I + J + K + L + 2, AB * CD * ABCD
                         * (SQR(Px - Qx) + SQR(Py - Qy) + SQR(Pz - Qz)), YVerticalTemp);
 

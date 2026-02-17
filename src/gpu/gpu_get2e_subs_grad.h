@@ -20,7 +20,8 @@
   #define STOREDIM STOREDIM_GRAD_T
 
 
-__device__ static inline void hrrwholegrad_sp(QUICKDouble * const Yaax, QUICKDouble * const Yaay, QUICKDouble * const Yaaz,
+__device__ static inline void hrrwholegrad_sp
+        (QUICKDouble * const Yaax, QUICKDouble * const Yaay, QUICKDouble * const Yaaz,
         QUICKDouble * const Ybbx, QUICKDouble * const Ybby, QUICKDouble * const Ybbz,
         QUICKDouble * const Yccx, QUICKDouble * const Yccy, QUICKDouble * const Yccz,
         uint32_t J, uint32_t L, uint32_t III, uint32_t JJJ, uint32_t KKK, uint32_t LLL,
@@ -354,7 +355,8 @@ __device__ static inline void hrrwholegrad_sp(QUICKDouble * const Yaax, QUICKDou
 
   #undef STOREDIM
   #define STOREDIM STOREDIM_S
-__device__ static inline void hrrwholegrad(QUICKDouble * const Yaax, QUICKDouble * const Yaay, QUICKDouble * const Yaaz,
+__device__ static inline void hrrwholegrad
+        (QUICKDouble * const Yaax, QUICKDouble * const Yaay, QUICKDouble * const Yaaz,
         QUICKDouble * const Ybbx, QUICKDouble * const Ybby, QUICKDouble * const Ybbz,
         QUICKDouble * const Yccx, QUICKDouble * const Yccy, QUICKDouble * const Yccz,
         uint32_t J, uint32_t L, uint32_t III, uint32_t JJJ, uint32_t KKK, uint32_t LLL,
@@ -667,7 +669,8 @@ __device__ static inline void hrrwholegrad(QUICKDouble * const Yaax, QUICKDouble
 
   #undef STOREDIM
   #define STOREDIM STOREDIM_XL
-__device__ static inline void hrrwholegrad2(QUICKDouble * const Yaax, QUICKDouble * const Yaay, QUICKDouble * const Yaaz,
+__device__ static inline void hrrwholegrad2
+        (QUICKDouble * const Yaax, QUICKDouble * const Yaay, QUICKDouble * const Yaaz,
         QUICKDouble * const Ybbx, QUICKDouble * const Ybby, QUICKDouble * const Ybbz,
         QUICKDouble * const Yccx, QUICKDouble * const Yccy, QUICKDouble * const Yccz,
         uint32_t J, uint32_t L, uint32_t III, uint32_t JJJ, uint32_t KKK, uint32_t LLL,
@@ -979,7 +982,8 @@ __device__ static inline void hrrwholegrad2(QUICKDouble * const Yaax, QUICKDoubl
 
   #undef STOREDIM
   #define STOREDIM STOREDIM_GRAD_S
-__device__ static inline void hrrwholegrad2_1(QUICKDouble * const Yaax, QUICKDouble * const Yaay, QUICKDouble * const Yaaz,
+__device__ static inline void hrrwholegrad2_1
+        (QUICKDouble * const Yaax, QUICKDouble * const Yaay, QUICKDouble * const Yaaz,
         QUICKDouble * const Ybbx, QUICKDouble * const Ybby, QUICKDouble * const Ybbz,
         QUICKDouble * const Yccx, QUICKDouble * const Yccy, QUICKDouble * const Yccz,
         uint32_t J, uint32_t L, uint32_t III, uint32_t JJJ, uint32_t KKK, uint32_t LLL,
@@ -1071,7 +1075,8 @@ __device__ static inline void hrrwholegrad2_1(QUICKDouble * const Yaax, QUICKDou
 }
 
 
-__device__ static inline void hrrwholegrad2_2(QUICKDouble * const Yaax, QUICKDouble * const Yaay, QUICKDouble * const Yaaz,
+__device__ static inline void hrrwholegrad2_2
+        (QUICKDouble * const Yaax, QUICKDouble * const Yaay, QUICKDouble * const Yaaz,
         QUICKDouble * const Ybbx, QUICKDouble * const Ybby, QUICKDouble * const Ybbz,
         QUICKDouble * const Yccx, QUICKDouble * const Yccy, QUICKDouble * const Yccz,
         uint32_t J, uint32_t L, uint32_t III, uint32_t JJJ, uint32_t KKK, uint32_t LLL,
@@ -1476,7 +1481,7 @@ __device__ static inline void iclass_grad_cshell_spd
                 QUICKDouble Qy = LOC2(weightedCenterY, kk_start+KKK, ll_start+LLL, prim_total, prim_total);
                 QUICKDouble Qz = LOC2(weightedCenterZ, kk_start+KKK, ll_start+LLL, prim_total, prim_total);
 
-                double YVerticalTemp[PRIM_INT_ERI_GRAD_LEN];
+                QUICKDouble YVerticalTemp[PRIM_INT_ERI_GRAD_LEN];
                 FmT(I + J + K + L + 1, AB * CD * ABCD * (SQR(Px - Qx) + SQR(Py - Qy) + SQR(Pz - Qz)),
                         YVerticalTemp);
 
@@ -1979,7 +1984,7 @@ __device__ static inline void iclass_grad_spdf8
                 QUICKDouble Qy = LOC2(weightedCenterY, kk_start + KKK, ll_start + LLL, prim_total, prim_total);
                 QUICKDouble Qz = LOC2(weightedCenterZ, kk_start + KKK, ll_start + LLL, prim_total, prim_total);
 
-                double YVerticalTemp[PRIM_INT_ERI_GRAD_LEN];
+                QUICKDouble YVerticalTemp[PRIM_INT_ERI_GRAD_LEN];
                 FmT(I + J + K + L + 2, AB * CD * ABCD * (SQR(Px - Qx) + SQR(Py - Qy) + SQR(Pz - Qz)),
                         YVerticalTemp);
 
@@ -2498,6 +2503,77 @@ __device__ static inline void iclass_grad_spdf8
 #endif
 
 
+#if defined(SINGLE_PRECISION)
+#undef SMEM
+#define SMEM smem2
+#if defined(OSHELL)
+  #if defined(int_sp)
+__global__ void
+__launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) k_get_grad_oshell_sp_f
+  #elif defined(int_spd)
+__global__ void
+__launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) k_get_grad_oshell_spd_f
+  #elif defined(int_spdf)
+__global__ void
+__launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) k_get_grad_oshell_spdf_f
+  #elif defined(int_spdf2)
+__global__ void
+__launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) k_get_grad_oshell_spdf2_f
+  #elif defined(int_spdf3)
+__global__ void
+__launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) k_get_grad_oshell_spdf3_f
+  #elif defined(int_spdf4)
+__global__ void
+__launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) k_get_grad_oshell_spdf4_f
+  #elif defined(int_spdf5)
+__global__ void
+__launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) k_get_grad_oshell_spdf5_f
+  #elif defined(int_spdf6)
+__global__ void
+__launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) k_get_grad_oshell_spdf6_f
+  #elif defined(int_spdf7)
+__global__ void
+__launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) k_get_grad_oshell_spdf7_f
+  #elif defined(int_spdf8)
+__global__ void
+__launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) k_get_grad_oshell_spdf8_f
+  #endif
+#else
+  #if defined(int_sp)
+__global__ void
+__launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) k_get_grad_cshell_sp_f
+  #elif defined(int_spd)
+__global__ void
+__launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) k_get_grad_cshell_spd_f
+  #elif defined(int_spdf)
+__global__ void
+__launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) k_get_grad_cshell_spdf_f
+  #elif defined(int_spdf2)
+__global__ void
+__launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) k_get_grad_cshell_spdf2_f
+  #elif defined(int_spdf3)
+__global__ void
+__launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) k_get_grad_cshell_spdf3_f
+  #elif defined(int_spdf4)
+__global__ void
+__launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) k_get_grad_cshell_spdf4_f
+  #elif defined(int_spdf5)
+__global__ void
+__launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) k_get_grad_cshell_spdf5_f
+  #elif defined(int_spdf6)
+__global__ void
+__launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) k_get_grad_cshell_spdf6_f
+  #elif defined(int_spdf7)
+__global__ void
+__launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) k_get_grad_cshell_spdf7_f
+  #elif defined(int_spdf8)
+__global__ void
+__launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) k_get_grad_cshell_spdf8_f
+  #endif
+#endif
+#else
+#undef SMEM
+#define SMEM smem3
 #if defined(OSHELL)
   #if defined(int_sp)
 __global__ void
@@ -2563,6 +2639,7 @@ __global__ void
 __launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) k_get_grad_cshell_spdf8
   #endif
 #endif
+#endif
     (QUICKDouble hyb_coeff, uint32_t natom, uint32_t nbasis,
         uint32_t nshell, uint32_t jbasis, QUICKDouble const * const xyz,
         uint32_t const * const kstart, uint32_t const * const katom,
@@ -2596,8 +2673,8 @@ __launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) k_get_grad_cshell_spdf8
     QUICKULL jshell = (QUICKULL) sqrQshell;
     QUICKULL jshell2 = (QUICKULL) sqrQshell;
 #if defined(USE_LEGACY_ATOMICS)
-    extern __shared__ QUICKULL smem2[];
-    QUICKULL *sgradULL = smem2;
+    extern __shared__ QUICKULL SMEM[];
+    QUICKULL *sgradULL = SMEM;
     uint32_t *strans = (uint32_t *) &sgradULL[3u * natom];
     uint32_t *sSumindex = &strans[TRANSDIM * TRANSDIM * TRANSDIM];
 
@@ -2611,8 +2688,8 @@ __launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) k_get_grad_cshell_spdf8
         sSumindex[i] = Sumindex[i];
     }
 #else
-    extern __shared__ QUICKDouble smem2[];
-    QUICKDouble *sgrad = smem2;
+    extern __shared__ QUICKDouble SMEM[];
+    QUICKDouble *sgrad = SMEM;
     uint32_t *strans = (uint32_t *) &sgrad[3u * natom];
     uint32_t *sSumindex = &strans[TRANSDIM * TRANSDIM * TRANSDIM];
 
@@ -2671,6 +2748,15 @@ __launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) k_get_grad_cshell_spdf8
                                         LOC2(cutMatrix, ii, kk, nshell, nshell)),
                                     MAX(LOC2(cutMatrix, jj, kk, nshell, nshell),
                                         LOC2(cutMatrix, jj, ll, nshell, nshell))));
+
+#if defined(SINGLE_PRECISION)
+                    //TODO: enable setting mixed precision integral cutoff parameter via control file
+                    if (LOC2(YCutoff, kk, ll, nshell, nshell) * LOC2(YCutoff, ii, jj, nshell, nshell) < 0.00000001
+                            && LOC2(YCutoff, kk, ll, nshell, nshell) * LOC2(YCutoff, ii, jj, nshell, nshell) * DNMax < 0.00000001) {
+#else
+                    if (!(LOC2(YCutoff, kk, ll, nshell, nshell) * LOC2(YCutoff, ii, jj, nshell, nshell) < 0.00000001
+                            && LOC2(YCutoff, kk, ll, nshell, nshell) * LOC2(YCutoff, ii, jj, nshell, nshell) * DNMax < 0.00000001)) {
+#endif
 
                     if ((LOC2(YCutoff, kk, ll, nshell, nshell) * LOC2(YCutoff, ii, jj, nshell, nshell))
                             > gradCutoff
@@ -2760,6 +2846,7 @@ __launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) k_get_grad_cshell_spdf8
                              storeAA + offset, storeBB + offset, storeCC + offset,
                              strans, sSumindex);
                         }
+                    }
                     }
                 }
 #if defined(int_sp) || defined(int_spd)

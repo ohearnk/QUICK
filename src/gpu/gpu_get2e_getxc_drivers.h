@@ -66,7 +66,9 @@ extern "C" void gpu_get_cshell_eri_(bool *deltaO, QUICKDouble* o)
 #  endif
 #else
     gpu->gpu_calculated->o->Download();
+    gpu->gpu_calculated->o_f->Download();
     gpuMemsetAsync(gpu->gpu_calculated->o->_devData, 0, sizeof(QUICKDouble) * gpu->nbasis * gpu->nbasis, 0);
+    gpuMemsetAsync(gpu->gpu_calculated->o_f->_devData, 0, sizeof(float) * gpu->nbasis * gpu->nbasis, 0);
 
     for (uint32_t i = 0; i < gpu->nbasis; i++) {
         for (uint32_t j = i; j < gpu->nbasis; j++) {
@@ -74,9 +76,17 @@ extern "C" void gpu_get_cshell_eri_(bool *deltaO, QUICKDouble* o)
                 = LOC2(gpu->gpu_calculated->o->_hostData, j, i, gpu->nbasis, gpu->nbasis);
         }
     }
+    for (uint32_t i = 0; i < gpu->nbasis; i++) {
+        for (uint32_t j = i; j < gpu->nbasis; j++) {
+            LOC2(gpu->gpu_calculated->o_f->_hostData, i, j, gpu->nbasis, gpu->nbasis)
+                = LOC2(gpu->gpu_calculated->o_f->_hostData, j, i, gpu->nbasis, gpu->nbasis);
+        }
+    }
 #  if defined(OSHELL)
     gpu->gpu_calculated->ob->Download();
+    gpu->gpu_calculated->ob_f->Download();
     gpuMemsetAsync(gpu->gpu_calculated->ob->_devData, 0, sizeof(QUICKDouble) * gpu->nbasis * gpu->nbasis, 0);
+    gpuMemsetAsync(gpu->gpu_calculated->ob_f->_devData, 0, sizeof(float) * gpu->nbasis * gpu->nbasis, 0);
 
     for (uint32_t i = 0; i < gpu->nbasis; i++) {
         for (uint32_t j = i; j < gpu->nbasis; j++) {
@@ -84,19 +94,39 @@ extern "C" void gpu_get_cshell_eri_(bool *deltaO, QUICKDouble* o)
                 = LOC2(gpu->gpu_calculated->ob->_hostData, j, i, gpu->nbasis, gpu->nbasis);
         }
     }
+    for (uint32_t i = 0; i < gpu->nbasis; i++) {
+        for (uint32_t j = i; j < gpu->nbasis; j++) {
+            LOC2(gpu->gpu_calculated->ob_f->_hostData, i, j, gpu->nbasis, gpu->nbasis)
+                = LOC2(gpu->gpu_calculated->ob_f->_hostData, j, i, gpu->nbasis, gpu->nbasis);
+        }
+    }
 #  endif
 #endif
 
     gpu->gpu_calculated->o->DownloadSum(o);
+    for (int i = 0; i < gpu->nbasis; i++) {
+        for (int j = 0; j < gpu->nbasis; j++) {
+            LOC2(o, i, j, gpu->nbasis, gpu->nbasis)
+                += (double) LOC2(gpu->gpu_calculated->o_f->_hostData, i, j, gpu->nbasis, gpu->nbasis);
+        }
+    }
 #if defined(OSHELL)
     gpu->gpu_calculated->ob->DownloadSum(ob);
+    for (int i = 0; i < gpu->nbasis; i++) {
+        for (int j = 0; j < gpu->nbasis; j++) {
+            LOC2(ob, i, j, gpu->nbasis, gpu->nbasis)
+                += (double) LOC2(gpu->gpu_calculated->ob_f->_hostData, i, j, gpu->nbasis, gpu->nbasis);
+        }
+    }
 #endif
 
     PRINTDEBUG("DELETE TEMP VARIABLES");
 
     if (gpu->gpu_sim.method == HF) {
         delete gpu->gpu_calculated->o;
+        delete gpu->gpu_calculated->o_f;
         delete gpu->gpu_calculated->dense;
+        delete gpu->gpu_calculated->dense_f;
 #if defined(USE_LEGACY_ATOMICS)
         delete gpu->gpu_calculated->oULL;
 #  if defined(OSHELL)
@@ -105,16 +135,21 @@ extern "C" void gpu_get_cshell_eri_(bool *deltaO, QUICKDouble* o)
 #endif
 #if defined(OSHELL)
         delete gpu->gpu_calculated->ob;
+        delete gpu->gpu_calculated->ob_f;
         delete gpu->gpu_calculated->denseb;
+        delete gpu->gpu_calculated->denseb_f;
 #endif
     } else if (*deltaO != 0) {
         delete gpu->gpu_calculated->dense;
+        delete gpu->gpu_calculated->dense_f;
 #if defined(OSHELL)
         delete gpu->gpu_calculated->denseb;
+        delete gpu->gpu_calculated->denseb_f;
 #endif
     }
 
     delete gpu->gpu_cutoff->cutMatrix;
+    delete gpu->gpu_cutoff->cutMatrix_f;
 
     PRINTDEBUG("COMPLETE RUNNING GET2E");
 }
@@ -149,13 +184,14 @@ extern "C" void gpu_get_cshell_eri_grad_(QUICKDouble* grad)
 
     if (gpu->gpu_sim.method == HF) {
 #if defined(USE_LEGACY_ATOMICS)
-        gpu -> gradULL -> Download();
+        gpu->gradULL->Download();
 
         for (uint32_t i = 0; i < 3u * gpu->natom; i++) {
             gpu->grad->_hostData[i] = ULLTODOUBLE(gpu->gradULL->_hostData[i]) * ONEOVERGRADSCALE;
         }
 #else
         gpu->grad->Download();
+        gpu->grad_f->Download();
 #endif
     } else {
         /* sync to wait for kernel completion for CPU-side timers */
@@ -164,15 +200,21 @@ extern "C" void gpu_get_cshell_eri_grad_(QUICKDouble* grad)
 
     if (gpu -> gpu_sim.method == HF) {
         gpu->grad->DownloadSum(grad);
+        for (int i = 0; i < 3u * gpu->natom; i++) {
+            grad[i] += gpu->grad_f->_hostData[i];
+        }
 
         delete gpu->grad;
+        delete gpu->grad_f;
 #if defined(USE_LEGACY_ATOMICS)
         delete gpu->gradULL;
 #endif
         delete gpu->gpu_calculated->dense;
+        delete gpu->gpu_calculated->dense_f;
 
 #if defined(OSHELL)
         delete gpu->gpu_calculated->denseb;
+        delete gpu->gpu_calculated->denseb_f;
 #endif
     }
 
