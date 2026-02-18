@@ -686,6 +686,10 @@ contains
            tmp = quick_method%integralCutoff
            call adjust_cutoff(PRMS,PCHANGE,quick_method,ierr)  !from quick_method_module
 
+#if defined(GPU) || defined(MPIV_GPU)
+           quick_method%integralCutoff2 = (errormax * 0.5d0 * 10**6) ** (1.0d0 / 0.7d0) * TEN_TO_MINUS6 
+#endif
+
         !do I=1,nbasis; do J=1,nbasis
         !  write(*,*) jscf,i,j,quick_qm_struct%dense(j,i),quick_qm_struct%denseb(j,i),&
         !  quick_qm_struct%co(j,i), quick_qm_struct%cob(j,i)
@@ -791,6 +795,7 @@ contains
            call MPI_BCAST(quick_qm_struct%E,nbasis,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
            call MPI_BCAST(quick_qm_struct%Eb,nbasis,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
            call MPI_BCAST(quick_method%integralCutoff,1,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
+           call MPI_BCAST(quick_method%integralCutoff2,1,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
            call MPI_BCAST(quick_method%primLimit,1,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
            call MPI_BARRIER(MPI_COMM_WORLD,mpierror)
         endif

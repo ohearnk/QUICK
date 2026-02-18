@@ -2655,7 +2655,8 @@ __launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) k_get_grad_cshell_spdf8
         QUICKDouble const * const weightedCenterX, QUICKDouble const * const weightedCenterY,
         QUICKDouble const * const weightedCenterZ, uint32_t sqrQshell, int2 const * const sorted_YCutoffIJ,
         QUICKDouble const * const cutMatrix, QUICKDouble const * const YCutoff,
-        QUICKDouble const * const cutPrim, QUICKDouble primLimit, QUICKDouble gradCutoff,
+        QUICKDouble const * const cutPrim, QUICKDouble integralCutoff2,
+        QUICKDouble primLimit, QUICKDouble gradCutoff,
 #if defined(USE_LEGACY_ATOMICS)
         QUICKULL * const gradULL,
 #else
@@ -2750,12 +2751,11 @@ __launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) k_get_grad_cshell_spdf8
                                         LOC2(cutMatrix, jj, ll, nshell, nshell))));
 
 #if defined(SINGLE_PRECISION)
-                    //TODO: enable setting mixed precision integral cutoff parameter via control file
-                    if (LOC2(YCutoff, kk, ll, nshell, nshell) * LOC2(YCutoff, ii, jj, nshell, nshell) < 0.00000001
-                            && LOC2(YCutoff, kk, ll, nshell, nshell) * LOC2(YCutoff, ii, jj, nshell, nshell) * DNMax < 0.00000001) {
+                    if (LOC2(YCutoff, kk, ll, nshell, nshell) * LOC2(YCutoff, ii, jj, nshell, nshell) < integralCutoff2
+                            && LOC2(YCutoff, kk, ll, nshell, nshell) * LOC2(YCutoff, ii, jj, nshell, nshell) * DNMax < integralCutoff2) {
 #else
-                    if (!(LOC2(YCutoff, kk, ll, nshell, nshell) * LOC2(YCutoff, ii, jj, nshell, nshell) < 0.00000001
-                            && LOC2(YCutoff, kk, ll, nshell, nshell) * LOC2(YCutoff, ii, jj, nshell, nshell) * DNMax < 0.00000001)) {
+                    if (!(LOC2(YCutoff, kk, ll, nshell, nshell) * LOC2(YCutoff, ii, jj, nshell, nshell) < integralCutoff2
+                            && LOC2(YCutoff, kk, ll, nshell, nshell) * LOC2(YCutoff, ii, jj, nshell, nshell) * DNMax < integralCutoff2)) {
 #endif
 
                     if ((LOC2(YCutoff, kk, ll, nshell, nshell) * LOC2(YCutoff, ii, jj, nshell, nshell))

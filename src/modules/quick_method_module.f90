@@ -116,6 +116,7 @@ module quick_method_module
         ! following are some cutoff criteria
         double precision :: coreIntegralCutoff = 1.0d-12 ! cutoff for 1e integral prescreening
         double precision :: integralCutoff = 1.0d-7   ! integral cutoff
+        double precision :: integralCutoff2 = 1.0d0   ! mixed precision integral cutoff
         double precision :: leastIntegralCutoff = LEASTCUTOFF  ! the smallest cutoff
         double precision :: maxIntegralCutoff = 1.0d-12
         double precision :: primLimit      = 1.0d-8   ! prime cutoff
@@ -274,6 +275,7 @@ module quick_method_module
             call MPI_BCAST(self%maxdiisscf,1,mpi_integer,0,MPI_COMM_WORLD,mpierror)
             call MPI_BCAST(self%ncyc,1,mpi_integer,0,MPI_COMM_WORLD,mpierror)
             call MPI_BCAST(self%integralCutoff,1,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
+            call MPI_BCAST(self%integralCutoff2,1,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
             call MPI_BCAST(self%leastIntegralCutoff,1,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
             call MPI_BCAST(self%maxIntegralCutoff,1,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
             call MPI_BCAST(self%primLimit,1,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
@@ -954,6 +956,7 @@ module quick_method_module
             self%ncyc = 3
 
             self%integralCutoff = 1.0d-7   ! integral cutoff
+            self%integralCutoff = 1.0d8    ! mixed precision integral cutoff
             self%leastIntegralCutoff = LEASTCUTOFF
                                            ! smallest integral cutoff, used in conventional SCF
             self%maxIntegralCutoff = 1.0d-12

@@ -1139,7 +1139,7 @@ void get2e(_gpu_type gpu)
                  gpu->gpu_sim.Xcoeff, gpu->gpu_sim.expoSum,
                  gpu->gpu_sim.weightedCenterX, gpu->gpu_sim.weightedCenterY, gpu->gpu_sim.weightedCenterZ,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix,
-                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff,
+                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff, gpu->gpu_sim.integralCutoff2,
                  gpu->gpu_sim.primLimit, gpu->gpu_sim.maxIntegralCutoff, gpu->gpu_sim.leastIntegralCutoff,
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
@@ -1164,7 +1164,7 @@ void get2e(_gpu_type gpu)
                  gpu->gpu_sim.Xcoeff, gpu->gpu_sim.expoSum,
                  gpu->gpu_sim.weightedCenterX, gpu->gpu_sim.weightedCenterY, gpu->gpu_sim.weightedCenterZ,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix,
-                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff,
+                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff, gpu->gpu_sim.integralCutoff2,
                  gpu->gpu_sim.primLimit, gpu->gpu_sim.maxIntegralCutoff, gpu->gpu_sim.leastIntegralCutoff,
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
@@ -1192,7 +1192,7 @@ void get2e(_gpu_type gpu)
                  gpu->gpu_sim.Xcoeff, gpu->gpu_sim.expoSum,
                  gpu->gpu_sim.weightedCenterX, gpu->gpu_sim.weightedCenterY, gpu->gpu_sim.weightedCenterZ,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix,
-                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff,
+                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff, gpu->gpu_sim.integralCutoff2,
                  gpu->gpu_sim.primLimit, gpu->gpu_sim.maxIntegralCutoff, gpu->gpu_sim.leastIntegralCutoff,
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
@@ -1217,7 +1217,7 @@ void get2e(_gpu_type gpu)
                  gpu->gpu_sim.Xcoeff, gpu->gpu_sim.expoSum,
                  gpu->gpu_sim.weightedCenterX, gpu->gpu_sim.weightedCenterY, gpu->gpu_sim.weightedCenterZ,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix,
-                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff,
+                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff, gpu->gpu_sim.integralCutoff2,
                  gpu->gpu_sim.primLimit, gpu->gpu_sim.maxIntegralCutoff, gpu->gpu_sim.leastIntegralCutoff,
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
@@ -1242,7 +1242,7 @@ void get2e(_gpu_type gpu)
                  gpu->gpu_sim.Xcoeff, gpu->gpu_sim.expoSum,
                  gpu->gpu_sim.weightedCenterX, gpu->gpu_sim.weightedCenterY, gpu->gpu_sim.weightedCenterZ,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix,
-                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff,
+                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff, gpu->gpu_sim.integralCutoff2,
                  gpu->gpu_sim.primLimit, gpu->gpu_sim.maxIntegralCutoff, gpu->gpu_sim.leastIntegralCutoff,
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
@@ -1267,7 +1267,7 @@ void get2e(_gpu_type gpu)
                  gpu->gpu_sim.Xcoeff, gpu->gpu_sim.expoSum,
                  gpu->gpu_sim.weightedCenterX, gpu->gpu_sim.weightedCenterY, gpu->gpu_sim.weightedCenterZ,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix,
-                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff,
+                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff, gpu->gpu_sim.integralCutoff2,
                  gpu->gpu_sim.primLimit, gpu->gpu_sim.maxIntegralCutoff, gpu->gpu_sim.leastIntegralCutoff,
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
@@ -1292,7 +1292,7 @@ void get2e(_gpu_type gpu)
                  gpu->gpu_sim.Xcoeff, gpu->gpu_sim.expoSum,
                  gpu->gpu_sim.weightedCenterX, gpu->gpu_sim.weightedCenterY, gpu->gpu_sim.weightedCenterZ,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix,
-                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff,
+                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff, gpu->gpu_sim.integralCutoff2,
                  gpu->gpu_sim.primLimit, gpu->gpu_sim.maxIntegralCutoff, gpu->gpu_sim.leastIntegralCutoff,
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
@@ -1317,7 +1317,7 @@ void get2e(_gpu_type gpu)
                  gpu->gpu_sim.Xcoeff, gpu->gpu_sim.expoSum,
                  gpu->gpu_sim.weightedCenterX, gpu->gpu_sim.weightedCenterY, gpu->gpu_sim.weightedCenterZ,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix,
-                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff,
+                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff, gpu->gpu_sim.integralCutoff2,
                  gpu->gpu_sim.primLimit, gpu->gpu_sim.maxIntegralCutoff, gpu->gpu_sim.leastIntegralCutoff,
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
@@ -1342,7 +1342,7 @@ void get2e(_gpu_type gpu)
                  gpu->gpu_sim.Xcoeff, gpu->gpu_sim.expoSum,
                  gpu->gpu_sim.weightedCenterX, gpu->gpu_sim.weightedCenterY, gpu->gpu_sim.weightedCenterZ,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix,
-                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff,
+                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff, gpu->gpu_sim.integralCutoff2,
                  gpu->gpu_sim.primLimit, gpu->gpu_sim.maxIntegralCutoff, gpu->gpu_sim.leastIntegralCutoff,
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
@@ -1367,7 +1367,7 @@ void get2e(_gpu_type gpu)
                  gpu->gpu_sim.Xcoeff, gpu->gpu_sim.expoSum,
                  gpu->gpu_sim.weightedCenterX, gpu->gpu_sim.weightedCenterY, gpu->gpu_sim.weightedCenterZ,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix,
-                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff,
+                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff, gpu->gpu_sim.integralCutoff2,
                  gpu->gpu_sim.primLimit, gpu->gpu_sim.maxIntegralCutoff, gpu->gpu_sim.leastIntegralCutoff,
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
@@ -1392,7 +1392,7 @@ void get2e(_gpu_type gpu)
 //                 gpu->gpu_sim.Xcoeff, gpu->gpu_sim.expoSum,
 //                 gpu->gpu_sim.weightedCenterX, gpu->gpu_sim.weightedCenterY, gpu->gpu_sim.weightedCenterZ,
 //                 gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix,
-//                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff,
+//                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff, gpu->gpu_sim.integralCutoff2,
 //                 gpu->gpu_sim.primLimit, gpu->gpu_sim.maxIntegralCutoff, gpu->gpu_sim.leastIntegralCutoff,
 //#if defined(MPIV_GPU)
 //                 gpu->gpu_sim.mpi_bcompute,
@@ -1417,7 +1417,7 @@ void get2e(_gpu_type gpu)
 //                 gpu->gpu_sim.Xcoeff, gpu->gpu_sim.expoSum,
 //                 gpu->gpu_sim.weightedCenterX, gpu->gpu_sim.weightedCenterY, gpu->gpu_sim.weightedCenterZ,
 //                 gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix,
-//                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff,
+//                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff, gpu->gpu_sim.integralCutoff2,
 //                 gpu->gpu_sim.primLimit, gpu->gpu_sim.maxIntegralCutoff, gpu->gpu_sim.leastIntegralCutoff,
 //#if defined(MPIV_GPU)
 //                 gpu->gpu_sim.mpi_bcompute,
@@ -1444,7 +1444,7 @@ void get2e(_gpu_type gpu)
                  gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
                  gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
-                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f, gpu->gpu_sim.integralCutoff2_f,
                  gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
@@ -1469,7 +1469,7 @@ void get2e(_gpu_type gpu)
                  gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
                  gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
-                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f, gpu->gpu_sim.integralCutoff2_f,
                  gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
@@ -1497,7 +1497,7 @@ void get2e(_gpu_type gpu)
                  gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
                  gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
-                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f, gpu->gpu_sim.integralCutoff2_f,
                  gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
@@ -1522,7 +1522,7 @@ void get2e(_gpu_type gpu)
                  gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
                  gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
-                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f, gpu->gpu_sim.integralCutoff2_f,
                  gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
@@ -1547,7 +1547,7 @@ void get2e(_gpu_type gpu)
                  gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
                  gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
-                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f, gpu->gpu_sim.integralCutoff2_f,
                  gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
@@ -1572,7 +1572,7 @@ void get2e(_gpu_type gpu)
                  gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
                  gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
-                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f, gpu->gpu_sim.integralCutoff2_f,
                  gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
@@ -1597,7 +1597,7 @@ void get2e(_gpu_type gpu)
                  gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
                  gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
-                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f, gpu->gpu_sim.integralCutoff2_f,
                  gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
@@ -1622,7 +1622,7 @@ void get2e(_gpu_type gpu)
                  gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
                  gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
-                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f, gpu->gpu_sim.integralCutoff2_f,
                  gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
@@ -1647,7 +1647,7 @@ void get2e(_gpu_type gpu)
                  gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
                  gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
-                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f, gpu->gpu_sim.integralCutoff2_f,
                  gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
@@ -1672,7 +1672,7 @@ void get2e(_gpu_type gpu)
                  gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
                  gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
-                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f, gpu->gpu_sim.integralCutoff2_f,
                  gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
@@ -1697,7 +1697,7 @@ void get2e(_gpu_type gpu)
 //                 gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
 //                 gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
 //                 gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
-//                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+//                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f, gpu->gpu_sim.integralCutoff2_f,
 //                 gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
 //#if defined(MPIV_GPU)
 //                 gpu->gpu_sim.mpi_bcompute,
@@ -1722,7 +1722,7 @@ void get2e(_gpu_type gpu)
 //                 gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
 //                 gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
 //                 gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
-//                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+//                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f, gpu->gpu_sim.integralCutoff2_f,
 //                 gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
 //#if defined(MPIV_GPU)
 //                 gpu->gpu_sim.mpi_bcompute,
@@ -1767,7 +1767,7 @@ void get_oshell_eri(_gpu_type gpu)
                  gpu->gpu_sim.Xcoeff, gpu->gpu_sim.expoSum,
                  gpu->gpu_sim.weightedCenterX, gpu->gpu_sim.weightedCenterY, gpu->gpu_sim.weightedCenterZ,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix,
-                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff,
+                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff, gpu->gpu_sim.integralCutoff2,
                  gpu->gpu_sim.primLimit, gpu->gpu_sim.maxIntegralCutoff, gpu->gpu_sim.leastIntegralCutoff,
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
@@ -1792,7 +1792,7 @@ void get_oshell_eri(_gpu_type gpu)
                  gpu->gpu_sim.Xcoeff, gpu->gpu_sim.expoSum,
                  gpu->gpu_sim.weightedCenterX, gpu->gpu_sim.weightedCenterY, gpu->gpu_sim.weightedCenterZ,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix,
-                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff,
+                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff, gpu->gpu_sim.integralCutoff2,
                  gpu->gpu_sim.primLimit, gpu->gpu_sim.maxIntegralCutoff, gpu->gpu_sim.leastIntegralCutoff,
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
@@ -1820,7 +1820,7 @@ void get_oshell_eri(_gpu_type gpu)
                  gpu->gpu_sim.Xcoeff, gpu->gpu_sim.expoSum,
                  gpu->gpu_sim.weightedCenterX, gpu->gpu_sim.weightedCenterY, gpu->gpu_sim.weightedCenterZ,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix,
-                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff,
+                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff, gpu->gpu_sim.integralCutoff2,
                  gpu->gpu_sim.primLimit, gpu->gpu_sim.maxIntegralCutoff, gpu->gpu_sim.leastIntegralCutoff,
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
@@ -1846,7 +1846,7 @@ void get_oshell_eri(_gpu_type gpu)
                  gpu->gpu_sim.Xcoeff, gpu->gpu_sim.expoSum,
                  gpu->gpu_sim.weightedCenterX, gpu->gpu_sim.weightedCenterY, gpu->gpu_sim.weightedCenterZ,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix,
-                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff,
+                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff, gpu->gpu_sim.integralCutoff2,
                  gpu->gpu_sim.primLimit, gpu->gpu_sim.maxIntegralCutoff, gpu->gpu_sim.leastIntegralCutoff,
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
@@ -1871,7 +1871,7 @@ void get_oshell_eri(_gpu_type gpu)
                  gpu->gpu_sim.Xcoeff, gpu->gpu_sim.expoSum,
                  gpu->gpu_sim.weightedCenterX, gpu->gpu_sim.weightedCenterY, gpu->gpu_sim.weightedCenterZ,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix,
-                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff,
+                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff, gpu->gpu_sim.integralCutoff2,
                  gpu->gpu_sim.primLimit, gpu->gpu_sim.maxIntegralCutoff, gpu->gpu_sim.leastIntegralCutoff,
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
@@ -1896,7 +1896,7 @@ void get_oshell_eri(_gpu_type gpu)
                  gpu->gpu_sim.Xcoeff, gpu->gpu_sim.expoSum,
                  gpu->gpu_sim.weightedCenterX, gpu->gpu_sim.weightedCenterY, gpu->gpu_sim.weightedCenterZ,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix,
-                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff,
+                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff, gpu->gpu_sim.integralCutoff2,
                  gpu->gpu_sim.primLimit, gpu->gpu_sim.maxIntegralCutoff, gpu->gpu_sim.leastIntegralCutoff,
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
@@ -1921,7 +1921,7 @@ void get_oshell_eri(_gpu_type gpu)
                  gpu->gpu_sim.Xcoeff, gpu->gpu_sim.expoSum,
                  gpu->gpu_sim.weightedCenterX, gpu->gpu_sim.weightedCenterY, gpu->gpu_sim.weightedCenterZ,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix,
-                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff,
+                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff, gpu->gpu_sim.integralCutoff2,
                  gpu->gpu_sim.primLimit, gpu->gpu_sim.maxIntegralCutoff, gpu->gpu_sim.leastIntegralCutoff,
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
@@ -1946,7 +1946,7 @@ void get_oshell_eri(_gpu_type gpu)
                  gpu->gpu_sim.Xcoeff, gpu->gpu_sim.expoSum,
                  gpu->gpu_sim.weightedCenterX, gpu->gpu_sim.weightedCenterY, gpu->gpu_sim.weightedCenterZ,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix,
-                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff,
+                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff, gpu->gpu_sim.integralCutoff2,
                  gpu->gpu_sim.primLimit, gpu->gpu_sim.maxIntegralCutoff, gpu->gpu_sim.leastIntegralCutoff,
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
@@ -1971,7 +1971,7 @@ void get_oshell_eri(_gpu_type gpu)
                  gpu->gpu_sim.Xcoeff, gpu->gpu_sim.expoSum,
                  gpu->gpu_sim.weightedCenterX, gpu->gpu_sim.weightedCenterY, gpu->gpu_sim.weightedCenterZ,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix,
-                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff,
+                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff, gpu->gpu_sim.integralCutoff2,
                  gpu->gpu_sim.primLimit, gpu->gpu_sim.maxIntegralCutoff, gpu->gpu_sim.leastIntegralCutoff,
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
@@ -1996,7 +1996,7 @@ void get_oshell_eri(_gpu_type gpu)
                  gpu->gpu_sim.Xcoeff, gpu->gpu_sim.expoSum,
                  gpu->gpu_sim.weightedCenterX, gpu->gpu_sim.weightedCenterY, gpu->gpu_sim.weightedCenterZ,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix,
-                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff,
+                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff, gpu->gpu_sim.integralCutoff2,
                  gpu->gpu_sim.primLimit, gpu->gpu_sim.maxIntegralCutoff, gpu->gpu_sim.leastIntegralCutoff,
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
@@ -2021,7 +2021,7 @@ void get_oshell_eri(_gpu_type gpu)
 //                 gpu->gpu_sim.Xcoeff, gpu->gpu_sim.expoSum,
 //                 gpu->gpu_sim.weightedCenterX, gpu->gpu_sim.weightedCenterY, gpu->gpu_sim.weightedCenterZ,
 //                 gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix,
-//                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff,
+//                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff, gpu->gpu_sim.integralCutoff2,
 //                 gpu->gpu_sim.primLimit, gpu->gpu_sim.maxIntegralCutoff, gpu->gpu_sim.leastIntegralCutoff,
 //#if defined(MPIV_GPU)
 //                 gpu->gpu_sim.mpi_bcompute,
@@ -2046,7 +2046,7 @@ void get_oshell_eri(_gpu_type gpu)
 //                 gpu->gpu_sim.Xcoeff, gpu->gpu_sim.expoSum,
 //                 gpu->gpu_sim.weightedCenterX, gpu->gpu_sim.weightedCenterY, gpu->gpu_sim.weightedCenterZ,
 //                 gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix,
-//                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff,
+//                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff, gpu->gpu_sim.integralCutoff2,
 //                 gpu->gpu_sim.primLimit, gpu->gpu_sim.maxIntegralCutoff, gpu->gpu_sim.leastIntegralCutoff,
 //#if defined(MPIV_GPU)
 //                 gpu->gpu_sim.mpi_bcompute,
@@ -2073,7 +2073,7 @@ void get_oshell_eri(_gpu_type gpu)
                  gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
                  gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
-                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f, gpu->gpu_sim.integralCutoff2_f,
                  gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
@@ -2098,7 +2098,7 @@ void get_oshell_eri(_gpu_type gpu)
                  gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
                  gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
-                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f, gpu->gpu_sim.integralCutoff2_f,
                  gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
@@ -2126,7 +2126,7 @@ void get_oshell_eri(_gpu_type gpu)
                  gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
                  gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
-                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f, gpu->gpu_sim.integralCutoff2_f,
                  gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
@@ -2152,7 +2152,7 @@ void get_oshell_eri(_gpu_type gpu)
                  gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
                  gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
-                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f, gpu->gpu_sim.integralCutoff2_f,
                  gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
@@ -2177,7 +2177,7 @@ void get_oshell_eri(_gpu_type gpu)
                  gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
                  gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
-                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f, gpu->gpu_sim.integralCutoff2_f,
                  gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
@@ -2202,7 +2202,7 @@ void get_oshell_eri(_gpu_type gpu)
                  gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
                  gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
-                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f, gpu->gpu_sim.integralCutoff2_f,
                  gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
@@ -2227,7 +2227,7 @@ void get_oshell_eri(_gpu_type gpu)
                  gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
                  gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
-                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f, gpu->gpu_sim.integralCutoff2_f,
                  gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
@@ -2252,7 +2252,7 @@ void get_oshell_eri(_gpu_type gpu)
                  gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
                  gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
-                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f, gpu->gpu_sim.integralCutoff2_f,
                  gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
@@ -2277,7 +2277,7 @@ void get_oshell_eri(_gpu_type gpu)
                  gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
                  gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
-                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f, gpu->gpu_sim.integralCutoff2_f,
                  gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
@@ -2302,7 +2302,7 @@ void get_oshell_eri(_gpu_type gpu)
                  gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
                  gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
-                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f, gpu->gpu_sim.integralCutoff2_f,
                  gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
 #if defined(MPIV_GPU)
                  gpu->gpu_sim.mpi_bcompute,
@@ -2327,7 +2327,7 @@ void get_oshell_eri(_gpu_type gpu)
 //                 gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
 //                 gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
 //                 gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
-//                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+//                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f, gpu->gpu_sim.integralCutoff2_f,
 //                 gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
 //#if defined(MPIV_GPU)
 //                 gpu->gpu_sim.mpi_bcompute,
@@ -2352,7 +2352,7 @@ void get_oshell_eri(_gpu_type gpu)
 //                 gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
 //                 gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
 //                 gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
-//                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f,
+//                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff_f, gpu->gpu_sim.integralCutoff2_f,
 //                 gpu->gpu_sim.primLimit_f, gpu->gpu_sim.maxIntegralCutoff_f, gpu->gpu_sim.leastIntegralCutoff_f,
 //#if defined(MPIV_GPU)
 //                 gpu->gpu_sim.mpi_bcompute,
@@ -2416,7 +2416,7 @@ void getGrad(_gpu_type gpu)
                  gpu->gpu_sim.dense, gpu->gpu_sim.Xcoeff, gpu->gpu_sim.expoSum,
                  gpu->gpu_sim.weightedCenterX, gpu->gpu_sim.weightedCenterY, gpu->gpu_sim.weightedCenterZ,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix,
-                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.primLimit,
+                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff2, gpu->gpu_sim.primLimit,
                  gpu->gpu_sim.gradCutoff,
 #if defined(USE_LEGACY_ATOMICS)
                  gpu->gpu_sim.gradULL,
@@ -2447,7 +2447,7 @@ void getGrad(_gpu_type gpu)
                  gpu->gpu_sim.dense, gpu->gpu_sim.Xcoeff, gpu->gpu_sim.expoSum,
                  gpu->gpu_sim.weightedCenterX, gpu->gpu_sim.weightedCenterY, gpu->gpu_sim.weightedCenterZ,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix,
-                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.primLimit,
+                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff2, gpu->gpu_sim.primLimit,
                  gpu->gpu_sim.gradCutoff,
 #if defined(USE_LEGACY_ATOMICS)
                  gpu->gpu_sim.gradULL,
@@ -2483,7 +2483,7 @@ void getGrad(_gpu_type gpu)
                      gpu->gpu_sim.dense, gpu->gpu_sim.Xcoeff, gpu->gpu_sim.expoSum,
                      gpu->gpu_sim.weightedCenterX, gpu->gpu_sim.weightedCenterY, gpu->gpu_sim.weightedCenterZ,
                      gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix,
-                     gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.primLimit,
+                     gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff2, gpu->gpu_sim.primLimit,
                      gpu->gpu_sim.gradCutoff,
 #if defined(USE_LEGACY_ATOMICS)
                      gpu->gpu_sim.gradULL,
@@ -2515,7 +2515,7 @@ void getGrad(_gpu_type gpu)
                      gpu->gpu_sim.dense, gpu->gpu_sim.Xcoeff, gpu->gpu_sim.expoSum,
                      gpu->gpu_sim.weightedCenterX, gpu->gpu_sim.weightedCenterY, gpu->gpu_sim.weightedCenterZ,
                      gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix,
-                     gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.primLimit,
+                     gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff2, gpu->gpu_sim.primLimit,
                      gpu->gpu_sim.gradCutoff,
 #if defined(USE_LEGACY_ATOMICS)
                      gpu->gpu_sim.gradULL,
@@ -2549,7 +2549,7 @@ void getGrad(_gpu_type gpu)
                          gpu->gpu_sim.dense, gpu->gpu_sim.Xcoeff, gpu->gpu_sim.expoSum,
                          gpu->gpu_sim.weightedCenterX, gpu->gpu_sim.weightedCenterY, gpu->gpu_sim.weightedCenterZ,
                          gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix,
-                         gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.primLimit,
+                         gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff2, gpu->gpu_sim.primLimit,
                          gpu->gpu_sim.gradCutoff,
 #if defined(USE_LEGACY_ATOMICS)
                          gpu->gpu_sim.gradULL,
@@ -2580,7 +2580,7 @@ void getGrad(_gpu_type gpu)
 //                         gpu->gpu_sim.dense, gpu->gpu_sim.Xcoeff, gpu->gpu_sim.expoSum,
 //                         gpu->gpu_sim.weightedCenterX, gpu->gpu_sim.weightedCenterY, gpu->gpu_sim.weightedCenterZ,
 //                         gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix,
-//                         gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.primLimit,
+//                         gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff2, gpu->gpu_sim.primLimit,
 //                         gpu->gpu_sim.gradCutoff,
 //#if defined(USE_LEGACY_ATOMICS)
 //                         gpu->gpu_sim.gradULL,
@@ -2614,7 +2614,7 @@ void getGrad(_gpu_type gpu)
                  gpu->gpu_sim.dense_f, gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
                  gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
-                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.primLimit_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff2_f, gpu->gpu_sim.primLimit_f,
                  gpu->gpu_sim.gradCutoff_f,
 #if defined(USE_LEGACY_ATOMICS)
                  gpu->gpu_sim.gradULL,
@@ -2645,7 +2645,7 @@ void getGrad(_gpu_type gpu)
                  gpu->gpu_sim.dense_f, gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
                  gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
-                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.primLimit_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff2_f, gpu->gpu_sim.primLimit_f,
                  gpu->gpu_sim.gradCutoff_f,
 #if defined(USE_LEGACY_ATOMICS)
                  gpu->gpu_sim.gradULL,
@@ -2681,7 +2681,7 @@ void getGrad(_gpu_type gpu)
                  gpu->gpu_sim.dense_f, gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
                  gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
-                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.primLimit_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff2_f, gpu->gpu_sim.primLimit_f,
                  gpu->gpu_sim.gradCutoff_f,
 #if defined(USE_LEGACY_ATOMICS)
                  gpu->gpu_sim.gradULL,
@@ -2713,7 +2713,7 @@ void getGrad(_gpu_type gpu)
                  gpu->gpu_sim.dense_f, gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
                  gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
-                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.primLimit_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff2_f, gpu->gpu_sim.primLimit_f,
                  gpu->gpu_sim.gradCutoff_f,
 #if defined(USE_LEGACY_ATOMICS)
                  gpu->gpu_sim.gradULL,
@@ -2747,7 +2747,7 @@ void getGrad(_gpu_type gpu)
                  gpu->gpu_sim.dense_f, gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
                  gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
-                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.primLimit_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff2_f, gpu->gpu_sim.primLimit_f,
                  gpu->gpu_sim.gradCutoff_f,
 #if defined(USE_LEGACY_ATOMICS)
                  gpu->gpu_sim.gradULL,
@@ -2778,7 +2778,7 @@ void getGrad(_gpu_type gpu)
 //                 gpu->gpu_sim.dense_f, gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
 //                 gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
 //                 gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
-//                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.primLimit_f,
+//                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff2_f, gpu->gpu_sim.primLimit_f,
 //                 gpu->gpu_sim.gradCutoff_f,
 //#if defined(USE_LEGACY_ATOMICS)
 //                 gpu->gpu_sim.gradULL,
@@ -2820,7 +2820,7 @@ void get_oshell_eri_grad(_gpu_type gpu)
                  gpu->gpu_sim.dense, gpu->gpu_sim.denseb, gpu->gpu_sim.Xcoeff, gpu->gpu_sim.expoSum,
                  gpu->gpu_sim.weightedCenterX, gpu->gpu_sim.weightedCenterY, gpu->gpu_sim.weightedCenterZ,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix,
-                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.primLimit,
+                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff2, gpu->gpu_sim.primLimit,
                  gpu->gpu_sim.gradCutoff,
 #if defined(USE_LEGACY_ATOMICS)
                  gpu->gpu_sim.gradULL,
@@ -2851,7 +2851,7 @@ void get_oshell_eri_grad(_gpu_type gpu)
                  gpu->gpu_sim.dense, gpu->gpu_sim.denseb, gpu->gpu_sim.Xcoeff, gpu->gpu_sim.expoSum,
                  gpu->gpu_sim.weightedCenterX, gpu->gpu_sim.weightedCenterY, gpu->gpu_sim.weightedCenterZ,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix,
-                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.primLimit,
+                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff2, gpu->gpu_sim.primLimit,
                  gpu->gpu_sim.gradCutoff,
 #if defined(USE_LEGACY_ATOMICS)
                  gpu->gpu_sim.gradULL,
@@ -2888,7 +2888,7 @@ void get_oshell_eri_grad(_gpu_type gpu)
                  gpu->gpu_sim.dense, gpu->gpu_sim.denseb, gpu->gpu_sim.Xcoeff, gpu->gpu_sim.expoSum,
                  gpu->gpu_sim.weightedCenterX, gpu->gpu_sim.weightedCenterY, gpu->gpu_sim.weightedCenterZ,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix,
-                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.primLimit,
+                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff2, gpu->gpu_sim.primLimit,
                  gpu->gpu_sim.gradCutoff,
 #if defined(USE_LEGACY_ATOMICS)
                  gpu->gpu_sim.gradULL,
@@ -2920,7 +2920,7 @@ void get_oshell_eri_grad(_gpu_type gpu)
                  gpu->gpu_sim.dense, gpu->gpu_sim.denseb, gpu->gpu_sim.Xcoeff, gpu->gpu_sim.expoSum,
                  gpu->gpu_sim.weightedCenterX, gpu->gpu_sim.weightedCenterY, gpu->gpu_sim.weightedCenterZ,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix,
-                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.primLimit,
+                 gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff2, gpu->gpu_sim.primLimit,
                  gpu->gpu_sim.gradCutoff,
 #if defined(USE_LEGACY_ATOMICS)
                  gpu->gpu_sim.gradULL,
@@ -2953,7 +2953,7 @@ void get_oshell_eri_grad(_gpu_type gpu)
 //                     gpu->gpu_sim.dense, gpu->gpu_sim.denseb, gpu->gpu_sim.Xcoeff, gpu->gpu_sim.expoSum,
 //                     gpu->gpu_sim.weightedCenterX, gpu->gpu_sim.weightedCenterY, gpu->gpu_sim.weightedCenterZ,
 //                     gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix,
-//                     gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.primLimit,
+//                     gpu->gpu_sim.YCutoff, gpu->gpu_sim.cutPrim, gpu->gpu_sim.integralCutoff2, gpu->gpu_sim.primLimit,
 //                     gpu->gpu_sim.gradCutoff,
 //#if defined(USE_LEGACY_ATOMICS)
 //                     gpu->gpu_sim.gradULL,
@@ -2987,7 +2987,7 @@ void get_oshell_eri_grad(_gpu_type gpu)
                  gpu->gpu_sim.dense_f, gpu->gpu_sim.denseb_f, gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
                  gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
-                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.primLimit_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff2_f, gpu->gpu_sim.primLimit_f,
                  gpu->gpu_sim.gradCutoff_f,
 #if defined(USE_LEGACY_ATOMICS)
                  gpu->gpu_sim.gradULL,
@@ -3018,7 +3018,7 @@ void get_oshell_eri_grad(_gpu_type gpu)
                  gpu->gpu_sim.dense_f, gpu->gpu_sim.denseb_f, gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
                  gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
-                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.primLimit_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff2_f, gpu->gpu_sim.primLimit_f,
                  gpu->gpu_sim.gradCutoff_f,
 #if defined(USE_LEGACY_ATOMICS)
                  gpu->gpu_sim.gradULL,
@@ -3055,7 +3055,7 @@ void get_oshell_eri_grad(_gpu_type gpu)
                  gpu->gpu_sim.dense_f, gpu->gpu_sim.denseb_f, gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
                  gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
-                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.primLimit_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff2_f, gpu->gpu_sim.primLimit_f,
                  gpu->gpu_sim.gradCutoff_f,
 #if defined(USE_LEGACY_ATOMICS)
                  gpu->gpu_sim.gradULL,
@@ -3087,7 +3087,7 @@ void get_oshell_eri_grad(_gpu_type gpu)
                  gpu->gpu_sim.dense_f, gpu->gpu_sim.denseb_f, gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
                  gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
                  gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
-                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.primLimit_f,
+                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff2_f, gpu->gpu_sim.primLimit_f,
                  gpu->gpu_sim.gradCutoff_f,
 #if defined(USE_LEGACY_ATOMICS)
                  gpu->gpu_sim.gradULL,
@@ -3120,7 +3120,7 @@ void get_oshell_eri_grad(_gpu_type gpu)
 //                 gpu->gpu_sim.dense_f, gpu->gpu_sim.denseb_f, gpu->gpu_sim.Xcoeff_f, gpu->gpu_sim.expoSum_f,
 //                 gpu->gpu_sim.weightedCenterX_f, gpu->gpu_sim.weightedCenterY_f, gpu->gpu_sim.weightedCenterZ_f,
 //                 gpu->gpu_sim.sqrQshell, gpu->gpu_sim.sorted_YCutoffIJ, gpu->gpu_sim.cutMatrix_f,
-//                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.primLimit_f,
+//                 gpu->gpu_sim.YCutoff_f, gpu->gpu_sim.cutPrim_f, gpu->gpu_sim.integralCutoff2_f, gpu->gpu_sim.primLimit_f,
 //                 gpu->gpu_sim.gradCutoff_f,
 //#if defined(USE_LEGACY_ATOMICS)
 //                 gpu->gpu_sim.gradULL,

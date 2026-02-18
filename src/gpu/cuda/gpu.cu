@@ -647,6 +647,8 @@ extern "C" void gpu_setup_(int* natom, int* nbasis, int* nElec, int* imult, int*
     gpu->gpu_cutoff->cutPrim_f = NULL;
     gpu->gpu_cutoff->integralCutoff = 0.0;
     gpu->gpu_cutoff->integralCutoff_f = 0.0;
+    gpu->gpu_cutoff->integralCutoff2 = 0.0;
+    gpu->gpu_cutoff->integralCutoff2_f = 0.0;
     gpu->gpu_cutoff->coreIntegralCutoff = 0.0;
     gpu->gpu_cutoff->primLimit = 0.0;
     gpu->gpu_cutoff->primLimit_f = 0.0;
@@ -864,7 +866,8 @@ extern "C" void gpu_upload_atom_and_chg_(int* atom, QUICKDouble* atom_chg)
 //  interation
 //-----------------------------------------------
 extern "C" void gpu_upload_cutoff_(QUICKDouble* cutMatrix, QUICKDouble* integralCutoff,
-        QUICKDouble* primLimit, QUICKDouble* DMCutoff, QUICKDouble* coreIntegralCutoff)
+        QUICKDouble* integralCutoff2, QUICKDouble* primLimit, QUICKDouble* DMCutoff,
+        QUICKDouble* coreIntegralCutoff)
 {
 #if defined(DEBUG)
     GPU_TIMER_CREATE();
@@ -875,6 +878,8 @@ extern "C" void gpu_upload_cutoff_(QUICKDouble* cutMatrix, QUICKDouble* integral
 
     gpu->gpu_cutoff->integralCutoff = *integralCutoff;
     gpu->gpu_cutoff->integralCutoff_f = (float) (*integralCutoff);
+    gpu->gpu_cutoff->integralCutoff2 = *integralCutoff2;
+    gpu->gpu_cutoff->integralCutoff2_f = (float) (*integralCutoff2);
     gpu->gpu_cutoff->coreIntegralCutoff = *coreIntegralCutoff;
     gpu->gpu_cutoff->primLimit = *primLimit;
     gpu->gpu_cutoff->primLimit_f = (float) (*primLimit);
@@ -893,6 +898,8 @@ extern "C" void gpu_upload_cutoff_(QUICKDouble* cutMatrix, QUICKDouble* integral
     gpu->gpu_sim.cutMatrix_f = gpu->gpu_cutoff->cutMatrix_f->_devData;
     gpu->gpu_sim.integralCutoff = gpu->gpu_cutoff->integralCutoff;
     gpu->gpu_sim.integralCutoff_f = gpu->gpu_cutoff->integralCutoff_f;
+    gpu->gpu_sim.integralCutoff2 = gpu->gpu_cutoff->integralCutoff2;
+    gpu->gpu_sim.integralCutoff2_f = gpu->gpu_cutoff->integralCutoff2_f;
     gpu->gpu_sim.coreIntegralCutoff = gpu->gpu_cutoff->coreIntegralCutoff;
     gpu->gpu_sim.primLimit = gpu->gpu_cutoff->primLimit;
     gpu->gpu_sim.primLimit_f = gpu->gpu_cutoff->primLimit_f;

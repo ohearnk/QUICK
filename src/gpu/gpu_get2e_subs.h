@@ -805,8 +805,8 @@ __global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_sp
         QUICKDouble const * const weightedCenterX, QUICKDouble const * const weightedCenterY,
         QUICKDouble const * const weightedCenterZ, uint32_t sqrQshell, int2 const * const sorted_YCutoffIJ,
         QUICKDouble const * const cutMatrix, QUICKDouble const * const YCutoff,
-        QUICKDouble const * const cutPrim, QUICKDouble integralCutoff, QUICKDouble primLimit,
-        QUICKDouble maxIntegralCutoff, QUICKDouble leastIntegralCutoff,
+        QUICKDouble const * const cutPrim, QUICKDouble integralCutoff, QUICKDouble integralCutoff2,
+        QUICKDouble primLimit, QUICKDouble maxIntegralCutoff, QUICKDouble leastIntegralCutoff,
 #if defined(MPIV_GPU)
         unsigned char const * const mpi_bcompute,
 #endif
@@ -1032,12 +1032,11 @@ __global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_sp
 #endif
 
 #if defined(SINGLE_PRECISION)
-            //TODO: enable setting mixed precision integral cutoff parameter via control file
-            if (LOC2(YCutoff, kk, ll, nshell, nshell) * LOC2(YCutoff, ii, jj, nshell, nshell) < 0.00000001
-                    && LOC2(YCutoff, kk, ll, nshell, nshell) * LOC2(YCutoff, ii, jj, nshell, nshell) * DNMax < 0.00000001) {
+            if (LOC2(YCutoff, kk, ll, nshell, nshell) * LOC2(YCutoff, ii, jj, nshell, nshell) < integralCutoff2
+                    && LOC2(YCutoff, kk, ll, nshell, nshell) * LOC2(YCutoff, ii, jj, nshell, nshell) * DNMax < integralCutoff2) {
 #else
-            if (!(LOC2(YCutoff, kk, ll, nshell, nshell) * LOC2(YCutoff, ii, jj, nshell, nshell) < 0.00000001
-                    && LOC2(YCutoff, kk, ll, nshell, nshell) * LOC2(YCutoff, ii, jj, nshell, nshell) * DNMax < 0.00000001)) {
+            if (!(LOC2(YCutoff, kk, ll, nshell, nshell) * LOC2(YCutoff, ii, jj, nshell, nshell) < integralCutoff2
+                    && LOC2(YCutoff, kk, ll, nshell, nshell) * LOC2(YCutoff, ii, jj, nshell, nshell) * DNMax < integralCutoff2)) {
 #endif
 
 #if defined(USE_TEXTURE) && defined(USE_TEXTURE_YCUTOFF)
