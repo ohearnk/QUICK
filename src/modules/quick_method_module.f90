@@ -126,7 +126,7 @@ module quick_method_module
         !tol
         double precision :: pmaxrms        = 1.0d-6   ! density matrix convergence criteria
         double precision :: basisCutoff    = 1.0d-6  ! basis set cutoff
-        double precision :: overlapCutoff  = 1.0d-6  ! cutoff for near-linear dependency
+        double precision :: overlapCutoff  = 1.0d-5  ! cutoff for near-linear dependency
         double precision :: ovmatelems     = 1.0d-6  ! cutoff to consider overlap matrix elements
         !signif
 

@@ -601,6 +601,9 @@ contains
            call MAT_DGEMM ('t', 'n', NBSuse, NBSuse, nbasis, 1.0d0, quick_qm_struct%x, &
                  nbasis, quick_scratch%hold3, nbasis, 0.0d0, quick_qm_struct%oeff, NBSuse)
 
+           !-----------------------------------------------
+           !  Level shifting if the DIIS error is large
+           !-----------------------------------------------
            if(idiis .gt. 1 .and. errormax .gt. 0.1)then
                call MAT_DGEMM ('n', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, quick_qm_struct%oeff, &
                     NBSuse, quick_qm_struct%oldvec, NBSuse, 0.0d0, quick_scratch%hold4, NBSuse)
