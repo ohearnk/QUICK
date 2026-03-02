@@ -956,7 +956,7 @@ module quick_method_module
             self%ncyc = 3
 
             self%integralCutoff = 1.0d-7   ! integral cutoff
-            self%integralCutoff = 1.0d8    ! mixed precision integral cutoff
+            self%integralCutoff2 = 1.0d8   ! mixed precision integral cutoff
             self%leastIntegralCutoff = LEASTCUTOFF
                                            ! smallest integral cutoff, used in conventional SCF
             self%maxIntegralCutoff = 1.0d-12

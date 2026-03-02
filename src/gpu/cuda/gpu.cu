@@ -809,8 +809,12 @@ extern "C" void gpu_upload_xyz_(QUICKDouble* atom_xyz)
     gpu->gpu_calculated->distance = new gpu_buffer_type<QUICKDouble>(gpu->natom, gpu->natom);
     gpu->xyz = new gpu_buffer_type<QUICKDouble>(atom_xyz, 3u, gpu->natom);
     gpu->xyz_f = new gpu_buffer_type<float>(3u, gpu->natom);
-    for (uint32_t i = 0; i < 3u * gpu->natom; i++)
-        gpu->xyz->_hostData[i] = (float) atom_xyz[i];
+    for (uint32_t j = 0; j < gpu->natom; j++) {
+        for (uint32_t i = 0; i < 3u; i++) {
+            gpu->xyz_f->_hostData[j * 3u + i]
+                = (float) atom_xyz[j * 3u + i];
+        }
+    }
 
     for (uint32_t i = 0; i < gpu->natom; i++) {
         for (uint32_t j = 0; j < gpu->natom; j++) {
@@ -1766,7 +1770,7 @@ extern "C" void gpu_upload_calculated_(QUICKDouble* o, QUICKDouble* co, QUICKDou
     gpu->gpu_calculated->dense = new gpu_buffer_type<QUICKDouble>(dense, gpu->nbasis, gpu->nbasis);
     gpu->gpu_calculated->dense_f = new gpu_buffer_type<float>(gpu->nbasis, gpu->nbasis);
     for (uint32_t i = 0; i < SQR(gpu->nbasis); i++)
-        gpu->gpu_calculated->dense_f->_hostData[i] = 0.0;
+        gpu->gpu_calculated->dense_f->_hostData[i] = (float) (gpu->gpu_calculated->dense->_hostData[i]);
 
 #if defined(USE_LEGACY_ATOMICS)
     gpu->gpu_calculated->o->DeleteGPU();
@@ -1843,7 +1847,7 @@ extern "C" void gpu_upload_density_matrix_(QUICKDouble* dense)
     gpu->gpu_calculated->dense = new gpu_buffer_type<QUICKDouble>(dense, gpu->nbasis, gpu->nbasis);
     gpu->gpu_calculated->dense_f = new gpu_buffer_type<float>(gpu->nbasis, gpu->nbasis);
     for (uint32_t i = 0; i < SQR(gpu->nbasis); i++)
-        gpu->gpu_calculated->dense_f->_hostData[i] = 0.0;
+        gpu->gpu_calculated->dense_f->_hostData[i] = (float) (gpu->gpu_calculated->dense->_hostData[i]);
     gpu->gpu_calculated->dense->Upload();
     gpu->gpu_calculated->dense_f->Upload();
     gpu->gpu_sim.dense = gpu->gpu_calculated->dense->_devData;
@@ -1856,7 +1860,7 @@ extern "C" void gpu_upload_beta_density_matrix_(QUICKDouble* denseb)
     gpu->gpu_calculated->denseb = new gpu_buffer_type<QUICKDouble>(denseb, gpu->nbasis, gpu->nbasis);
     gpu->gpu_calculated->denseb_f = new gpu_buffer_type<float>(gpu->nbasis, gpu->nbasis);
     for (uint32_t i = 0; i < SQR(gpu->nbasis); i++)
-        gpu->gpu_calculated->denseb_f->_hostData[i] = 0.0;
+        gpu->gpu_calculated->denseb_f->_hostData[i] = (float) (gpu->gpu_calculated->denseb->_hostData[i]);
     gpu->gpu_calculated->denseb->Upload();
     gpu->gpu_calculated->denseb_f->Upload();
     gpu->gpu_sim.denseb = gpu->gpu_calculated->denseb->_devData;

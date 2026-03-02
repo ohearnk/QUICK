@@ -104,16 +104,16 @@ extern "C" void gpu_get_cshell_eri_(bool *deltaO, QUICKDouble* o)
 #endif
 
     gpu->gpu_calculated->o->DownloadSum(o);
-    for (int i = 0; i < gpu->nbasis; i++) {
-        for (int j = 0; j < gpu->nbasis; j++) {
+    for (uint32_t i = 0; i < gpu->nbasis; i++) {
+        for (uint32_t j = 0; j < gpu->nbasis; j++) {
             LOC2(o, i, j, gpu->nbasis, gpu->nbasis)
                 += (double) LOC2(gpu->gpu_calculated->o_f->_hostData, i, j, gpu->nbasis, gpu->nbasis);
         }
     }
 #if defined(OSHELL)
     gpu->gpu_calculated->ob->DownloadSum(ob);
-    for (int i = 0; i < gpu->nbasis; i++) {
-        for (int j = 0; j < gpu->nbasis; j++) {
+    for (uint32_t i = 0; i < gpu->nbasis; i++) {
+        for (uint32_t j = 0; j < gpu->nbasis; j++) {
             LOC2(ob, i, j, gpu->nbasis, gpu->nbasis)
                 += (double) LOC2(gpu->gpu_calculated->ob_f->_hostData, i, j, gpu->nbasis, gpu->nbasis);
         }
@@ -200,8 +200,8 @@ extern "C" void gpu_get_cshell_eri_grad_(QUICKDouble* grad)
 
     if (gpu -> gpu_sim.method == HF) {
         gpu->grad->DownloadSum(grad);
-        for (int i = 0; i < 3u * gpu->natom; i++) {
-            grad[i] += gpu->grad_f->_hostData[i];
+        for (uint32_t i = 0; i < 3u * gpu->natom; i++) {
+            grad[i] += (double) gpu->grad_f->_hostData[i];
         }
 
         delete gpu->grad;

@@ -23,7 +23,6 @@ module quick_scf_operator_module
 
 contains
   
-  subroutine scf_operator(deltaO)
   !-------------------------------------------------------
   !  The purpose of this subroutine is to form the operator matrix
   !  for a full Hartree-Fock/DFT calculation, i.e. the Fock matrix.  The
@@ -33,6 +32,7 @@ contains
   !  possible basis. Note that the Fock matrix is symmetric.
   !  This code now also does all the HF energy calculation. Ed.
   !-------------------------------------------------------
+  subroutine scf_operator(deltaO)
      use allmod
      use quick_cutoff_module, only: cshell_density_cutoff
      use quick_eri_cshell_module, only: getCshellEri, getCshellEriEnergy 
@@ -51,25 +51,25 @@ contains
      integer ierror
      double precision :: Eelsum, Excsum, aelec, belec
   
-     quick_scratch%osum=0.0d0
-     Eelsum=0.0d0
-     Excsum=0.0d0
-     aelec=0.0d0
-     belec=0.0d0
+     quick_scratch%osum = 0.0d0
+     Eelsum = 0.0d0
+     Excsum = 0.0d0
+     aelec = 0.0d0
+     belec = 0.0d0
 #endif
   
      quick_qm_struct%o = 0.0d0
-     quick_qm_struct%Eel=0.0d0
+     quick_qm_struct%Eel = 0.0d0
   
-  !-----------------------------------------------------------------
-  !  Step 1. evaluate 1e integrals
-  !-----------------------------------------------------------------
+     !-----------------------------------------------------------------
+     !  Step 1. evaluate 1e integrals
+     !-----------------------------------------------------------------
   
-  !  if only calculate operation difference
+     ! if only calculate operation difference
      if (deltaO) then
-  !     save density matrix
+        ! save density matrix
         quick_qm_struct%denseSave(:,:) = quick_qm_struct%dense(:,:)
-        quick_qm_struct%dense=quick_qm_struct%dense-quick_qm_struct%denseOld
+        quick_qm_struct%dense = quick_qm_struct%dense - quick_qm_struct%denseOld
 
         if(quick_method%dft) then
           quick_qm_struct%o = quick_qm_struct%oSave-quick_qm_struct%oxc
@@ -85,24 +85,19 @@ contains
      call MPI_BARRIER(MPI_COMM_WORLD,mpierror)
 #endif
   
-  
 #if defined(GPU) || defined(MPIV_GPU)
      if (quick_method%bGPU) then
-  
         call gpu_upload_calculated(quick_qm_struct%o,quick_qm_struct%co, &
-        quick_qm_struct%vec,quick_qm_struct%dense)
+                quick_qm_struct%vec,quick_qm_struct%dense)
         call gpu_upload_cutoff(cutmatrix, quick_method%integralCutoff, &
                 quick_method%integralCutoff2, quick_method%primLimit, &
                 quick_method%DMCutoff, quick_method%coreIntegralCutoff)
-  
      endif
 #endif
  
      call get1e(deltaO)
 
      if(quick_method%printEnergy) call get1eEnergy(deltaO)
-
-
 !     if (quick_method%nodirect) then
 !#if defined(GPU)
 !        call gpu_addint(quick_qm_struct%o, intindex, intFileName)
@@ -112,27 +107,27 @@ contains
 !#endif
 !#endif
 !     else
-  !-----------------------------------------------------------------
-  ! Step 2. evaluate 2e integrals
-  !-----------------------------------------------------------------
-  !
-  ! The previous two terms are the one electron part of the Fock matrix.
-  ! The next two terms define the two electron part.
-  !-----------------------------------------------------------------
-  !  Start the timer for 2e-integrals
+     !-----------------------------------------------------------------
+     ! Step 2. evaluate 2e integrals
+     !-----------------------------------------------------------------
+     !
+     ! The previous two terms are the one electron part of the Fock matrix.
+     ! The next two terms define the two electron part.
+     !-----------------------------------------------------------------
+     ! Start the timer for 2e-integrals
      RECORD_TIME(timer_begin%T2e)
 
 #if defined(GPU) || defined(MPIV_GPU)
-        if (quick_method%bGPU) then          
-           call gpu_get_cshell_eri(deltaO, quick_qm_struct%o)  
-        else                                  
+     if (quick_method%bGPU) then          
+        call gpu_get_cshell_eri(deltaO, quick_qm_struct%o)  
+     else                                  
 #endif
-  !  Schwartz cutoff is implemented here. (ab|cd)**2<=(ab|ab)*(cd|cd)
-  !  Reference: Strout DL and Scuseria JCP 102(1995),8448.
+     ! Schwartz cutoff is implemented here. (ab|cd)**2<=(ab|ab)*(cd|cd)
+     ! Reference: Strout DL and Scuseria JCP 102(1995),8448.
   
 #if defined(MPIV) && !defined(MPIV_GPU)
-  !  Every nodes will take about jshell/nodes shells integrals such as 1 water, which has 
-  !  4 jshell, and 2 nodes will take 2 jshell respectively.
+     ! Every nodes will take about jshell/nodes shells integrals such as 1 water, which has 
+     ! 4 jshell, and 2 nodes will take 2 jshell respectively.
      if(bMPI) then
         do i=1,mpi_jshelln(mpirank)
            ii=mpi_jshell(mpirank,i)
@@ -144,95 +139,92 @@ contains
         enddo
      endif        
 #else
-        do II=1,jshell
-           call getCshellEri(II)
-        enddo
+     do II=1,jshell
+        call getCshellEri(II)
+     enddo
 #endif
   
 #if defined(GPU) || defined(MPIV_GPU)
-        endif                             
+     endif                             
 #endif
- !    endif
   
-  !  Remember the operator is symmetric
+     !  Remember the operator is symmetric
      call copySym(quick_qm_struct%o,nbasis)
   
-  !  recover density if calculate difference
+     !  recover density if calculate difference
      if (deltaO) quick_qm_struct%dense(:,:) = quick_qm_struct%denseSave(:,:)
 
-  !  Give the energy, E=1/2*sigma[i,j](Pij*(Fji+Hcoreji))
-     if(quick_method%printEnergy) call getCshellEriEnergy
-
-
+     !  Give the energy, E=1/2*sigma[i,j](Pij*(Fji+Hcoreji))
+     if (quick_method%printEnergy) call getCshellEriEnergy
 
 #ifdef MPIV
      call MPI_BARRIER(MPI_COMM_WORLD,mpierror)
 #endif
   
-  !  Terminate the timer for 2e-integrals
+     !  Terminate the timer for 2e-integrals
      RECORD_TIME(timer_end%T2e)
   
-  !  add the time to cumer
+     !  add the time to cumer
      timer_cumer%T2e=timer_cumer%T2e+timer_end%T2e-timer_begin%T2e
   
-  !-----------------------------------------------------------------
-  !  Step 3. If DFT, evaluate the exchange/correlation contribution 
-  !          to the operator
-  !-----------------------------------------------------------------
+     !-----------------------------------------------------------------
+     !  Step 3. If DFT, evaluate the exchange/correlation contribution 
+     !          to the operator
+     !-----------------------------------------------------------------
   
 #ifdef MPIV
      call MPI_BARRIER(MPI_COMM_WORLD,mpierror)
 #endif
   
      if (quick_method%DFT) then
-  
-  !  Start the timer for exchange correlation calculation
+        ! Start the timer for exchange correlation calculation
         RECORD_TIME(timer_begin%TEx)
 
-  !  Calculate exchange correlation contribution & add to operator    
+        ! Calculate exchange correlation contribution & add to operator    
         call get_xc(deltaO)
 
-  !  Remember the operator is symmetric
+        ! Remember the operator is symmetric
         call copySym(quick_qm_struct%o,nbasis)
  
 #ifdef MPIV
-     call MPI_BARRIER(MPI_COMM_WORLD,mpierror)
+        call MPI_BARRIER(MPI_COMM_WORLD,mpierror)
 #endif
   
-  !  Stop the exchange correlation timer
+        ! Stop the exchange correlation timer
         RECORD_TIME(timer_end%TEx)
   
-  !  Add time total time
+        ! Add time total time
         timer_cumer%TEx=timer_cumer%TEx+timer_end%TEx-timer_begin%TEx
      endif
 
      quick_qm_struct%oSave(:,:) = quick_qm_struct%o(:,:) 
  
 #ifdef MPIV
-  !  MPI reduction operations
-  
+     !  MPI reduction operations
      call MPI_BARRIER(MPI_COMM_WORLD,mpierror)
   
      RECORD_TIME(timer_begin%TEred)
   
      if (quick_method%DFT) then
-     call MPI_REDUCE(quick_qm_struct%Exc, Excsum, 1, mpi_double_precision, MPI_SUM, 0, MPI_COMM_WORLD, IERROR)
-     call MPI_REDUCE(quick_qm_struct%aelec, aelec, 1, mpi_double_precision, MPI_SUM, 0, MPI_COMM_WORLD, IERROR)
-     call MPI_REDUCE(quick_qm_struct%belec, belec, 1, mpi_double_precision, MPI_SUM, 0, MPI_COMM_WORLD, IERROR)
-  
-     if(master) then
-       quick_qm_struct%Exc = Excsum
-       quick_qm_struct%aelec  = aelec
-       quick_qm_struct%belec  = belec
+        call MPI_REDUCE(quick_qm_struct%Exc, Excsum, 1, mpi_double_precision, MPI_SUM, 0, MPI_COMM_WORLD, IERROR)
+        call MPI_REDUCE(quick_qm_struct%aelec, aelec, 1, mpi_double_precision, MPI_SUM, 0, MPI_COMM_WORLD, IERROR)
+        call MPI_REDUCE(quick_qm_struct%belec, belec, 1, mpi_double_precision, MPI_SUM, 0, MPI_COMM_WORLD, IERROR)
+     
+        if (master) then
+          quick_qm_struct%Exc = Excsum
+          quick_qm_struct%aelec  = aelec
+          quick_qm_struct%belec  = belec
+        endif
      endif
-     endif
   
-     call MPI_REDUCE(quick_qm_struct%o, quick_scratch%osum, nbasis*nbasis, mpi_double_precision, MPI_SUM, 0, MPI_COMM_WORLD, IERROR)
-     call MPI_REDUCE(quick_qm_struct%Eel, Eelsum, 1, mpi_double_precision, MPI_SUM, 0, MPI_COMM_WORLD, IERROR)
+     call MPI_REDUCE(quick_qm_struct%o, quick_scratch%osum, nbasis*nbasis, &
+             mpi_double_precision, MPI_SUM, 0, MPI_COMM_WORLD, IERROR)
+     call MPI_REDUCE(quick_qm_struct%Eel, Eelsum, 1, mpi_double_precision, &
+             MPI_SUM, 0, MPI_COMM_WORLD, IERROR)
   
-     if(master) then
+     if (master) then
        quick_qm_struct%o(:,:) = quick_scratch%osum(:,:)
-       quick_qm_struct%Eel    = Eelsum
+       quick_qm_struct%Eel = Eelsum
 
 !do i=1, nbasis
 !  do j=1, nbasis
@@ -243,14 +235,13 @@ contains
 
      RECORD_TIME(timer_end%TEred)
      timer_cumer%TEred=timer_cumer%TEred+timer_end%TEred-timer_begin%TEred
-  
 #endif
 
   return
   
   end subroutine scf_operator
   
-  subroutine get_xc(deltaO)
+
   !----------------------------------------------------------------
   !  The purpose of this subroutine is to calculate the exchange
   !  correlation contribution to the Fock operator. 
@@ -273,6 +264,7 @@ contains
   !  the gradient of the alpha density with the beta density.
   !  Grad(Phimu Phinu) is the gradient of Phimu times Phinu. 
   !----------------------------------------------------------------
+  subroutine get_xc(deltaO)
      use allmod
      use quick_gridpoints_module
      use quick_dft_module, only: b3lypf, b3lyp_e, becke, becke_e, lyp, lyp_e
