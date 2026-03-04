@@ -278,39 +278,70 @@ subroutine fullx
       if (quick_scratch%Sminhalf(I).gt.quick_method%overlapCutoff) then
          NBSuse = nbasis - I + 1
 
-         quick_molspec%NBSuse   => NBSuse
-         quick_qm_struct%NBSuse => NBSuse
+         !
+         !  Detected near-linear dependency
+         !
+         if (NBSuse.ne.nbasis)then
 
-         allocate(quick_scratch%tmpS(NBSuse,NBSuse))
-         allocate(quick_scratch%tmpU(nbasis,NBSuse))
+            quick_molspec%NBSuse   => NBSuse
+            quick_qm_struct%NBSuse => NBSuse
 
-         quick_scratch%tmpS = 0.0d0
-         quick_scratch%tmpU = 0.0d0
+            allocate(quick_scratch%tmpS(NBSuse,NBSuse))
+            allocate(quick_scratch%tmpU(nbasis,NBSuse))
 
-         write(ioutfile,'("Number of total basis functions:",2X,i5)') nbasis
-         write(ioutfile,'("Number of linearly independent basis functions:",2X,i5)') NBSuse
-         write(ioutfile,'("condition number of overlap matrix:",2X,es11.3)') maxval(quick_scratch%Sminhalf)/minval(quick_scratch%Sminhalf)
-         write(ioutfile,'("Smallest eigenvalue of overlap matrix:",2X,es11.3)') minval(quick_scratch%Sminhalf)
-         write(ioutfile,'()')
+            quick_scratch%tmpS = 0.0d0
+            quick_scratch%tmpU = 0.0d0
 
-         do J=I,nbasis
-            quick_scratch%tmpS(J-I+1,J-I+1)= quick_scratch%Sminhalf(J)**(-.5d0)
-            do K=1,nbasis
+            write(ioutfile,'("Number of total basis functions:",2X,i5)') nbasis
+            write(ioutfile,'("Number of linearly independent basis functions:",2X,i5)') NBSuse
+            write(ioutfile,'("condition number of overlap matrix:",2X,es11.3)') maxval(quick_scratch%Sminhalf)/minval(quick_scratch%Sminhalf)
+            write(ioutfile,'("Smallest eigenvalue of overlap matrix:",2X,es11.3)') minval(quick_scratch%Sminhalf)
+            write(ioutfile,'()')
+
+            do J=I,nbasis
+               quick_scratch%tmpS(J-I+1,J-I+1)= quick_scratch%Sminhalf(J)**(-.5d0)
+               do K=1,nbasis
 #if defined(CUDA)
-               quick_scratch%tmpU(K,J-I+1)= (-1)*quick_scratch%hold2(K,J)
+                  quick_scratch%tmpU(K,J-I+1)= (-1)*quick_scratch%hold2(K,J)
 #else
-               quick_scratch%tmpU(K,J-I+1)= quick_scratch%hold2(K,J)
+                  quick_scratch%tmpU(K,J-I+1)= quick_scratch%hold2(K,J)
 #endif
+               enddo
             enddo
-         enddo
+         !
+         ! No near-linear dependency
+         !
+         else
+            quick_molspec%NBSuse   => nbasis
+            quick_qm_struct%NBSuse => nbasis
+
+            write(ioutfile,'("condition number of overlap matrix:",2X,es11.3)') maxval(quick_scratch%Sminhalf)/minval(quick_scratch%Sminhalf)
+            write(ioutfile,'("Smallest eigenvalue of overlap matrix:",2X,es11.3)') minval(quick_scratch%Sminhalf)
+            write(ioutfile,'()')
+
+            do J=1,nbasis
+               quick_scratch%tmphold(J,J) = quick_scratch%Sminhalf(J)**(-.5d0)
+            enddo
+
+         endif
+
          exit
+
       endif
    enddo
 
-   call allocate_quick_qm_struct_fullx(quick_qm_struct)
+   if (NBSuse.ne.nbasis)then
+      call allocate_quick_qm_struct_fullx(quick_qm_struct)
 
-   call MAT_DGEMM ('n', 'n', nbasis, NBSuse, NBSuse, 1.0d0, quick_scratch%tmpU, &
+      call MAT_DGEMM ('n', 'n', nbasis, NBSuse, NBSuse, 1.0d0, quick_scratch%tmpU, &
            nbasis, quick_scratch%tmpS, NBSuse, 0.0d0, quick_qm_struct%x,nbasis)
+   else
+      call MAT_DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_scratch%hold2, &
+           nbasis, quick_scratch%tmphold, nbasis, 0.0d0, quick_scratch%tmpco,nbasis)
+
+      call MAT_DGEMM ('n', 't', nbasis, nbasis, nbasis, 1.0d0, quick_scratch%tmpco, &
+           nbasis, quick_scratch%hold2, nbasis, 0.0d0, quick_qm_struct%x,nbasis)
+   endif
 
    ! Transpose U onto X then copy on to U.  Now U contains U transpose.
 
