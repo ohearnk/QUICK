@@ -219,9 +219,7 @@
         SAFE_CALL(getEnergy(.false.,ierr))
 
         ! One electron properties (ESP, EField)
-        if (quick_method%esp_charge .or. quick_method%ext_grid) then
-          call compute_oeprop()
-        endif
+        call compute_oeprop()
 
         if (master) then
           if (quick_method%writeden .or. quick_method%writexyz) then
@@ -315,9 +313,7 @@
         endif
 
         ! One electron properties (ESP, EField) 
-        if (quick_method%esp_charge .or. quick_method%ext_grid) then
-            call compute_oeprop()
-        endif
+        call compute_oeprop()
 
     endif
 
