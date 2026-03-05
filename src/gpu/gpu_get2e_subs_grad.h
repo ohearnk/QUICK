@@ -1292,9 +1292,9 @@ __device__ static inline void iclass_grad_cshell_spd
      uint32_t const * const kprim, uint32_t const * const Ksumtype, uint32_t const * const Qstart,
      uint32_t const * const Qsbasis, uint32_t const * const Qfbasis,
      QUICKDouble const * const cons, QUICKDouble const * const gcexpo, uint32_t const * const KLMN,
-     uint32_t prim_total, uint32_t const * const prim_start, QUICKDouble * const dense,
+     uint32_t prim_total, uint32_t const * const prim_start, QUICKDouble const * const dense,
 #if defined(OSHELL)
-     QUICKDouble * const denseb,
+     QUICKDouble const * const denseb,
 #endif
      QUICKDouble const * const Xcoeff, QUICKDouble const * const expoSum,
      QUICKDouble const * const weightedCenterX, QUICKDouble const * const weightedCenterY,
@@ -1804,9 +1804,9 @@ __device__ static inline void iclass_grad_spdf8
      uint32_t const * const kprim, uint32_t const * const Ksumtype, uint32_t const * const Qstart,
      uint32_t const * const Qsbasis, uint32_t const * const Qfbasis,
      QUICKDouble const * const cons, QUICKDouble const * const gcexpo, uint32_t const * const KLMN,
-     uint32_t prim_total, uint32_t const * const prim_start, QUICKDouble * const dense,
+     uint32_t prim_total, uint32_t const * const prim_start, QUICKDouble const * const dense,
 #if defined(OSHELL)
-     QUICKDouble * const denseb,
+     QUICKDouble const * const denseb,
 #endif
      QUICKDouble const * const Xcoeff, QUICKDouble const * const expoSum,
      QUICKDouble const * const weightedCenterX, QUICKDouble const * const weightedCenterY,
@@ -2647,9 +2647,9 @@ __launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) k_get_grad_cshell_spdf8
         uint32_t const * const Qsbasis, uint32_t const * const Qfbasis,
         uint32_t const * const sorted_Qnumber, uint32_t const * const sorted_Q,
         QUICKDouble const * const cons, QUICKDouble const * const gcexpo, uint32_t const * const KLMN,
-        uint32_t prim_total, uint32_t const * const prim_start, QUICKDouble * const dense,
+        uint32_t prim_total, uint32_t const * const prim_start, QUICKDouble const * const dense,
 #if defined(OSHELL)
-        QUICKDouble * const denseb,
+        QUICKDouble const * const denseb,
 #endif
         QUICKDouble const * const Xcoeff, QUICKDouble const * const expoSum,
         QUICKDouble const * const weightedCenterX, QUICKDouble const * const weightedCenterY,

@@ -201,7 +201,7 @@ extern "C" void gpu_get_cshell_eri_grad_(QUICKDouble* grad)
     if (gpu -> gpu_sim.method == HF) {
         gpu->grad->DownloadSum(grad);
         for (uint32_t i = 0; i < 3u * gpu->natom; i++) {
-            grad[i] += (double) gpu->grad_f->_hostData[i];
+            grad[i] += (double) (gpu->grad_f->_hostData[i]);
         }
 
         delete gpu->grad;

@@ -146,9 +146,9 @@ __device__ static inline void iclass_cshell_spdf10
         QUICKDouble * const ob,
   #endif
 #endif
-        QUICKDouble * const dense,
+        QUICKDouble const * const dense,
 #if defined(OSHELL)
-        QUICKDouble * const denseb,
+        QUICKDouble const * const denseb,
 #endif
         QUICKDouble const * const Xcoeff, QUICKDouble const * const expoSum,
         QUICKDouble const * const weightedCenterX, QUICKDouble const * const weightedCenterY,
@@ -797,9 +797,9 @@ __global__ void __launch_bounds__(SM_2X_2E_THREADS_PER_BLOCK, 1) k_eri_cshell_sp
         QUICKDouble * const ob,
   #endif
 #endif
-        QUICKDouble * const dense,
+        QUICKDouble const * const dense,
 #if defined(OSHELL)
-        QUICKDouble * const denseb,
+        QUICKDouble const * const denseb,
 #endif
         QUICKDouble const * const Xcoeff, QUICKDouble const * const expoSum,
         QUICKDouble const * const weightedCenterX, QUICKDouble const * const weightedCenterY,
