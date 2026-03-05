@@ -823,14 +823,14 @@ run_esp_test()
 #   $3: log file
 check_chk()
 {
-  if [ `echo "$1" | grep '_density_' | wc -l` -eq 1 ]; then
+  if [ `echo "$1" | grep '_density' | wc -l` -eq 1 ]; then
     grep " TOTAL ENERGY         =" "$1.out" | tail -n 1 | awk '{print $NF}' > "$1.ene"
     grep " TOTAL ENERGY         =" "$1_2.out" | head -n 1 | awk '{print $NF}' > "$1_2.ene"
 
     "$2/dacdif" -k -a '1.0e-8' "$1_2.ene" "$1.ene" | tee -a "$3"
   fi
 
-  if [ `echo "$1" | grep '_xyz_' | wc -l` -eq 1 ]; then
+  if [ `echo "$1" | grep '_xyz' | wc -l` -eq 1 ]; then
     awk '/OPTIMIZED GEOMETRY IN CARTESIAN/,/FORCE/ {print}' "$1.out" | sed -n '3,$p' | sed -e '$ d' | sed -e '$ d' > "$1.xyz"
     awk '/INPUT GEOMETRY/,/DISTANCE MATRIX/ {print}' "$1_2.out" | sed -n '2,$p' | sed -e '$ d' > "$1_2.xyz"
 
