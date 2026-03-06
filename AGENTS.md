@@ -14,18 +14,34 @@ a legacy `configure`+`make` system and a modern CMake system.
 
 ```bash
 mkdir build && cd build
-cmake .. -DCOMPILER=GNU -DENABLEF=TRUE -DCMAKE_INSTALL_PREFIX=$PWD/../install
-cmake --build . --parallel $(nproc) --verbose
+cmake .. -DCOMPILER=GNU -DENABLEF=FALSE -DCMAKE_INSTALL_PREFIX=$PWD/../install
+cmake --build . --parallel $(nproc)   # Linux: nproc; macOS: sysctl -n hw.logicalcpu
 cmake --install .
-source ../install/quick.rc   # sets QUICK_BASIS, PATH, LD_LIBRARY_PATH
+source ../install/quick.rc   # sets QUICK_BASIS, PATH, LD_LIBRARY_PATH, LIBRARY_PATH
 ```
+
+> **macOS + Homebrew GCC note:** On macOS, `/usr/bin/gcc` is an Apple Clang shim, so
+> `-DCOMPILER=GNU` will be rejected by the build system's compiler identity check.
+> Use `-DCOMPILER=AUTO` and pass the real compiler paths explicitly:
+> ```bash
+> cmake .. -DCOMPILER=AUTO -DENABLEF=FALSE \
+>   -DCMAKE_INSTALL_PREFIX=$PWD/../install \
+>   -DCMAKE_C_COMPILER=/opt/homebrew/bin/gcc-15 \
+>   -DCMAKE_CXX_COMPILER=/opt/homebrew/bin/g++-15 \
+>   -DCMAKE_Fortran_COMPILER=/opt/homebrew/bin/gfortran
+> cmake --build . --parallel $(sysctl -n hw.logicalcpu)
+> cmake --install .
+> source ../install/quick.rc
+> ```
+> Adjust `gcc-15`/`g++-15` to match the version installed by Homebrew
+> (`ls /opt/homebrew/bin/gcc-*`).
 
 **Key CMake options:**
 
 | Option | Values | Description |
 |---|---|---|
-| `-DCOMPILER` | `GNU`, `CLANG`, `INTELLLVM`, `PGI`, `AUTO` | Compiler family |
-| `-DENABLEF` | `TRUE`/`FALSE` | Enable f-function ERIs (expensive) |
+| `-DCOMPILER` | `GNU`, `CLANG`, `INTELLLVM`, `ONEAPI`, `PGI`, `AUTO` | Compiler family |
+| `-DENABLEF` | `TRUE`/`FALSE` (default: `FALSE`) | Enable f-function ERIs (expensive) |
 | `-DCMAKE_BUILD_TYPE` | `Debug`, `Release` | Build type |
 | `-DMPI` | `TRUE` | Enable MPI parallel build |
 | `-DCUDA` | `TRUE` | Enable NVIDIA GPU build |
@@ -39,7 +55,7 @@ See `CMake-Options.md` for the full list.
 ```bash
 ./configure --serial --enablef --shared --prefix $PWD/install gnu
 make -j$(nproc) all install
-source install/quick.rc
+source install/quick.rc   # sets QUICK_BASIS, PATH, LD_LIBRARY_PATH, LIBRARY_PATH
 ```
 
 MPI variant: replace `--serial` with `--mpi`.
@@ -57,13 +73,13 @@ directory (or can be run from the repo root as `tools/runtest`). `QUICK_BASIS` m
 
 ```bash
 cd install
-./runtest --serial --full        # ~181 CPU tests
+./runtest --serial --full        # 181 CPU tests
 ```
 
 ### Run the short test suite (CI default)
 
 ```bash
-./runtest --serial               # short set
+./runtest --serial               # short set (32 tests)
 ```
 
 ### Run a single test
