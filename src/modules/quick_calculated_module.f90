@@ -237,15 +237,17 @@ contains
 
        type (quick_qm_struct_type) self
 
+       if(self%NBSuse.ne.self%nbasis)then
+           if(.not. allocated(self%oeff))allocate(self%oeff(self%NBSuse,self%NBSuse))
+           self%oeff = 0.0d0
+       endif
        if(.not. allocated(self%x)) allocate(self%x(self%nbasis,self%NBSuse))
-       if(.not. allocated(self%oeff))allocate(self%oeff(self%NBSuse,self%NBSuse))
        if(.not. allocated(self%vec))allocate(self%vec(self%NBSuse,self%NBSuse))
        if(.not. allocated(self%oldvec))allocate(self%oldvec(self%NBSuse,self%NBSuse))
        if(.not. allocated(self%co))allocate(self%co(self%nbasis,self%NBSuse))
        if(.not. allocated(self%E))allocate(self%E(self%NBSuse))
 
        self%x = 0.0d0
-       self%oeff = 0.0d0
        self%vec = 0.0d0
        self%oldvec = 0.0d0
        self%co = 0.0d0
@@ -396,6 +398,7 @@ contains
       type (quick_qm_struct_type) self
 
       nbasis=self%nbasis
+      NBSuse=self%NBSuse
       natom=quick_molspec%natom
       nelec=quick_molspec%nelec
       nelecb=quick_molspec%nelecb
@@ -406,13 +409,12 @@ contains
       call wchk_int(idatafile, "nelec",  nelec,  fail)
       call wchk_int(idatafile, "nelecb", nelecb, fail)
       call wchk_darray(idatafile, "s",        nbasis, nbasis, 1, self%s,        fail)
-      call wchk_darray(idatafile, "x",        nbasis, nbasis, 1, self%x,        fail)
+      call wchk_darray(idatafile, "x",        nbasis, NBSuse, 1, self%x,        fail)
       call wchk_darray(idatafile, "o",        nbasis, nbasis, 1, self%o,        fail)
-      call wchk_darray(idatafile, "oeff",     nbasis, nbasis, 1, self%oeff,     fail)
-      call wchk_darray(idatafile, "co",       nbasis, nbasis, 1, self%co,       fail)
-      call wchk_darray(idatafile, "vec",      nbasis, nbasis, 1, self%vec,      fail)
+      call wchk_darray(idatafile, "co",       nbasis, NBSuse, 1, self%co,       fail)
+      call wchk_darray(idatafile, "vec",      NBSuse, NBSuse, 1, self%vec,      fail)
       call wchk_darray(idatafile, "dense",    nbasis, nbasis, 1, self%dense,    fail)
-      call wchk_darray(idatafile, "E",        nbasis, 1,      1, self%E,        fail)
+      call wchk_darray(idatafile, "E",        NBSuse, 1,      1, self%E,        fail)
       call wchk_iarray(idatafile, "iDegen",   nbasis, 1,      1, self%iDegen,   fail)
       call wchk_darray(idatafile, "Mulliken", nbasis, 1,      1, self%Mulliken, fail)
       call wchk_darray(idatafile, "Lowdin",   nbasis, 1,      1, self%Lowdin,   fail)

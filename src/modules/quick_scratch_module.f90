@@ -144,8 +144,6 @@ module quick_scratch_module
             type (quick_scratch_type) self
 
             if (allocated(self%tmpx)) deallocate(self%tmpx)
-            if (allocated(self%tmpS)) deallocate(self%tmpS)
-            if (allocated(self%tmpU)) deallocate(self%tmpU)
             if (allocated(self%tmphold)) deallocate(self%tmphold)
             if (allocated(self%tmpco)) deallocate(self%tmpco)
             if (allocated(self%V)) deallocate(self%V)

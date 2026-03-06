@@ -330,17 +330,23 @@ subroutine fullx
       endif
    enddo
 
+   call allocate_quick_qm_struct_fullx(quick_qm_struct)
+
    if (NBSuse.ne.nbasis)then
-      call allocate_quick_qm_struct_fullx(quick_qm_struct)
 
       call MAT_DGEMM ('n', 'n', nbasis, NBSuse, NBSuse, 1.0d0, quick_scratch%tmpU, &
            nbasis, quick_scratch%tmpS, NBSuse, 0.0d0, quick_qm_struct%x,nbasis)
+
+      deallocate(quick_scratch%tmpS)
+      deallocate(quick_scratch%tmpU)
+
    else
+
       call MAT_DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_scratch%hold2, &
            nbasis, quick_scratch%tmphold, nbasis, 0.0d0, quick_scratch%tmpco,nbasis)
-
       call MAT_DGEMM ('n', 't', nbasis, nbasis, nbasis, 1.0d0, quick_scratch%tmpco, &
            nbasis, quick_scratch%hold2, nbasis, 0.0d0, quick_qm_struct%x,nbasis)
+
    endif
 
    ! Transpose U onto X then copy on to U.  Now U contains U transpose.
