@@ -649,7 +649,8 @@ contains
             ! Symmetric: rotate o into eigenbasis via hold2(nbasis,nbasis),
             !   shift virtual eigenvalues, rotate back.
             !-----------------------------------------------
-            if(idiis .gt. 1 .and. errormax .gt. 0.1)then
+            if(idiis .gt. 2 .and. errormax .gt. 0.1)then
+               write (ioutfile,'("|   ***  Level shifting is being applied  ***")')
                if(NBSuse .ne. nbasis) then
                   call MAT_DGEMM ('n', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, quick_qm_struct%oeff, &
                        NBSuse, quick_qm_struct%oldvec, NBSuse, 0.0d0, quick_scratch%hold4, NBSuse)
@@ -698,7 +699,7 @@ contains
            !        call DMatMul(nbasis,X,VEC,CO)    ! C=XC'
            ! Canonical: use hold4(NBSuse,NBSuse) as intermediate.
            ! Symmetric: use hold2(nbasis,nbasis) as intermediate.
-           if(idiis .gt. 1 .and. errormax .gt. 0.1)then
+           if(idiis .gt. 2 .and. errormax .gt. 0.1)then
               if(NBSuse .ne. nbasis) then
                  call MAT_DGEMM ('n', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, quick_qm_struct%oldvec, &
                        NBSuse, quick_qm_struct%vec, NBSuse, 0.0d0, quick_scratch%hold4, NBSuse)
