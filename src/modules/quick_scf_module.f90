@@ -37,8 +37,6 @@ module quick_scf_module
 
     double precision, allocatable, dimension(:)     :: RHS
 
-    double precision, allocatable, dimension(:,:) :: itererror
-
     double precision, allocatable, dimension(:,:,:) :: allerror
 
     double precision, allocatable, dimension(:,:,:) :: alloperator
@@ -66,13 +64,16 @@ contains
     if(.not. allocated(W))           allocate(W(quick_method%maxdiisscf+1), stat=ierr)
     if(.not. allocated(COEFF))       allocate(COEFF(quick_method%maxdiisscf+1), stat=ierr)
     if(.not. allocated(RHS))         allocate(RHS(quick_method%maxdiisscf+1), stat=ierr)
-    if(.not. allocated(itererror))    allocate(itererror(nbasis, nbasis), stat=ierr)
     if(.not. allocated(allerror))    allocate(allerror(NBSuse, NBSuse, quick_method%maxdiisscf), stat=ierr)
     if(.not. allocated(alloperator)) allocate(alloperator(nbasis, nbasis, quick_method%maxdiisscf), stat=ierr)
 
-    if(.not. allocated(quick_scratch%hold3)) allocate(quick_scratch%hold3(nbasis,NBSuse))
-    if(.not. allocated(quick_scratch%hold4)) allocate(quick_scratch%hold4(NBSuse,NBSuse))
-    if(.not. allocated(quick_scratch%hold5)) allocate(quick_scratch%hold5(NBSuse,NBSuse))
+     ! hold3, hold4 are only needed in the canonical (linear-dependency)
+     ! path where NBSuse < nbasis.  In the symmetric case NBSuse == nbasis and hold/hold2
+     ! (already nbasis x nbasis) are reused as intermediates, so these arrays are skipped.
+     if(NBSuse .ne. nbasis) then
+        if(.not. allocated(quick_scratch%hold3)) allocate(quick_scratch%hold3(nbasis, NBSuse))
+        if(.not. allocated(quick_scratch%hold4)) allocate(quick_scratch%hold4(NBSuse, NBSuse))
+     end if
 
     !initialize values to zero
     B           = 0.0d0
@@ -81,8 +82,7 @@ contains
     W           = 0.0d0
     COEFF       = 0.0d0
     RHS         = 0.0d0
-    itererror   = 0.0d0
-    allerror    = 0.0d0
+     if(allocated(allerror)) allerror    = 0.0d0
     alloperator = 0.0d0
   end subroutine allocate_quick_scf 
 
@@ -99,13 +99,11 @@ contains
     if(allocated(W))           deallocate(W, stat=ierr)
     if(allocated(COEFF))       deallocate(COEFF, stat=ierr)
     if(allocated(RHS))         deallocate(RHS, stat=ierr)
-    if(allocated(itererror))   deallocate(itererror, stat=ierr)
-    if(allocated(allerror))    deallocate(allerror, stat=ierr)
+     if(allocated(allerror))    deallocate(allerror, stat=ierr)
     if(allocated(alloperator)) deallocate(alloperator, stat=ierr)
 
     if(allocated(quick_scratch%hold3)) deallocate(quick_scratch%hold3)
     if(allocated(quick_scratch%hold4)) deallocate(quick_scratch%hold4)
-    if(allocated(quick_scratch%hold5)) deallocate(quick_scratch%hold5)
   end subroutine deallocate_quick_scf
 
 
@@ -381,53 +379,67 @@ contains
            ! The matrix multiplier comes from Steve Dixon. It calculates
            ! C = Transpose(A) B.  Thus to utilize this we have to make sure that the
            ! A matrix is symmetric. First, calculate DENSE*S and store in the scratch
-           ! matrix hold.Then calculate O*(DENSE*S).  As the operator matrix is symmetric, the
-           ! above code can be used. Store this (the ODS term) in the itererror
-           ! matrix.
+           ! matrix hold. Then calculate O*(DENSE*S). Store this (the ODS term) in hold2.
   
            ! The first part is ODS
 
            call MAT_DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_qm_struct%dense, &
                  nbasis, quick_qm_struct%s, nbasis, 0.0d0, quick_scratch%hold, nbasis)
-  
+   
            call MAT_DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_qm_struct%o, &
                  nbasis, quick_scratch%hold, nbasis, 0.0d0, quick_scratch%hold2, nbasis)
 
-           itererror(:,:) = quick_scratch%hold2(:,:)
-  
-           ! Calculate D O. then calculate S (do) and subtract that from the itererror matrix.
-           ! This means we now have the e(i) matrix.
-           ! itererror=ODS-SDO
-           call MAT_DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_qm_struct%dense, &
-                 nbasis, quick_qm_struct%o, nbasis, 0.0d0, quick_scratch%hold, nbasis)
-           call MAT_DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_qm_struct%s, &
-                 nbasis, quick_scratch%hold, nbasis, 0.0d0, quick_scratch%hold2, nbasis)
-  
+            ! Calculate D O, then calculate -S*(DO) and add to hold2.
+            ! This means we now have the e(i) matrix.
+            ! hold2 = ODS (stored above); we add -SDO below to get e = ODS - SDO
+            call MAT_DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_qm_struct%dense, &
+                  nbasis, quick_qm_struct%o, nbasis, 0.0d0, quick_scratch%hold, nbasis)
+            call MAT_DGEMM ('n', 'n', nbasis, nbasis, nbasis, -1.0d0, quick_qm_struct%s, &
+                  nbasis, quick_scratch%hold, nbasis, 1.0d0, quick_scratch%hold2, nbasis)
+
+           ! hold2 now contains e(i) = ODS - SDO
            errormax = 0.d0
            do I=1,nbasis
               do J=1,nbasis
-                 itererror(J,I) = itererror(J,I) - quick_scratch%hold2(J,I) !e=ODS-SDO
-                 errormax = max(itererror(J,I),errormax)
+                 errormax = max(quick_scratch%hold2(J,I), errormax)
               enddo
-          enddo
+           enddo
 
-          !-----------------------------------------------
-          ! 3)  Move e to an orthogonal basis.  e'(i) = Transpose[X] .e(i). X
-          ! X is symmetric, but we do not know anything about the symmetry of e.
-          ! The easiest way to do this is to calculate e(i) . X , store
-          ! this in HOLD, and then calculate Transpose[X] (.e(i) . X)
-          !-----------------------------------------------
-           quick_scratch%hold2(:,:) = itererror(:,:)
-  
-           call MAT_DGEMM ('n', 'n', nbasis, NBSuse, nbasis, 1.0d0, quick_scratch%hold2, &
-                 nbasis, quick_qm_struct%x, nbasis, 0.0d0, quick_scratch%hold3, nbasis)
-  
-           call MAT_DGEMM ('t', 'n', NBSuse, NBSuse, nbasis, 1.0d0, quick_qm_struct%x, &
-                 nbasis, quick_scratch%hold3, nbasis, 0.0d0, quick_scratch%hold4, NBSuse)
+           !-----------------------------------------------
+           ! 3)  Move e to an orthogonal basis.  e'(i) = Transpose[X] .e(i). X
+           ! X is symmetric, but we do not know anything about the symmetry of e.
+           ! The easiest way to do this is to calculate e(i) . X , store
+           ! this in a scratch matrix, and then calculate Transpose[X] . (e(i) . X).
+           !
+           ! Canonical path (NBSuse < nbasis): use hold3(nbasis,NBSuse) and
+           !   hold4(NBSuse,NBSuse) as rectangular/reduced-size intermediates.
+           ! Symmetric path (NBSuse == nbasis): reuse hold(nbasis,nbasis) and
+           !   hold2(nbasis,nbasis) — hold2 holds e(i); result written back into hold2,
+           !   then copied to allerror.
+           !-----------------------------------------------
+            if(NBSuse .ne. nbasis) then
+               call MAT_DGEMM ('n', 'n', nbasis, NBSuse, nbasis, 1.0d0, quick_scratch%hold2, &
+                     nbasis, quick_qm_struct%x, nbasis, 0.0d0, quick_scratch%hold3, nbasis)
+
+              call MAT_DGEMM ('t', 'n', NBSuse, NBSuse, nbasis, 1.0d0, quick_qm_struct%x, &
+                    nbasis, quick_scratch%hold3, nbasis, 0.0d0, quick_scratch%hold4, NBSuse)
+
+              allerror(:,:,iidiis) = quick_scratch%hold4(:,:)
+           else
+              ! Symmetric: hold2 already holds e(i); use hold as intermediate
+              ! e(i) . X -> hold
+              call MAT_DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_scratch%hold2, &
+                    nbasis, quick_qm_struct%x, nbasis, 0.0d0, quick_scratch%hold, nbasis)
+
+              ! X^T . hold -> hold2  (overwrites e(i), which is no longer needed)
+              call MAT_DGEMM ('t', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_qm_struct%x, &
+                    nbasis, quick_scratch%hold, nbasis, 0.0d0, quick_scratch%hold2, nbasis)
+
+              allerror(:,:,iidiis) = quick_scratch%hold2(:,:)
+           end if
 
            ! allerror matrix contains the error in orthogonal basis.
            ! allerror has dimension NBSuse,NBSuse,iidiis
-           allerror(:,:,iidiis) = quick_scratch%hold4(:,:)
            !-----------------------------------------------
            ! 4)  Store the e'(I) and O(i).
            ! e'(i) is already stored.  Simply store the operator matrix in
@@ -477,16 +489,23 @@ contains
               enddo
            endif
   
-           ! Now copy the current matrix into HOLD2 transposed.  This will be the
-           ! Transpose[ej] used in B(i,j) = Trace(e(i) Transpose(e(j)))
-           quick_scratch%hold4(:,:) = allerror(:,:,iidiis)
-  
-           do I=1,IDIISfinal
-              ! Copy the transpose of error matrix I into HOLD.
-              quick_scratch%hold5(:,:) = allerror(:,:,I) 
-  
-              ! Calculate and sum together the diagonal elements of e(i) Transpose(e(j))).
-              BIJ=Sum2Mat(quick_scratch%hold4,quick_scratch%hold5,NBSuse)
+            ! Copy the current error slice (j=iidiis) into a scratch array.
+            ! Canonical path: use hold4 (NBSuse x NBSuse).
+            ! Symmetric path: use hold2/hold (nbasis x nbasis = NBSuse x NBSuse).
+            if(NBSuse .ne. nbasis) then
+               quick_scratch%hold4(:,:) = allerror(:,:,iidiis)
+            else
+               quick_scratch%hold2(:,:) = allerror(:,:,iidiis)
+            end if
+
+            do I=1,IDIISfinal
+               ! Calculate and sum together the diagonal elements of e(i) Transpose(e(j))).
+               if(NBSuse .ne. nbasis) then
+                  BIJ=Sum2Mat(quick_scratch%hold4,allerror(:,:,I),NBSuse)
+               else
+                  quick_scratch%hold(:,:) = allerror(:,:,I)
+                  BIJ=Sum2Mat(quick_scratch%hold2,quick_scratch%hold,NBSuse)
+               end if
               
               ! Now place this in the B matrix.
               if(idiis.le.quick_method%maxdiisscf)then
@@ -503,11 +522,21 @@ contains
            enddo
   
            if(idiis.gt.quick_method%maxdiisscf)then
-              quick_scratch%hold4(:,:) = allerror(:,:,1)
-              do J=1,quick_method%maxdiisscf-1
-                 allerror(:,:,J) = allerror(:,:,J+1)
-              enddo
-              allerror(:,:,quick_method%maxdiisscf) = quick_scratch%hold4(:,:)
+              ! Roll allerror ring buffer: save slot 1, shift down, restore to last slot.
+              ! Canonical: use hold4 as temp; symmetric: use hold2.
+              if(NBSuse .ne. nbasis) then
+                 quick_scratch%hold4(:,:) = allerror(:,:,1)
+                 do J=1,quick_method%maxdiisscf-1
+                    allerror(:,:,J) = allerror(:,:,J+1)
+                 enddo
+                 allerror(:,:,quick_method%maxdiisscf) = quick_scratch%hold4(:,:)
+              else
+                 quick_scratch%hold2(:,:) = allerror(:,:,1)
+                 do J=1,quick_method%maxdiisscf-1
+                    allerror(:,:,J) = allerror(:,:,J+1)
+                 enddo
+                 allerror(:,:,quick_method%maxdiisscf) = quick_scratch%hold2(:,:)
+              end if
            endif
   
            ! Now that all the BIJ elements are in place, fill in all the column
@@ -590,52 +619,99 @@ contains
               enddo
               
            endif
-           !-----------------------------------------------
-           ! 8) Diagonalize the operator matrix to form a new density matrix.
-           ! First you have to transpose this into an orthogonal basis, which
-           ! is accomplished by calculating Transpose[X] . O . X.
-           !-----------------------------------------------
-           call MAT_DGEMM ('n', 'n', nbasis, NBSuse, nbasis, 1.0d0, quick_qm_struct%o, &
-                 nbasis, quick_qm_struct%x, nbasis, 0.0d0, quick_scratch%hold3, nbasis)
-  
-           call MAT_DGEMM ('t', 'n', NBSuse, NBSuse, nbasis, 1.0d0, quick_qm_struct%x, &
-                 nbasis, quick_scratch%hold3, nbasis, 0.0d0, quick_qm_struct%oeff, NBSuse)
+            !-----------------------------------------------
+            ! 8) Diagonalize the operator matrix to form a new density matrix.
+            ! First you have to transpose this into an orthogonal basis, which
+            ! is accomplished by calculating Transpose[X] . O . X.
+            ! Canonical (NBSuse < nbasis): use hold3(nbasis,NBSuse) as rectangular intermediate;
+            !   result stored in oeff(NBSuse,NBSuse).
+            ! Symmetric (NBSuse == nbasis): use hold(nbasis,nbasis) as intermediate;
+            !   result stored back in o(nbasis,nbasis).
+            !-----------------------------------------------
+            if(NBSuse .ne. nbasis) then
+               call MAT_DGEMM ('n', 'n', nbasis, NBSuse, nbasis, 1.0d0, quick_qm_struct%o, &
+                     nbasis, quick_qm_struct%x, nbasis, 0.0d0, quick_scratch%hold3, nbasis)
 
-           !-----------------------------------------------
-           !  Level shifting if the DIIS error is large
-           !-----------------------------------------------
-           if(idiis .gt. 1 .and. errormax .gt. 0.1)then
-               call MAT_DGEMM ('n', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, quick_qm_struct%oeff, &
-                    NBSuse, quick_qm_struct%oldvec, NBSuse, 0.0d0, quick_scratch%hold4, NBSuse)
-  
-               call MAT_DGEMM ('t', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, quick_qm_struct%oldvec, &
-                    NBSuse, quick_scratch%hold4, NBSuse, 0.0d0, quick_qm_struct%oeff, NBSuse)
+               call MAT_DGEMM ('t', 'n', NBSuse, NBSuse, nbasis, 1.0d0, quick_qm_struct%x, &
+                     nbasis, quick_scratch%hold3, nbasis, 0.0d0, quick_qm_struct%oeff, NBSuse)
+            else
+               call MAT_DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_qm_struct%o, &
+                     nbasis, quick_qm_struct%x, nbasis, 0.0d0, quick_scratch%hold, nbasis)
 
-               homo = quick_molspec%nelec/2
-               shift = quick_qm_struct%oeff(homo+1,homo+1) - quick_qm_struct%oeff(homo,homo)
-               do I=homo+1,NBSuse
-                   quick_qm_struct%oeff(I,I) = quick_qm_struct%oeff(I,I) + (0.2D0 - shift) !!Converges of CC-PVDZ.
-               enddo
-           endif
+               call MAT_DGEMM ('t', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_qm_struct%x, &
+                     nbasis, quick_scratch%hold, nbasis, 0.0d0, quick_qm_struct%o, nbasis)
+            end if
 
-           ! Now diagonalize the operator matrix.
-           RECORD_TIME(timer_begin%TDiag)
+            !-----------------------------------------------
+            !  Level shifting if the DIIS error is large
+            ! Canonical: rotate oeff into eigenbasis via hold4(NBSuse,NBSuse),
+            !   shift virtual eigenvalues, rotate back.
+            ! Symmetric: rotate o into eigenbasis via hold2(nbasis,nbasis),
+            !   shift virtual eigenvalues, rotate back.
+            !-----------------------------------------------
+            if(idiis .gt. 1 .and. errormax .gt. 0.1)then
+               if(NBSuse .ne. nbasis) then
+                  call MAT_DGEMM ('n', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, quick_qm_struct%oeff, &
+                       NBSuse, quick_qm_struct%oldvec, NBSuse, 0.0d0, quick_scratch%hold4, NBSuse)
 
-           call MAT_DIAG(quick_qm_struct%oeff, NBSuse, NBSuse, quick_qm_struct%E, &
-                   quick_qm_struct%vec)
- 
-           RECORD_TIME(timer_end%TDiag)
+                  call MAT_DGEMM ('t', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, quick_qm_struct%oldvec, &
+                       NBSuse, quick_scratch%hold4, NBSuse, 0.0d0, quick_qm_struct%oeff, NBSuse)
+
+                  homo = quick_molspec%nelec/2
+                  shift = quick_qm_struct%oeff(homo+1,homo+1) - quick_qm_struct%oeff(homo,homo)
+                  do I=homo+1,NBSuse
+                     quick_qm_struct%oeff(I,I) = quick_qm_struct%oeff(I,I) + (0.2D0 - shift)
+                  enddo
+               else
+                  call MAT_DGEMM ('n', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, quick_qm_struct%o, &
+                       NBSuse, quick_qm_struct%oldvec, NBSuse, 0.0d0, quick_scratch%hold2, NBSuse)
+
+                  call MAT_DGEMM ('t', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, quick_qm_struct%oldvec, &
+                       NBSuse, quick_scratch%hold2, NBSuse, 0.0d0, quick_qm_struct%o, NBSuse)
+
+                  homo = quick_molspec%nelec/2
+                  shift = quick_qm_struct%o(homo+1,homo+1) - quick_qm_struct%o(homo,homo)
+                  do I=homo+1,NBSuse
+                     quick_qm_struct%o(I,I) = quick_qm_struct%o(I,I) + (0.2D0 - shift)
+                  enddo
+               end if
+            endif
+
+            ! Now diagonalize the operator matrix.
+            ! Canonical (NBSuse < nbasis): diagonalize oeff(NBSuse,NBSuse).
+            ! Symmetric (NBSuse == nbasis): diagonalize o(nbasis,nbasis) in place.
+            RECORD_TIME(timer_begin%TDiag)
+
+            if(NBSuse .ne. nbasis) then
+               call MAT_DIAG(quick_qm_struct%oeff, NBSuse, NBSuse, quick_qm_struct%E, &
+                       quick_qm_struct%vec)
+            else
+               call MAT_DIAG(quick_qm_struct%o, NBSuse, NBSuse, quick_qm_struct%E, &
+                       quick_qm_struct%vec)
+            end if
+
+            RECORD_TIME(timer_end%TDiag)
 
            ! Calculate C = XC' and form a new density matrix.
            ! The C' is from the above diagonalization.  Also, save the previous
            ! Density matrix to check for convergence.
            !        call DMatMul(nbasis,X,VEC,CO)    ! C=XC'
+           ! Canonical: use hold4(NBSuse,NBSuse) as intermediate.
+           ! Symmetric: use hold2(nbasis,nbasis) as intermediate.
            if(idiis .gt. 1 .and. errormax .gt. 0.1)then
-               call MAT_DGEMM ('n', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, quick_qm_struct%oldvec, &
-                     NBSuse, quick_qm_struct%vec, NBSuse, 0.0d0, quick_scratch%hold4, NBSuse)
-               call MAT_DGEMM ('n', 'n', nbasis, NBSuse, NBSuse, 1.0d0, quick_qm_struct%x, &
-                     nbasis, quick_scratch%hold4, NBSuse, 0.0d0, quick_qm_struct%co,nbasis)
-               quick_qm_struct%oldvec(:,:) = quick_scratch%hold4(:,:)
+              if(NBSuse .ne. nbasis) then
+                 call MAT_DGEMM ('n', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, quick_qm_struct%oldvec, &
+                       NBSuse, quick_qm_struct%vec, NBSuse, 0.0d0, quick_scratch%hold4, NBSuse)
+                 call MAT_DGEMM ('n', 'n', nbasis, NBSuse, NBSuse, 1.0d0, quick_qm_struct%x, &
+                       nbasis, quick_scratch%hold4, NBSuse, 0.0d0, quick_qm_struct%co, nbasis)
+                 quick_qm_struct%oldvec(:,:) = quick_scratch%hold4(:,:)
+              else
+                 call MAT_DGEMM ('n', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, quick_qm_struct%oldvec, &
+                       NBSuse, quick_qm_struct%vec, NBSuse, 0.0d0, quick_scratch%hold2, NBSuse)
+                 call MAT_DGEMM ('n', 'n', nbasis, NBSuse, NBSuse, 1.0d0, quick_qm_struct%x, &
+                       nbasis, quick_scratch%hold2, NBSuse, 0.0d0, quick_qm_struct%co, nbasis)
+                 quick_qm_struct%oldvec(:,:) = quick_scratch%hold2(:,:)
+              end if
            else
                call MAT_DGEMM ('n', 'n', nbasis, NBSuse, NBSuse, 1.0d0, quick_qm_struct%x, &
                      nbasis, quick_qm_struct%vec, NBSuse, 0.0d0, quick_qm_struct%co,nbasis)

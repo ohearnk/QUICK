@@ -388,6 +388,7 @@ contains
       logical fail
 
       integer nbasis
+      integer NBSuse
       integer natom
       integer nelec
       integer idimA
