@@ -182,6 +182,8 @@ contains
      integer :: jscf                ! scf iteration
      integer, intent(inout) :: ierr
   
+     logical :: LShift = .false.    ! flag if level shifting is being performed
+
      logical :: diisdone = .false.  ! flag to indicate if diis is done
      logical :: deltaO   = .false.  ! delta Operator
      integer :: idiis = 0           ! diis iteration
@@ -331,8 +333,7 @@ contains
         !--------------------------------------------
         ! 1)  Form the operator matrix for step i, O(i).
         !--------------------------------------------
-        !temp=Sum2Mat(quick_qm_struct%dense,quick_qm_struct%s,nbasis)
-  
+
         ! Determine dii cycle and scf cycle
         idiis=idiis+1
         jscf=jscf+1
@@ -343,6 +344,9 @@ contains
            IDIISfinal=quick_method%maxdiisscf; iidiis=1
         endif
 
+        ! Level shift is not performed by default
+        LShift = .false.
+  
         !-----------------------------------------------
         ! Before Delta Densitry Matrix, normal operator is implemented here
         !-----------------------------------------------
@@ -650,7 +654,7 @@ contains
             !   shift virtual eigenvalues, rotate back.
             !-----------------------------------------------
             if(idiis .gt. 2 .and. errormax .gt. 0.1)then
-               write (ioutfile,'("|   ***  Level shifting is being applied  ***")')
+               LShift = .true.
                if(NBSuse .ne. nbasis) then
                   call MAT_DGEMM ('n', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, quick_qm_struct%oeff, &
                        NBSuse, quick_qm_struct%oldvec, NBSuse, 0.0d0, quick_scratch%hold4, NBSuse)
@@ -790,6 +794,7 @@ contains
            write (ioutfile,'(E10.4,2x)',advance="no") errormax
            write (ioutfile,'(E10.4,2x,E10.4)')  PRMS,PCHANGE
   
+           if(LShift) write (ioutfile,'("|   ***  Level shifting is being applied  ***")')
            if (lsolerr /= 0) write (ioutfile,'(" DIIS FAILED !!", &
                  & " PERFORM NORMAL SCF. (NOT FATAL.)")')
   

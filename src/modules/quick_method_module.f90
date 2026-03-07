@@ -974,7 +974,7 @@ module quick_method_module
 
             self%pmaxrms        = 1.0d-6   ! density matrix convergence criteria
             self%basisCutoff    = 1.0d-6  ! basis set cutoff
-            self%overlapCutoff  = 1.0d-6  ! Near-linear dependency check cutoff
+            self%overlapCutoff  = 1.0d-5  ! Near-linear dependency check cutoff
             self%ovmatelems     = 1.0d-6  ! cutoff to consider overlap matrix elements
 
             self%stepMax        = .1d0/0.529177249d0
