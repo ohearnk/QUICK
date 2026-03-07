@@ -292,11 +292,11 @@ subroutine fullx
             quick_scratch%tmpS = 0.0d0
             quick_scratch%tmpU = 0.0d0
 
-            write(ioutfile,'("Number of total basis functions:",2X,i5)') nbasis
-            write(ioutfile,'("Number of linearly independent basis functions:",2X,i5)') NBSuse
-            write(ioutfile,'("condition number of overlap matrix:",2X,es11.3)') &
+            write(ioutfile,'("| Number of total basis functions:",2X,i5)') nbasis
+            write(ioutfile,'("| Number of linearly independent basis functions:",2X,i5)') NBSuse
+            write(ioutfile,'("| condition number of overlap matrix:",2X,es11.3)') &
                             maxval(quick_scratch%Sminhalf)/minval(quick_scratch%Sminhalf)
-            write(ioutfile,'("Smallest eigenvalue of overlap matrix:",2X,es11.3)') minval(quick_scratch%Sminhalf)
+            write(ioutfile,'("| Smallest eigenvalue of overlap matrix:",2X,es11.3)') minval(quick_scratch%Sminhalf)
             write(ioutfile,'()')
 
             do J=I,nbasis
@@ -316,9 +316,9 @@ subroutine fullx
             quick_molspec%NBSuse   => nbasis
             quick_qm_struct%NBSuse => nbasis
 
-            write(ioutfile,'("condition number of overlap matrix:",2X,es11.3)') &
+            write(ioutfile,'("| condition number of overlap matrix:",2X,es11.3)') &
                             maxval(quick_scratch%Sminhalf)/minval(quick_scratch%Sminhalf)
-            write(ioutfile,'("Smallest eigenvalue of overlap matrix:",2X,es11.3)') minval(quick_scratch%Sminhalf)
+            write(ioutfile,'("| Smallest eigenvalue of overlap matrix:",2X,es11.3)') minval(quick_scratch%Sminhalf)
             write(ioutfile,'()')
 
             do J=1,nbasis
