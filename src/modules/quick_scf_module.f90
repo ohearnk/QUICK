@@ -67,8 +67,8 @@ contains
     if(.not. allocated(allerror))    allocate(allerror(NBSuse, NBSuse, quick_method%maxdiisscf), stat=ierr)
     if(.not. allocated(alloperator)) allocate(alloperator(nbasis, nbasis, quick_method%maxdiisscf), stat=ierr)
 
-     ! hold3, hold4 are only needed in the canonical (linear-dependency)
-     ! path where NBSuse < nbasis.  In the symmetric case NBSuse == nbasis and hold/hold2
+     ! hold3, hold4 are only needed in case of near-linear dependency
+     ! path where NBSuse < nbasis.  In the standard case NBSuse == nbasis and hold/hold2
      ! (already nbasis x nbasis) are reused as intermediates, so these arrays are skipped.
      if(NBSuse .ne. nbasis) then
         if(.not. allocated(quick_scratch%hold3)) allocate(quick_scratch%hold3(nbasis, NBSuse))
@@ -411,9 +411,9 @@ contains
            ! The easiest way to do this is to calculate e(i) . X , store
            ! this in a scratch matrix, and then calculate Transpose[X] . (e(i) . X).
            !
-           ! Canonical path (NBSuse < nbasis): use hold3(nbasis,NBSuse) and
+           ! Near-linear dependency (NBSuse < nbasis): use hold3(nbasis,NBSuse) and
            !   hold4(NBSuse,NBSuse) as rectangular/reduced-size intermediates.
-           ! Symmetric path (NBSuse == nbasis): reuse hold(nbasis,nbasis) and
+           ! Standard case (NBSuse == nbasis): reuse hold(nbasis,nbasis) and
            !   hold2(nbasis,nbasis) — hold2 holds e(i); result written back into hold2,
            !   then copied to allerror.
            !-----------------------------------------------
@@ -490,8 +490,8 @@ contains
            endif
   
             ! Copy the current error slice (j=iidiis) into a scratch array.
-            ! Canonical path: use hold4 (NBSuse x NBSuse).
-            ! Symmetric path: use hold2/hold (nbasis x nbasis = NBSuse x NBSuse).
+            ! Near-linear dependency: use hold4 (NBSuse x NBSuse).
+            ! Standard case: use hold2/hold (nbasis x nbasis = NBSuse x NBSuse).
             if(NBSuse .ne. nbasis) then
                quick_scratch%hold4(:,:) = allerror(:,:,iidiis)
             else
@@ -523,7 +523,7 @@ contains
   
            if(idiis.gt.quick_method%maxdiisscf)then
               ! Roll allerror ring buffer: save slot 1, shift down, restore to last slot.
-              ! Canonical: use hold4 as temp; symmetric: use hold2.
+              ! Near-linear dependency: use hold4 as temp; symmetric: use hold2.
               if(NBSuse .ne. nbasis) then
                  quick_scratch%hold4(:,:) = allerror(:,:,1)
                  do J=1,quick_method%maxdiisscf-1
@@ -623,9 +623,9 @@ contains
             ! 8) Diagonalize the operator matrix to form a new density matrix.
             ! First you have to transpose this into an orthogonal basis, which
             ! is accomplished by calculating Transpose[X] . O . X.
-            ! Canonical (NBSuse < nbasis): use hold3(nbasis,NBSuse) as rectangular intermediate;
+            ! Near-linear dependency (NBSuse < nbasis): use hold3(nbasis,NBSuse) as rectangular intermediate;
             !   result stored in oeff(NBSuse,NBSuse).
-            ! Symmetric (NBSuse == nbasis): use hold(nbasis,nbasis) as intermediate;
+            ! Standard case (NBSuse == nbasis): use hold(nbasis,nbasis) as intermediate;
             !   result stored back in o(nbasis,nbasis).
             !-----------------------------------------------
             if(NBSuse .ne. nbasis) then
@@ -644,9 +644,9 @@ contains
 
             !-----------------------------------------------
             !  Level shifting if the DIIS error is large
-            ! Canonical: rotate oeff into eigenbasis via hold4(NBSuse,NBSuse),
+            ! Near-linear dependency: rotate oeff into eigenbasis via hold4(NBSuse,NBSuse),
             !   shift virtual eigenvalues, rotate back.
-            ! Symmetric: rotate o into eigenbasis via hold2(nbasis,nbasis),
+            ! Standard case: rotate o into eigenbasis via hold2(nbasis,nbasis),
             !   shift virtual eigenvalues, rotate back.
             !-----------------------------------------------
             if(idiis .gt. 2 .and. errormax .gt. 0.1)then
@@ -679,8 +679,8 @@ contains
             endif
 
             ! Now diagonalize the operator matrix.
-            ! Canonical (NBSuse < nbasis): diagonalize oeff(NBSuse,NBSuse).
-            ! Symmetric (NBSuse == nbasis): diagonalize o(nbasis,nbasis) in place.
+            ! Near-linear dependency (NBSuse < nbasis): diagonalize oeff(NBSuse,NBSuse).
+            ! Standard case (NBSuse == nbasis): diagonalize o(nbasis,nbasis) in place.
             RECORD_TIME(timer_begin%TDiag)
 
             if(NBSuse .ne. nbasis) then
@@ -697,8 +697,8 @@ contains
            ! The C' is from the above diagonalization.  Also, save the previous
            ! Density matrix to check for convergence.
            !        call DMatMul(nbasis,X,VEC,CO)    ! C=XC'
-           ! Canonical: use hold4(NBSuse,NBSuse) as intermediate.
-           ! Symmetric: use hold2(nbasis,nbasis) as intermediate.
+           ! Near-linear dependency: use hold4(NBSuse,NBSuse) as intermediate.
+           ! Standard case: use hold2(nbasis,nbasis) as intermediate.
            if(idiis .gt. 2 .and. errormax .gt. 0.1)then
               if(NBSuse .ne. nbasis) then
                  call MAT_DGEMM ('n', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, quick_qm_struct%oldvec, &
