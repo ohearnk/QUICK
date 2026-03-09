@@ -23,30 +23,11 @@
     ! muliplier.  Also note we are using the total denisity matrix. Store
     ! this is HOLD.
     IF ( .NOT. quick_method%unrst) THEN
-        DO I=1,nbasis
-            DO J=1,nbasis
-                HOLDIJ = 0.0D0
-                DO K=1,nbasis
-                    HOLDIJ = HOLDIJ + quick_qm_struct%dense(K,I)*quick_qm_struct%s(K,J)
-                ENDDO
-                quick_scratch%hold(I,J) = HOLDIJ
-            ENDDO
-        ENDDO
+        call MAT_DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_qm_struct%dense, &
+             nbasis, quick_qm_struct%s, nbasis, 0.0d0, quick_scratch%hold, nbasis)
     ELSE
-        DO I=1,nbasis
-            DO J=1,nbasis
-                quick_scratch%hold2(J,I) = quick_qm_struct%dense(J,I)+quick_qm_struct%denseB(J,I)
-            ENDDO
-        ENDDO
-        DO I=1,nbasis
-            DO J=1,nbasis
-                HOLDIJ = 0.0D0
-                DO K=1,nbasis
-                    HOLDIJ = HOLDIJ + quick_scratch%hold2(K,I)*quick_qm_struct%s(K,J)
-                ENDDO
-                quick_scratch%hold(I,J) = HOLDIJ
-            ENDDO
-        ENDDO
+        call MAT_DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_qm_struct%dense+quick_qm_struct%denseB, &
+             nbasis, quick_qm_struct%s, nbasis, 0.0d0, quick_scratch%hold, nbasis)
     ENDIF
 
     ! Mulliken Charge of atom A = core charge A - (Sum over u on A) PS(uu)
