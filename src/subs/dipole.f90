@@ -62,6 +62,8 @@
     else
         if(.not. allocated(quick_scratch%Sminhalf)) allocate(quick_scratch%Sminhalf(nbasis))
         if(.not. allocated(quick_scratch%tmphold)) allocate(quick_scratch%tmphold(nbasis,nbasis))
+        quick_scratch%Sminhalf=0.0d0
+        quick_scratch%tmphold=0.0d0
         call copyDMat(quick_qm_struct%s, quick_scratch%hold, nbasis)
         call MAT_DIAG(quick_scratch%hold, nbasis, nbasis, quick_scratch%Sminhalf, quick_scratch%hold2)
         do J=1,nbasis
