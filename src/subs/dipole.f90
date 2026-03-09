@@ -42,42 +42,18 @@
     ! charges:
     ! Lowdin Charge of atom A = core charge A -
     ! - (Sum over u on A)[S^(1/2)PS^(1/2)](uu)
-    ! Now remember S^(-1/2) = X.  Thus we have to calculate
-    ! XSPSX = S^(-1/2)SPSS^(-1/2)= S^(1/2)PS^(1/2)
 
+    ! If there is no near-linear dependency, S^(-1/2) = X.  Thus we have to calculate
+    ! XSPSX = S^(-1/2)SPSS^(-1/2)= S^(1/2)PS^(1/2)
     ! Currently, HOLD contains PS.  Use the fast multiplier to get SPS and place
     ! it in HOLD2.
-    DO I=1,nbasis
-        DO J=1,nbasis
-            HOLDIJ = 0.0D0
-            DO K=1,nbasis
-                HOLDIJ = HOLDIJ + quick_qm_struct%s(K,I)*quick_scratch%hold(K,J)
-            ENDDO
-            quick_scratch%hold2(I,J) = HOLDIJ
-        ENDDO
-    ENDDO
-
-    ! Now we have two slow multiplication steps to get to XSPSX.
-    DO I=1,nbasis
-        DO J=1,nbasis
-            HOLDIJ = 0.0D0
-            DO K=1,nbasis
-                HOLDIJ = HOLDIJ + quick_qm_struct%x(I,K)*quick_scratch%hold2(K,J)
-            ENDDO
-            quick_scratch%hold(I,J) = HOLDIJ
-        ENDDO
-    ENDDO
-
-    DO I=1,nbasis
-        DO J=1,nbasis
-            HOLDIJ = 0.0D0
-            DO K=1,nbasis
-                HOLDIJ = HOLDIJ + quick_scratch%hold(I,K)*quick_qm_struct%x(K,J)
-            ENDDO
-            quick_scratch%hold2(I,J) = HOLDIJ
-        ENDDO
-    ENDDO
-
+    call MAT_DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_qm_struct%s, &
+         nbasis, quick_scratch%hold, nbasis, 0.0d0, quick_scratch%hold2, nbasis)
+    call MAT_DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_qm_struct%x, &
+         nbasis, quick_scratch%hold2, nbasis, 0.0d0, quick_scratch%hold, nbasis)
+    call MAT_DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_scratch%hold, &
+         nbasis, quick_qm_struct%x, nbasis, 0.0d0, quick_scratch%hold2, nbasis)
+    
     ! So now HOLD2 contains XSPSX.  Use this to calculate the Lowdin charges.
     DO I=1,natom
         quick_qm_struct%Lowdin(I) = quick_molspec%chg(I)
