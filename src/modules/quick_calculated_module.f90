@@ -303,18 +303,12 @@ contains
 
       ! those matrices is necessary for all calculation or the basic of other calculation
       if(.not. allocated(self%s)) allocate(self%s(nbasis,nbasis))
-!      if(.not. allocated(self%x)) allocate(self%x(nbasis,nbasis))
       if(.not. allocated(self%oneElecO)) allocate(self%oneElecO(nbasis,nbasis))
       if(.not. allocated(self%o)) allocate(self%o(nbasis,nbasis))
-!      if(.not. allocated(self%oeff)) allocate(self%oeff(nbasis,nbasis))
       if(.not. allocated(self%oSave)) allocate(self%oSave(nbasis,nbasis))
-!      if(.not. allocated(self%co)) allocate(self%co(nbasis,nbasis))
-!      if(.not. allocated(self%vec)) allocate(self%vec(nbasis,nbasis))
-!      if(.not. allocated(self%oldvec)) allocate(self%oldvec(nbasis,nbasis))
       if(.not. allocated(self%dense)) allocate(self%dense(nbasis,nbasis))
       if(.not. allocated(self%denseSave)) allocate(self%denseSave(nbasis,nbasis))
       if(.not. allocated(self%denseOld)) allocate(self%denseOld(nbasis,nbasis))
-!      if(.not. allocated(self%E)) allocate(self%E(nbasis))
       if(.not. allocated(self%iDegen)) allocate(self%iDegen(nbasis))
 
       if(.not. allocated(self%Mulliken)) allocate(self%Mulliken(natom))
@@ -348,9 +342,6 @@ contains
           if(.not. allocated(self%denseab)) allocate(self%denseab(nbasis,nbasis))
           if(.not. allocated(self%densebSave)) allocate(self%densebSave(nbasis,nbasis))
           if(.not. allocated(self%densebOld)) allocate(self%densebOld(nbasis,nbasis))
-!         cob and Eb are allocated in allocate_quick_qm_struct_fullx with NBSuse dimensions
-!          if(.not. allocated(self%cob)) allocate(self%cob(nbasis,nbasis))
-!          if(.not. allocated(self%Eb)) allocate(self%Eb(nbasis))
        endif
 
       if (quick_method%unrst .or. quick_method%DFT) then
