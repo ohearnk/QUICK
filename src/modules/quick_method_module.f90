@@ -94,6 +94,11 @@ module quick_method_module
         ! this is DFT grid
         integer :: iSG = 1             ! =0. SG0, =1. SG1(DEFAULT)
 
+        ! Level shift
+        integer :: LShift_cycle = 3              ! After what cycle allow Level shifting
+        double precision :: LShift_err = 0.1d0   ! Minimum error for allowing Level shifting
+        double precision :: LShift_gap = 0.2d0   ! HOMO-LUMO gap after Level shifting
+
         ! Initial guess part
         logical :: SAD = .true.        ! SAD initial guess(default)
         logical :: MFCC = .false.      ! MFCC
@@ -456,6 +461,10 @@ module quick_method_module
                 if (self%iSG .eq. 0) write(io,'(" STANDARD GRID = SG0")')
                 if (self%iSG .eq. 1) write(io,'(" STANDARD GRID = SG1")')
             endif
+
+           write(io,'(" Level shifting allowed after cycle ", I4)') self%LShift_cycle
+           write(io,'(" DIIS error must exceed ", F5.3," for level shifting")') self%LShift_err
+           write(io,'(" HOMO-LUMO gap after level shifting = ", F5.3)') self%LShift_gap
 
             if (self%opt) then
                 write(io,'(" GEOMETRY OPTIMIZATION")',advance="no")
@@ -877,6 +886,15 @@ module quick_method_module
                self%extgrid_angstrom=.true.
                self%ext_grid=.true.
            endif
+           if (index(keyWD,'LSHIFT_CYCLE').ne.0) then
+               call read(keywd,'LSHIFT_CYCLE', self%LShift_cycle)
+           endif
+           if (index(keyWD,'LSHIFT_ERR').ne.0) then
+               call read(keywd,'LSHIFT_ERR', self%LShift_err)
+           endif
+           if (index(keyWD,'LSHIFT_GAP').ne.0) then
+               call read(keywd,'LSHIFT_GAP', self%LShift_gap)
+           endif
         end subroutine read_quick_method
 
 
@@ -926,6 +944,10 @@ module quick_method_module
             self%esp_grid = .false.        ! Electrostatic potential (ESP) on grid
             self%efield_grid = .false.     ! Electric field (EFIELD) evaluated on grid
             self%efg_grid = .false.        ! Electric field gradient (EFG)
+
+            self%LShift_cycle = 3     ! After what cycle allow Level shifting
+            self%LShift_err = 0.1d0   ! Minimum error for allowing Level shifting
+            self%LShift_gap = 0.2d0   ! HOMO-LUMO gap after Level shifting
 
             self%diisOpt =  .false.  ! DIIS Optimization
             self%core =  .false.     !

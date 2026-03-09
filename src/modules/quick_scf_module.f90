@@ -653,7 +653,7 @@ contains
             ! Standard case: rotate o into eigenbasis via hold2(nbasis,nbasis),
             !   shift virtual eigenvalues, rotate back.
             !-----------------------------------------------
-            if(idiis .gt. 2 .and. errormax .gt. 0.1)then
+            if(idiis .ge. quick_method%LShift_cycle .and. errormax .gt. quick_method%LShift_err)then
                LShift = .true.
                if(NBSuse .ne. nbasis) then
                   call MAT_DGEMM ('n', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, quick_qm_struct%oeff, &
@@ -665,7 +665,7 @@ contains
                   homo = quick_molspec%nelec/2
                   shift = quick_qm_struct%oeff(homo+1,homo+1) - quick_qm_struct%oeff(homo,homo)
                   do I=homo+1,NBSuse
-                     quick_qm_struct%oeff(I,I) = quick_qm_struct%oeff(I,I) + (0.2D0 - shift)
+                     quick_qm_struct%oeff(I,I) = quick_qm_struct%oeff(I,I) + (quick_method%LShift_gap - shift)
                   enddo
                else
                   call MAT_DGEMM ('n', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, quick_qm_struct%o, &
@@ -677,7 +677,7 @@ contains
                   homo = quick_molspec%nelec/2
                   shift = quick_qm_struct%o(homo+1,homo+1) - quick_qm_struct%o(homo,homo)
                   do I=homo+1,NBSuse
-                     quick_qm_struct%o(I,I) = quick_qm_struct%o(I,I) + (0.2D0 - shift)
+                     quick_qm_struct%o(I,I) = quick_qm_struct%o(I,I) + (quick_method%LShift_gap - shift)
                   enddo
                end if
             endif
@@ -703,7 +703,7 @@ contains
            !        call DMatMul(nbasis,X,VEC,CO)    ! C=XC'
            ! Near-linear dependency: use hold4(NBSuse,NBSuse) as intermediate.
            ! Standard case: use hold2(nbasis,nbasis) as intermediate.
-           if(idiis .gt. 2 .and. errormax .gt. 0.1)then
+           if(idiis .ge. quick_method%LShift_cycle .and. errormax .gt. quick_method%LShift_err)then
               if(NBSuse .ne. nbasis) then
                  call MAT_DGEMM ('n', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, quick_qm_struct%oldvec, &
                        NBSuse, quick_qm_struct%vec, NBSuse, 0.0d0, quick_scratch%hold4, NBSuse)
