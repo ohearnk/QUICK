@@ -447,7 +447,6 @@ jobs:
               echo "LD_LIBRARY_PATH=$PWD/install/lib:$PWD/install/lib64:$LD_LIBRARY_PATH" >> "$GITHUB_ENV"
             fi
           fi
->>>>>>> master
           echo "DO_PARALLEL=mpirun -np 2" >> "$GITHUB_ENV"
           echo "CC=${{ matrix.c-compiler }}" >> "$GITHUB_ENV"
           echo "CXX=${{ matrix.cxx-compiler }}" >> "$GITHUB_ENV"
