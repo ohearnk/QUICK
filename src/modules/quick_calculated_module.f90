@@ -55,6 +55,9 @@ module quick_calculated_module
       ! effective operator matrix if basis functions are eliminated to remove near-linear dependency
       double precision,dimension(:,:), allocatable :: oeff
 
+      ! effective beta operator matrix if basis functions are eliminated to remove near-linear dependency
+      double precision,dimension(:,:), allocatable :: oeffb
+
       ! matrix for saving XC potential, required for incremental KS build
       double precision,dimension(:,:), allocatable :: oxc 
 
@@ -84,8 +87,12 @@ module quick_calculated_module
       double precision,dimension(:,:), allocatable :: vec
 
       ! matrix to hold eigenvectors for level shifting,
-      ! the dimension is nbasis*nbasis.
+      ! the dimension is NBSuse*NBSuse.
       double precision,dimension(:,:), allocatable :: oldvec
+
+      ! matrix to hold beta eigenvectors for level shifting,
+      ! the dimension is NBSuse*NBSuse.
+      double precision,dimension(:,:), allocatable :: oldvecb
 
       ! Density matrix, when it's unrestricted system, it presents alpha density
       ! the dimension is nbasis*nbasis.
@@ -232,26 +239,44 @@ contains
    !--------------------------------------
    subroutine allocate_quick_qm_struct_fullx(self)
        use quick_molspec_module, only: quick_molspec
+       use quick_method_module,  only: quick_method
 
        implicit none
 
        type (quick_qm_struct_type) self
 
+       ! alpha fields
        if(self%NBSuse.ne.self%nbasis)then
            if(.not. allocated(self%oeff))allocate(self%oeff(self%NBSuse,self%NBSuse))
            self%oeff = 0.0d0
        endif
-       if(.not. allocated(self%x)) allocate(self%x(self%nbasis,self%NBSuse))
-       if(.not. allocated(self%vec))allocate(self%vec(self%NBSuse,self%NBSuse))
-       if(.not. allocated(self%oldvec))allocate(self%oldvec(self%NBSuse,self%NBSuse))
-       if(.not. allocated(self%co))allocate(self%co(self%nbasis,self%NBSuse))
-       if(.not. allocated(self%E))allocate(self%E(self%NBSuse))
+       if(.not. allocated(self%x))      allocate(self%x(self%nbasis,self%NBSuse))
+       if(.not. allocated(self%vec))    allocate(self%vec(self%NBSuse,self%NBSuse))
+       if(.not. allocated(self%oldvec)) allocate(self%oldvec(self%NBSuse,self%NBSuse))
+       if(.not. allocated(self%co))     allocate(self%co(self%nbasis,self%NBSuse))
+       if(.not. allocated(self%E))      allocate(self%E(self%NBSuse))
 
-       self%x = 0.0d0
-       self%vec = 0.0d0
+       self%x      = 0.0d0
+       self%vec    = 0.0d0
        self%oldvec = 0.0d0
-       self%co = 0.0d0
-       self%E = 0.0d0
+       self%co     = 0.0d0
+       self%E      = 0.0d0
+
+       ! beta fields (unrestricted only): cob and Eb are resized to NBSuse here;
+       ! oeffb is only needed when NBSuse < nbasis; oldvecb is always needed.
+       if(quick_method%unrst) then
+          if(self%NBSuse.ne.self%nbasis)then
+             if(.not. allocated(self%oeffb)) allocate(self%oeffb(self%NBSuse,self%NBSuse))
+             self%oeffb = 0.0d0
+          endif
+          if(.not. allocated(self%cob))     allocate(self%cob(self%nbasis,self%NBSuse))
+          if(.not. allocated(self%Eb))      allocate(self%Eb(self%NBSuse))
+          if(.not. allocated(self%oldvecb)) allocate(self%oldvecb(self%NBSuse,self%NBSuse))
+
+          self%cob     = 0.0d0
+          self%Eb      = 0.0d0
+          self%oldvecb = 0.0d0
+       endif
 
    end subroutine
 
@@ -316,16 +341,17 @@ contains
          if(.not. allocated(self%CPHFB)) allocate(self%CPHFB(idimA,natom*3))
       endif
 
-      ! if unrestricted, some more varibles is required to be allocated
-      if (quick_method%unrst) then
-         if(.not. allocated(self%ob)) allocate(self%ob(nbasis,nbasis))
-         if(.not. allocated(self%obSave)) allocate(self%obSave(nbasis,nbasis))
-         if(.not. allocated(self%denseab)) allocate(self%denseab(nbasis,nbasis))
-         if(.not. allocated(self%densebSave)) allocate(self%densebSave(nbasis,nbasis))
-         if(.not. allocated(self%densebOld)) allocate(self%densebOld(nbasis,nbasis))
-         if(.not. allocated(self%cob)) allocate(self%cob(nbasis,nbasis))
-         if(.not. allocated(self%Eb)) allocate(self%Eb(nbasis))
-      endif
+       ! if unrestricted, some more varibles is required to be allocated
+       if (quick_method%unrst) then
+          if(.not. allocated(self%ob)) allocate(self%ob(nbasis,nbasis))
+          if(.not. allocated(self%obSave)) allocate(self%obSave(nbasis,nbasis))
+          if(.not. allocated(self%denseab)) allocate(self%denseab(nbasis,nbasis))
+          if(.not. allocated(self%densebSave)) allocate(self%densebSave(nbasis,nbasis))
+          if(.not. allocated(self%densebOld)) allocate(self%densebOld(nbasis,nbasis))
+!         cob and Eb are allocated in allocate_quick_qm_struct_fullx with NBSuse dimensions
+!          if(.not. allocated(self%cob)) allocate(self%cob(nbasis,nbasis))
+!          if(.not. allocated(self%Eb)) allocate(self%Eb(nbasis))
+       endif
 
       if (quick_method%unrst .or. quick_method%DFT) then
          if(.not. allocated(self%denseb)) allocate(self%denseb(nbasis,nbasis))
@@ -422,8 +448,8 @@ contains
 
       ! if unrestricted, some more varibles is required to be allocated
       if (quick_method%unrst) then
-         call wchk_darray(idatafile, "cob", nbasis, nbasis, 1, self%cob, fail)
-         call wchk_darray(idatafile, "Eb", nbasis, 1, 1, self%Eb, fail)
+         call wchk_darray(idatafile, "cob", nbasis, NBSuse, 1, self%cob, fail)
+         call wchk_darray(idatafile, "Eb", NBSuse, 1, 1, self%Eb, fail)
       endif
 
       if (quick_method%unrst .or. quick_method%DFT) then
@@ -457,10 +483,12 @@ contains
       if (allocated(self%oneElecO)) deallocate(self%oneElecO)
       if (allocated(self%o)) deallocate(self%o)
       if (allocated(self%oeff)) deallocate(self%oeff)
+      if (allocated(self%oeffb)) deallocate(self%oeffb)
       if (allocated(self%oSave)) deallocate(self%oSave)
       if (allocated(self%co)) deallocate(self%co)
       if (allocated(self%vec)) deallocate(self%vec)
       if (allocated(self%oldvec)) deallocate(self%oldvec)
+      if (allocated(self%oldvecb)) deallocate(self%oldvecb)
       if (allocated(self%dense)) deallocate(self%dense)
       if (allocated(self%denseSave)) deallocate(self%denseSave)
       if (allocated(self%denseOld)) deallocate(self%denseOld)
@@ -652,10 +680,10 @@ contains
 
       ! if unrestricted, some more varibles is required to be allocated
       if (quick_method%unrst) then
-         call zeroMatrix(self%cob,nbasis)
+         if (allocated(self%cob))  call zeroMatrix(self%cob,nbasis)
          call zeroMatrix(self%denseab,nbasis)
          call zeroMatrix(self%denseb,nbasis)
-         call zeroVec(self%Eb,nbasis)
+         if (allocated(self%Eb))   call zeroVec(self%Eb,self%NBSuse)
       endif
 
    end subroutine
