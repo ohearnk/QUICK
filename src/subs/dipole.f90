@@ -47,12 +47,43 @@
     ! XSPSX = S^(-1/2)SPSS^(-1/2)= S^(1/2)PS^(1/2)
     ! Currently, HOLD contains PS.  Use the fast multiplier to get SPS and place
     ! it in HOLD2.
-    call MAT_DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_qm_struct%s, &
-         nbasis, quick_scratch%hold, nbasis, 0.0d0, quick_scratch%hold2, nbasis)
-    call MAT_DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_qm_struct%x, &
-         nbasis, quick_scratch%hold2, nbasis, 0.0d0, quick_scratch%hold, nbasis)
-    call MAT_DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_scratch%hold, &
-         nbasis, quick_qm_struct%x, nbasis, 0.0d0, quick_scratch%hold2, nbasis)
+    if(NBSuse .eq. nbasis) then
+        call MAT_DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_qm_struct%s, &
+             nbasis, quick_scratch%hold, nbasis, 0.0d0, quick_scratch%hold2, nbasis)
+        call MAT_DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_qm_struct%x, &
+             nbasis, quick_scratch%hold2, nbasis, 0.0d0, quick_scratch%hold, nbasis)
+        call MAT_DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_scratch%hold, &
+             nbasis, quick_qm_struct%x, nbasis, 0.0d0, quick_scratch%hold2, nbasis)
+    ! If there is near-linear dependency in basis set, quick_qm_struct%x does not contain S(-1/2).
+    ! In such scenario, we will compute S^(1/2) from scratch.
+    ! XSPSX = S^(1/2)PS^(1/2)
+    ! quick_scratch%Sminhalf will contain the eigen values of overlap matrix
+    ! quick_scratch%tmphold, quick_scratch%hold and quick_scratch%hold2 will be used to store intermediates
+    else
+        if(.not. allocated(quick_scratch%Sminhalf)) allocate(quick_scratch%Sminhalf(nbasis))
+        if(.not. allocated(quick_scratch%tmphold)) allocate(quick_scratch%tmphold(nbasis,nbasis))
+        call copyDMat(quick_qm_struct%s, quick_scratch%hold, nbasis)
+        call MAT_DIAG(quick_scratch%hold, nbasis, nbasis, quick_scratch%Sminhalf, quick_scratch%hold2)
+        do J=1,nbasis
+            quick_scratch%tmphold(J,J) = quick_scratch%Sminhalf(J)**(0.5d0)
+        enddo
+
+        call MAT_DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_scratch%hold2, &
+             nbasis, quick_scratch%tmphold, nbasis, 0.0d0, quick_scratch%hold,nbasis)
+        call MAT_DGEMM ('n', 't', nbasis, nbasis, nbasis, 1.0d0, quick_scratch%hold, &
+             nbasis, quick_scratch%hold2, nbasis, 0.0d0, quick_scratch%tmphold,nbasis)
+        IF ( .NOT. quick_method%unrst) THEN
+            call MAT_DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_qm_struct%dense, &
+                 nbasis, quick_scratch%tmphold, nbasis, 0.0d0, quick_scratch%hold, nbasis)
+        ELSE
+            call MAT_DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_qm_struct%dense+quick_qm_struct%denseB, &
+                 nbasis, quick_scratch%tmphold, nbasis, 0.0d0, quick_scratch%hold, nbasis)
+        ENDIF
+        call MAT_DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_scratch%tmphold, &
+             nbasis, quick_scratch%hold, nbasis, 0.0d0, quick_scratch%hold2, nbasis)
+        deallocate(quick_scratch%Sminhalf)
+        deallocate(quick_scratch%tmphold)
+    endif
     
     ! So now HOLD2 contains XSPSX.  Use this to calculate the Lowdin charges.
     DO I=1,natom
