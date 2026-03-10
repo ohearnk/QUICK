@@ -45,8 +45,10 @@ source ../install/quick.rc   # sets QUICK_BASIS, PATH, LD_LIBRARY_PATH, LIBRARY_
 | `-DCMAKE_BUILD_TYPE` | `Debug`, `Release` | Build type |
 | `-DMPI` | `TRUE` | Enable MPI parallel build |
 | `-DCUDA` | `TRUE` | Enable NVIDIA GPU build |
-| `-DQUICK_USER_ARCH` | `volta`, `ampere`, etc. | CUDA GPU architecture |
+| `-DQUICK_USER_ARCH` | `volta`, `turing`, `ampere`, `adalovelace`, `hopper`, etc. | CUDA GPU architecture |
 | `-DWARNINGS` | `TRUE` | Enable compiler warnings |
+
+To build with AMD GPUs, add `-DHIP=TRUE` (plus HIP-specific flags like `-DHIP_WARP64=TRUE`). See `quick-cmake/QUICKCudaConfig.cmake` for details.
 
 See `CMake-Options.md` for the full list.
 
@@ -59,7 +61,8 @@ source install/quick.rc   # sets QUICK_BASIS, PATH, LD_LIBRARY_PATH, LIBRARY_PAT
 ```
 
 MPI variant: replace `--serial` with `--mpi`.
-CUDA variant: replace `--serial` with `--cuda --arch volta`.
+CUDA variant: replace `--serial` with `--cuda --arch volta` (architectures: `kepler`, `maxwell`, `pascal`, `volta`, `turing`, `ampere`, `adalovelace`, `hopper`).
+HIP variants use `--hip` (single GPU) or `--hipmpi` (MPI + HIP). Multi-GPU CUDA builds use `--cudampi`.
 
 ---
 
@@ -79,21 +82,16 @@ cd install
 ### Run the short test suite (CI default)
 
 ```bash
-./runtest --serial               # short set (32 tests)
+./runtest --serial               # short set (31 tests)
 ```
 
 ### Run a single test
 
-QUICK has no built-in single-test flag. Run the executable directly:
+QUICK has no built-in single-test flag. Run the executable directly and compare via `test/ndiff.awk`:
 
 ```bash
 export QUICK_BASIS=/path/to/install/basis
 /path/to/install/bin/quick test/ene_H2O_rhf_sto3g.in
-```
-
-Compare output numerically with the saved reference:
-
-```bash
 awk -f test/ndiff.awk test/saved/ene_H2O_rhf_sto3g.out ene_H2O_rhf_sto3g.out
 ```
 
@@ -105,7 +103,7 @@ awk -f test/ndiff.awk test/saved/ene_H2O_rhf_sto3g.out ene_H2O_rhf_sto3g.out
 ./runtest --serial --opt    # geometry optimization tests only
 ./runtest --serial --api    # API tests only
 ./runtest --serial --esp    # ESP tests only
-./runtest --serial --rw     # restart/checkpoint tests only
+./runtest --serial --chk    # checkpoint/restart tests only
 ```
 
 ### MPI tests
@@ -119,8 +117,9 @@ DO_PARALLEL="mpirun -np 2" ./runtest --mpi --full
 ```bash
 QUICK_BASIS            # path to basis set directory (required)
 DO_PARALLEL            # MPI launcher, e.g. "mpirun -np 2"
-CUDA_VISIBLE_DEVICES   # GPU device IDs for CUDA tests
-PARALLEL_TEST_COUNT    # number of tests to run in parallel (requires GNU parallel)
+CUDA_VISIBLE_DEVICES   # GPU IDs for CUDA tests (comma-separated)
+HIP_VISIBLE_DEVICES    # GPU IDs for HIP tests (comma-separated)
+PARALLEL_TEST_COUNT    # number of tests to run in parallel (GNU parallel)
 ```
 
 ---
@@ -262,11 +261,16 @@ src/gpu/hip/         AMD HIP kernels
 src/octree/          C++ octree for DFT quadrature grids
 src/libxc/           DFT XC functional library (libxc)
 src/util/util.fh     Project-wide Fortran preprocessor header (MUST include)
-test/                Regression test inputs (*.in) and references (saved/*.out)
-test/testlist_full.txt     Full CPU test list (~181 tests)
-test/testlist_short.txt    Short CPU test list
+quick-cmake/         Amber build-system glue and GPU helpers
+test/                Regression test inputs (*.in), GPU lists, references (saved/*.out)
+test/testlist_full.txt      Full CPU test list (~181 tests)
+test/testlist_short.txt     Short CPU test list (31 tests)
+test/testlist_full_gpu.txt  Full GPU test list (~181 tests)
+test/testlist_short_gpu.txt Short GPU test list
 tools/runtest        Test runner script
 basis/               Basis set data files
+.github/workflows/   CI definitions (serial + MPI)
+unit-tests/          Unit/prototype harnesses
 CMake-Options.md     Reference for all CMake build options
 ```
 
@@ -275,7 +279,7 @@ CMake-Options.md     Reference for all CMake build options
 ## CI
 
 GitHub Actions workflows are in `.github/workflows/`:
-- `build_test_serial.yml` — Serial CPU builds with GNU 10–14, Clang 17/18, IntelLLVM, NVHPC, macOS
-- `build_test_mpi.yml` — MPI builds with OpenMPI/MPICH/Intel-MPI across the same compilers
+- `build_test_serial.yml` — Serial builds (legacy + CMake) on Ubuntu 22.04/24.04 (x86/ARM) and macOS 14/15 across GNU 10–15, Clang 17/18/20, IntelLLVM 2024/2025, and NVHPC 25.1.
+- `build_test_mpi.yml` — MPI builds (legacy + CMake) on the same OS spread using OpenMPI, MPICH, and Intel-MPI toolchains.
 
-Both run `./runtest --serial --full` (or `--mpi --full`) and upload test log artifacts.
+Each workflow installs HDF5 when needed, builds QUICK, runs `./runtest --serial --full` or `./runtest --mpi --full`, and archives `runtest.log`, `runtest-verbose.log`, and `test/runs/*` outputs.
