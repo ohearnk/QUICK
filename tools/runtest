@@ -482,29 +482,32 @@ run_test()
   check_mpi_gpu_mismatch $1
   check_mpi_gpu_mismatch_ret="$?"
 
+  failure_detected=0
   if [ "$qexe_ret" -ne 0 ] && [ "$check_f_error_ret" -eq 0 ] && [ "$check_mpi_gpu_mismatch_ret" -eq 0 ]; then
     echo "Error: $qexe execution failed."
     echo ""
-  
+
     # on failure, log header of failing test
     lock_file "$5"
     echo "Running test $3 of $4" | tee -a "$5"
     echo "$2" | tee -a "$5"
     echo "Error: $qexe execution failed." | tee -a "$5"
     unlock_file "$5"
+    failure_detected=1
   fi
 
   if [ "$qexe2_ret" -ne 0 ] && [ "$check_f_error_ret" -eq 0 ] && [ "$check_mpi_gpu_mismatch_ret" -eq 0 ]; then
     echo "Error: $qexe execution failed."
     echo ""
-  
+
     # on failure, log header of failing test
     lock_file "$5"
     echo "Error: $qexe execution failed." | tee -a "$5"
     unlock_file "$5"
+    failure_detected=1
   fi
   
-  if [ "$qexe_ret" -ne 0 ] || [ "$qexe2_ret" -ne 0 ]; then
+  if [ "$failure_detected" -ne 0 ]; then
     exit 1
   fi
 }
