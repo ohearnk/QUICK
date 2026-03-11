@@ -477,37 +477,34 @@ run_test()
   echo >> "$6"
   unlock_file "$6"
 
-  check_f_error $1
+  check_f_error "$1"
   check_f_error_ret="$?"
-  check_mpi_gpu_mismatch $1
+  check_mpi_gpu_mismatch "$1"
   check_mpi_gpu_mismatch_ret="$?"
 
-  failure_detected=0
   if [ "$qexe_ret" -ne 0 ] && [ "$check_f_error_ret" -eq 0 ] && [ "$check_mpi_gpu_mismatch_ret" -eq 0 ]; then
     echo "Error: $qexe execution failed."
     echo ""
-
+  
     # on failure, log header of failing test
     lock_file "$5"
     echo "Running test $3 of $4" | tee -a "$5"
     echo "$2" | tee -a "$5"
     echo "Error: $qexe execution failed." | tee -a "$5"
     unlock_file "$5"
-    failure_detected=1
+
+    exit 1
   fi
 
   if [ "$qexe2_ret" -ne 0 ] && [ "$check_f_error_ret" -eq 0 ] && [ "$check_mpi_gpu_mismatch_ret" -eq 0 ]; then
     echo "Error: $qexe execution failed."
     echo ""
-
+  
     # on failure, log header of failing test
     lock_file "$5"
     echo "Error: $qexe execution failed." | tee -a "$5"
     unlock_file "$5"
-    failure_detected=1
-  fi
-  
-  if [ "$failure_detected" -ne 0 ]; then
+
     exit 1
   fi
 }
@@ -577,9 +574,9 @@ run_energy_test()
   set_test "$1" "$5" "$8"
   run_test "$1" "$2" "$3" "$4" "$6" "$7"
 
-  check_f_error $1
+  check_f_error "$1"
   check_f_error_ret="$?"
-  check_mpi_gpu_mismatch $1
+  check_mpi_gpu_mismatch "$1"
   check_mpi_gpu_mismatch_ret="$?"
 
   lock_file "$6"
@@ -620,9 +617,9 @@ run_grad_test()
   set_test "$1" "$5" "$8"
   run_test "$1" "$2" "$3" "$4" "$6" "$7"
 
-  check_f_error $1
+  check_f_error "$1"
   check_f_error_ret="$?"
-  check_mpi_gpu_mismatch $1
+  check_mpi_gpu_mismatch "$1"
   check_mpi_gpu_mismatch_ret="$?"
 
   lock_file "$6"
@@ -664,9 +661,9 @@ run_opt_test()
   set_test "$1" "$5" "$8"
   run_test "$1" "$2" "$3" "$4" "$6" "$7"
 
-  check_f_error $1
+  check_f_error "$1"
   check_f_error_ret="$?"
-  check_mpi_gpu_mismatch $1
+  check_mpi_gpu_mismatch "$1"
   check_mpi_gpu_mismatch_ret="$?"
 
   lock_file "$6"
@@ -744,9 +741,9 @@ run_chk_test()
   set_test "$1" "$5" "$8"
   run_test "$1" "$2" "$3" "$4" "$6" "$7"
 
-  check_f_error $1
+  check_f_error "$1"
   check_f_error_ret="$?"
-  check_mpi_gpu_mismatch $1
+  check_mpi_gpu_mismatch "$1"
   check_mpi_gpu_mismatch_ret="$?"
 
   lock_file "$6"
@@ -786,9 +783,9 @@ run_esp_test()
   set_test "$1" "$5" "$8"
   run_test "$1" "$2" "$3" "$4" "$6" "$7"
 
-  check_f_error $1
+  check_f_error "$1"
   check_f_error_ret="$?"
-  check_mpi_gpu_mismatch $1
+  check_mpi_gpu_mismatch "$1"
   check_mpi_gpu_mismatch_ret="$?"
 
   lock_file "$6"
