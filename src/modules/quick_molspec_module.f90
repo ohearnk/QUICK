@@ -83,9 +83,6 @@ module quick_molspec_module
       integer, dimension(:), allocatable ::dlfind_freezeatm
       integer, dimension(:,:), allocatable :: dlfind_constr
 
-      ! basis set number
-      integer, pointer:: nbasis
-
    end type quick_molspec_type
 
    type (quick_molspec_type), save :: quick_molspec

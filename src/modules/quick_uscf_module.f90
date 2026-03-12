@@ -101,9 +101,8 @@ contains
      ! number of scfcycles has been reached.
      jscf=0
  
-     if (quick_method%readden) then
-       nbasis = quick_molspec%nbasis
-       if (master) then
+      if (quick_method%readden) then
+        if (master) then
 #if defined(RESTART_HDF5)
          call read_hdf5_int_rank0('molinfo', 2, nbasis)
          call read_hdf5_real8_rank2('dense', (/1,1/), (/nbasis,nbasis/), quick_qm_struct%dense)
