@@ -161,4 +161,4 @@ void CUDA_DIAG (double * o, const int * dim1, const int * dim2, const double * E
     if (devPtr_work) cudaFree(devPtr_work);
 
     if (cusolverH) cusolverDnDestroy(cusolverH);
-};
+}
