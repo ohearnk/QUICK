@@ -139,17 +139,25 @@ PARALLEL_TEST_COUNT    # number of tests to run in parallel (GNU parallel)
   - Examples: `quick_method_module`, `quick_basis_module`, `quick_exception_module`
 - **Types:** `quick_<component>_type` — e.g., `quick_method_type`, `gpu_calculated_type`
 - **Module instances (singletons):** lowercase — e.g., `quick_method`, `quick_molspec`
-- **Subroutines/Functions:** `camelCase` or `PascalCase` for legacy code (`getEnergy`, `PrtAct`);
-  newer code uses `snake_case` (`raise_exception`, `form_dft_grid`)
-- **Variables:** lowercase, short abbreviations — e.g., `natom`, `nbasis`, `ierr`
+- **Subroutines/Functions:** No single style is enforced. `snake_case` is the majority
+  convention across both old and new code (`raise_exception`, `form_dft_grid`,
+  `allocate_quick_scf`). `camelCase` and `PascalCase` appear in legacy files and some
+  newer modules (`getEnergy`, `PrtAct`, `gridformSG0`, `printQuickOutput`). When adding
+  new code, prefer `snake_case`.
+- **Local variables:** lowercase, short abbreviations — e.g., `natom`, `nbasis`, `ierr`
+- **Type member variables:** mixed styles coexist — camelCase (`integralCutoff`,
+  `analGrad`), ALL_CAPS (`HF`, `DFT`, `MP2`), lowercase (`opt`, `grad`), and snake_case
+  (`read_coord`, `esp_charge`). No single rule applies.
 - **Constants/Parameters:** `ALL_CAPS` — e.g., `PI`, `BOHR`, `OUTFILEHANDLE`
-- **Logical flags in types:** `camelCase` — e.g., `quick_method%HF`, `quick_method%analGrad`
 - **Preprocessor macros:** `ALL_CAPS` — e.g., `RECORD_TIME`, `MPIV`, `ENABLEF`, `DEBUG`
 
 ### C/C++/CUDA Naming Conventions
 
-- **Structs/Types:** `snake_case` with `_type` suffix — e.g., `gpu_scratch`, `gpu_timer_type`
-- **Functions:** `snake_case` or `camelCase` — e.g., `get2e`, `upload_sim_to_constant_oei`
+- **Structs/Types:** predominantly `snake_case` with `_type` suffix — e.g.,
+  `gpu_timer_type`, `gpu_simulation_type`. Some structs omit the suffix (`gpu_scratch`)
+  or use mixed-case prefixes (`XC_quadrature_type`, `ERI_entry`).
+- **Functions:** `snake_case` or `camelCase` — both styles appear freely with no clear
+  rule (`get_oshell_eri`, `upload_sim_to_constant` vs. `getOEI`, `getGrad`).
 - **Macros:** `ALL_CAPS` — e.g., `LOC2`, `LOC3`, `SQR`, `VDIM1`
 - **Fortran-callable C functions:** use `extern "C"` with trailing underscore —
   e.g., `gpu_set_device_`, `gpu_upload_method_`
@@ -157,7 +165,8 @@ PARALLEL_TEST_COUNT    # number of tests to run in parallel (GNU parallel)
 ### File Naming
 
 - Fortran modules: `quick_<component>_module.f90`
-- Fortran subroutines (legacy): `PascalCase.f90` or `camelCase.f90`
+- Fortran subroutines: predominantly `snake_case.f90`; some legacy files use
+  `camelCase.f90` or `PascalCase.f90` (`getEnergy.f90`, `CPHF.f90`)
 - CUDA/C++ source: `snake_case.cu`, `snake_case.cpp`, `snake_case.h`
 - GPU headers: `gpu_<purpose>.h` or `gpu_<component>_<type>.h`
 
@@ -166,7 +175,9 @@ PARALLEL_TEST_COUNT    # number of tests to run in parallel (GNU parallel)
 - **Fortran:** 3-space indentation (dominant convention); some legacy files use 2 or 4 spaces
 - **C/CUDA:** 4-space indentation; opening `{` on same line as control structure
 - **CMake:** 4-space (1-tab) indentation
-- All Fortran code must use `implicit none` in every module/program/subroutine scope
+- New Fortran code should use `implicit none` in every scope. Many legacy subroutines
+  use `implicit double precision(a-h,o-z)` instead — do not add new code with implicit
+  typing.
 - Long lines are allowed (compiler flag `-ffree-line-length-none` is set for GNU Fortran)
 - The `tools/amindent` utility can be used to normalize Fortran indentation
 
@@ -244,7 +255,6 @@ Every source file should carry a copyright/license header (MPLv2):
 - CPU-only, MPI, CUDA, and HIP builds share the same source tree. Use preprocessor guards:
   - `#ifdef MPIV` for MPI-specific code
   - `#ifdef CUDA_MPIV` for CUDA+MPI code
-  - `#ifdef OSHM_MPIV` for OpenSHMEM code
 - GPU-callable device functions are annotated with `__device__` / `__global__` (CUDA) or
   the HIP equivalents.
 - Fortran-to-GPU interoperability is done via `iso_c_binding` and `extern "C"` interfaces.
