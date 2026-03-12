@@ -82,7 +82,7 @@ contains
     W           = 0.0d0
     COEFF       = 0.0d0
     RHS         = 0.0d0
-     if(allocated(allerror)) allerror    = 0.0d0
+    allerror    = 0.0d0
     alloperator = 0.0d0
   end subroutine allocate_quick_scf 
 
@@ -99,7 +99,7 @@ contains
     if(allocated(W))           deallocate(W, stat=ierr)
     if(allocated(COEFF))       deallocate(COEFF, stat=ierr)
     if(allocated(RHS))         deallocate(RHS, stat=ierr)
-     if(allocated(allerror))    deallocate(allerror, stat=ierr)
+    if(allocated(allerror))    deallocate(allerror, stat=ierr)
     if(allocated(alloperator)) deallocate(alloperator, stat=ierr)
 
     if(allocated(quick_scratch%hold3)) deallocate(quick_scratch%hold3)
