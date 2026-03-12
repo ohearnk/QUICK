@@ -555,18 +555,13 @@ contains
       call MPI_BARRIER(MPI_COMM_WORLD,mpierror)
       call MPI_BCAST(self%nbasis,1,mpi_integer,0,MPI_COMM_WORLD,mpierror)
       call MPI_BCAST(self%s,nbasis2,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
-      call MPI_BCAST(self%x,nbasis2,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
       call MPI_BCAST(self%oneElecO,nbasis2,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
       call MPI_BCAST(self%o,nbasis2,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
       call MPI_BCAST(self%oSave,nbasis2,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
-      call MPI_BCAST(self%co,nbasis2,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
-      call MPI_BCAST(self%vec,nbasis2,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
-      call MPI_BCAST(self%oldvec,nbasis2,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
       call MPI_BCAST(self%dense,nbasis2,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
       call MPI_BCAST(self%denseSave,nbasis2,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
       call MPI_BCAST(self%denseOld,nbasis2,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
       call MPI_BCAST(self%iDegen,nbasis,mpi_integer,0,MPI_COMM_WORLD,mpierror)
-      call MPI_BCAST(self%E,nbasis,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
 
       call MPI_BCAST(self%Mulliken,nbasis2,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
       call MPI_BCAST(self%Lowdin,nbasis2,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
@@ -585,10 +580,8 @@ contains
       endif
 
       if (quick_method%unrst) then
-         call MPI_BCAST(self%cob,nbasis2,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
          call MPI_BCAST(self%denseab,nbasis2,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
          call MPI_BCAST(self%denseb,nbasis2,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
-         call MPI_BCAST(self%Eb,nbasis,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
          call MPI_BCAST(self%aElec,1,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
          call MPI_BCAST(self%bElec,1,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
       endif
@@ -634,18 +627,12 @@ contains
       nelecb=quick_molspec%nelecb
 
       call zeroMatrix(self%s,nbasis)
-!      call zeroMatrix(self%x,nbasis)
       call zeroMatrix(self%oneElecO,nbasis)
       call zeroMatrix(self%o,nbasis)
-!      call zeroMatrix(self%oeff,nbasis)
       call zeroMatrix(self%oSave,nbasis)
-!      call zeroMatrix(self%co,nbasis)
-!      call zeroMatrix(self%vec,nbasis)
-!      call zeroMatrix(self%oldvec,nbasis)
       call zeroMatrix(self%dense,nbasis)
       call zeroMatrix(self%denseSave,nbasis)
       call zeroMatrix(self%denseOld,nbasis)
-!      call zeroVec(self%E,nbasis)
       call zeroiVec(self%iDegen,nbasis)
       call zeroVec(self%Mulliken,natom)
       call zeroVec(self%Lowdin,natom)

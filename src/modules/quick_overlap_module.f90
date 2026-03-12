@@ -283,7 +283,6 @@ subroutine fullx
          !
          if (NBSuse.ne.nbasis)then
 
-            quick_molspec%NBSuse   => NBSuse
             quick_qm_struct%NBSuse => NBSuse
 
             allocate(quick_scratch%tmpS(NBSuse,NBSuse))
@@ -313,7 +312,6 @@ subroutine fullx
          ! No near-linear dependency
          !
          else
-            quick_molspec%NBSuse   => nbasis
             quick_qm_struct%NBSuse => nbasis
 
             write(ioutfile,'("| condition number of overlap matrix:",2X,es11.3)') &

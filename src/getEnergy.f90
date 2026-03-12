@@ -95,7 +95,6 @@ subroutine getEnergy(isGuess, ierr)
 #ifdef MPIV
    !-------------- MPI / ALL NODES ----------------------------------
    if (bMPI) then
-      quick_molspec%NBSuse   => NBSuse
       quick_qm_struct%NBSuse => NBSuse
 
       call MPI_BCAST(NBSuse,1,mpi_integer,0,MPI_COMM_WORLD,mpierror)
