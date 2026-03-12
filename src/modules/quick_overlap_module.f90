@@ -219,12 +219,7 @@ subroutine fullx
                      Ax,Ay,Az,Bx,By,Bz,Px,Py,Pz,g_table)
             enddo
          enddo
-         ! do not consider small overlap matrix elements
-         if (abs(SJI).gt.quick_method%ovmatelems)then
-             quick_qm_struct%s(Jbas,Ibas) = SJI
-         else
-             quick_qm_struct%s(Jbas,Ibas) = 0.0D0
-         endif
+         quick_qm_struct%s(Jbas,Ibas) = SJI
       enddo
    enddo
 

@@ -132,7 +132,6 @@ module quick_method_module
         double precision :: pmaxrms        = 1.0d-6   ! density matrix convergence criteria
         double precision :: basisCutoff    = 1.0d-6  ! basis set cutoff
         double precision :: overlapCutoff  = 1.0d-5  ! cutoff for near-linear dependency
-        double precision :: ovmatelems     = 1.0d-6  ! cutoff to consider overlap matrix elements
         !signif
 
         ! following are some gradient cutoff criteria
@@ -1003,7 +1002,6 @@ module quick_method_module
             self%pmaxrms        = 1.0d-6   ! density matrix convergence criteria
             self%basisCutoff    = 1.0d-6  ! basis set cutoff
             self%overlapCutoff  = 1.0d-5  ! Near-linear dependency check cutoff
-            self%ovmatelems     = 1.0d-6  ! cutoff to consider overlap matrix elements
 
             self%stepMax        = .1d0/0.529177249d0
                                            ! max change of one step
