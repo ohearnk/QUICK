@@ -210,7 +210,7 @@ contains
      integer :: lsolerr = 0
      integer :: IDIIS_Error_Start, IDIIS_Error_End
      double precision :: BIJ,DENSEJI,errormax,OJK,temp
-     double precision :: Sum2Mat,rms, shift
+     double precision :: Sum2Mat,rms, shift, bandgap
      integer :: I,J,K,L,IERROR, homo
   
       double precision :: oldEnergy=0.0d0,E1e ! energy for last iteration, and 1e-energy
@@ -639,7 +639,9 @@ contains
             !  scratch_sq(NBSuse,NBSuse), virtual eigenvalues are shifted, then
             !  rotated back.
             !-----------------------------------------------
-            if(idiis .ge. quick_method%LShift_cycle .and. errormax .gt. quick_method%LShift_err)then
+            homo = quick_molspec%nelec/2
+            bandgap = quick_qm_struct%E(homo+1) - quick_qm_struct%E(homo)
+            if(idiis .ge. quick_method%LShift_cycle .and. errormax .gt. quick_method%LShift_err .and. quick_method%LShift_gap .gt. bandgap)then
                LShift = .true.
                call MAT_DGEMM ('n', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, operator_ptr, &
                     NBSuse, quick_qm_struct%oldvec, NBSuse, 0.0d0, scratch_sq, NBSuse)
@@ -647,18 +649,16 @@ contains
                call MAT_DGEMM ('t', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, quick_qm_struct%oldvec, &
                     NBSuse, scratch_sq, NBSuse, 0.0d0, operator_ptr, NBSuse)
 
-               homo = quick_molspec%nelec/2
-               shift = operator_ptr(homo+1,homo+1) - operator_ptr(homo,homo)
+               shift = quick_method%LShift_gap - bandgap
                do I=homo+1,NBSuse
-                  operator_ptr(I,I) = operator_ptr(I,I) + (quick_method%LShift_gap - shift)
+                  operator_ptr(I,I) = operator_ptr(I,I) + shift
                enddo
             endif
 
             ! Now diagonalize the operator matrix (operator_ptr points to oeff or o).
             RECORD_TIME(timer_begin%TDiag)
 
-            call MAT_DIAG(operator_ptr, NBSuse, NBSuse, quick_qm_struct%E, &
-                    quick_qm_struct%vec)
+            call MAT_DIAG(operator_ptr, NBSuse, NBSuse, quick_qm_struct%E, quick_qm_struct%vec)
 
             RECORD_TIME(timer_end%TDiag)
 

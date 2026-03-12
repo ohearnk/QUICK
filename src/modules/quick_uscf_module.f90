@@ -169,7 +169,8 @@ contains
      integer :: jscf                ! scf iteration
      integer, intent(inout) :: ierr
   
-     logical :: LShift  = .false.    ! flag if level shifting is being performed
+     logical :: LShift  = .false.     ! flag if level shifting is being performed for alpha
+     logical :: LShiftb  = .false.    ! flag if level shifting is being performed for beta
 
      logical :: diisdone = .false.  ! flag to indicate if diis is done
      logical :: deltaO   = .false.  ! delta Operator
@@ -178,7 +179,7 @@ contains
      integer :: lsolerr = 0
      integer :: IDIIS_Error_Start, IDIIS_Error_End
      double precision :: BIJ,DENSEJI,errormax,OJK,temp
-     double precision :: Sum2Mat,rms, shift
+     double precision :: Sum2Mat,rms, shift, bandgap
      integer :: I,J,K,L,IERROR, homo, homob
   
       double precision :: oldEnergy=0.0d0,E1e ! energy for last iteriation, and 1e-energy
@@ -338,7 +339,8 @@ contains
         endif
 
         ! Level shift is not performed by default
-        LShift = .false.
+        LShift  = .false.
+        LShiftb = .false.
 
         !-----------------------------------------------
         ! Before Delta Densitry Matrix, normal operator is implemented here
@@ -621,25 +623,25 @@ contains
             ! Alpha level shifting (independent, using homo = # alpha electrons)
             ! Applied when DIIS error is large enough and we are past LShift_cycle.
             !-----------------------------------------------
-            if(idiis .ge. quick_method%LShift_cycle .and. errormax .gt. quick_method%LShift_err) then
+            homo = quick_molspec%nelec      ! number of alpha electrons
+            bandgap = quick_qm_struct%E(homo+1) - quick_qm_struct%E(homo)
+            if(idiis .ge. quick_method%LShift_cycle .and. errormax .gt. quick_method%LShift_err .and. quick_method%LShift_gap .gt. bandgap) then
                LShift = .true.
-               homo = quick_molspec%nelec      ! number of alpha electrons
                call MAT_DGEMM ('n', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, alpha_op_ptr, &
                     NBSuse, quick_qm_struct%oldvec, NBSuse, 0.0d0, scratch_sq, NBSuse)
 
                call MAT_DGEMM ('t', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, quick_qm_struct%oldvec, &
                     NBSuse, scratch_sq, NBSuse, 0.0d0, alpha_op_ptr, NBSuse)
 
-               shift = alpha_op_ptr(homo+1,homo+1) - alpha_op_ptr(homo,homo)
+               shift = quick_method%LShift_gap - bandgap
                do I=homo+1,NBSuse
-                  alpha_op_ptr(I,I) = alpha_op_ptr(I,I) + (quick_method%LShift_gap - shift)
+                  alpha_op_ptr(I,I) = alpha_op_ptr(I,I) + shift
                enddo
             endif
 
              ! Now diagonalize the alpha operator matrix.
              RECORD_TIME(timer_begin%TDiag)
-             call MAT_DIAG(alpha_op_ptr, NBSuse, NBSuse, quick_qm_struct%E, &
-                     quick_qm_struct%vec)
+             call MAT_DIAG(alpha_op_ptr, NBSuse, NBSuse, quick_qm_struct%E, quick_qm_struct%vec)
             RECORD_TIME(timer_end%TDiag)
 
             timer_cumer%TDiag = timer_end%TDiag - timer_begin%TDiag
@@ -708,30 +710,31 @@ contains
             ! Beta level shifting (independent, using homob = # beta electrons)
             ! Applied when DIIS error is large enough and we are past LShift_cycle.
             !-----------------------------------------------
-            if(LShift) then
-               homob = quick_molspec%nelecb    ! number of beta electrons
+            homob = quick_molspec%nelecb    ! number of beta electrons
+            bandgap = quick_qm_struct%Eb(homob+1) - quick_qm_struct%Eb(homob)
+            if(idiis .ge. quick_method%LShift_cycle .and. errormax .gt. quick_method%LShift_err .and. quick_method%LShift_gap .gt. bandgap) then
+               LShiftb = .true.
                call MAT_DGEMM ('n', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, beta_op_ptr, &
                     NBSuse, quick_qm_struct%oldvecb, NBSuse, 0.0d0, scratch_sq, NBSuse)
 
                call MAT_DGEMM ('t', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, quick_qm_struct%oldvecb, &
                     NBSuse, scratch_sq, NBSuse, 0.0d0, beta_op_ptr, NBSuse)
 
-               shift = beta_op_ptr(homob+1,homob+1) - beta_op_ptr(homob,homob)
+               shift = quick_method%LShift_gap - bandgap
                do I=homob+1,NBSuse
-                  beta_op_ptr(I,I) = beta_op_ptr(I,I) + (quick_method%LShift_gap - shift)
+                  beta_op_ptr(I,I) = beta_op_ptr(I,I) + shift
                enddo
             endif
 
              ! Now diagonalize the beta operator matrix.
              RECORD_TIME(timer_begin%TDiag)
-             call MAT_DIAG(beta_op_ptr, NBSuse, NBSuse, quick_qm_struct%Eb, &
-                     quick_qm_struct%vec)
+             call MAT_DIAG(beta_op_ptr, NBSuse, NBSuse, quick_qm_struct%Eb, quick_qm_struct%vec)
             RECORD_TIME(timer_end%TDiag)
 
             timer_cumer%TDiag=timer_cumer%TDiag+timer_end%TDiag-timer_begin%TDiag
 
              ! Calculate C = XC' and form a new beta density matrix.
-             if(LShift) then
+             if(LShiftb) then
                 call MAT_DGEMM ('n', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, quick_qm_struct%oldvecb, &
                       NBSuse, quick_qm_struct%vec, NBSuse, 0.0d0, scratch_sq, NBSuse)
                 call MAT_DGEMM ('n', 'n', nbasis, NBSuse, NBSuse, 1.0d0, quick_qm_struct%x, &
