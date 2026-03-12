@@ -169,7 +169,7 @@ contains
      integer :: jscf                ! scf iteration
      integer, intent(inout) :: ierr
   
-     logical :: LShift = .false.    ! flag if level shifting is being performed
+     logical :: LShift  = .false.    ! flag if level shifting is being performed
 
      logical :: diisdone = .false.  ! flag to indicate if diis is done
      logical :: deltaO   = .false.  ! delta Operator
@@ -675,7 +675,7 @@ contains
             ! Calculate C = XC' and form a new alpha density matrix.
             ! Near-linear dependency: use hold4(NBSuse,NBSuse) as intermediate.
             ! Standard case: use hold2(nbasis,nbasis) as intermediate.
-            if(idiis .ge. quick_method%LShift_cycle .and. errormax .gt. quick_method%LShift_err) then
+            if(LShift) then
                if(NBSuse .ne. nbasis) then
                   call MAT_DGEMM ('n', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, quick_qm_struct%oldvec, &
                         NBSuse, quick_qm_struct%vec, NBSuse, 0.0d0, quick_scratch%hold4, NBSuse)
@@ -754,8 +754,7 @@ contains
             ! Beta level shifting (independent, using homob = # beta electrons)
             ! Applied when DIIS error is large enough and we are past LShift_cycle.
             !-----------------------------------------------
-            if(idiis .ge. quick_method%LShift_cycle .and. errormax .gt. quick_method%LShift_err) then
-               LShift = .true.
+            if(LShift) then
                homob = quick_molspec%nelecb    ! number of beta electrons
                if(NBSuse .ne. nbasis) then
                   call MAT_DGEMM ('n', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, quick_qm_struct%oeffb, &
@@ -798,7 +797,7 @@ contains
             ! Calculate C = XC' and form a new beta density matrix.
             ! Near-linear dependency: use hold4(NBSuse,NBSuse) as intermediate.
             ! Standard case: use hold2(nbasis,nbasis) as intermediate.
-            if(idiis .ge. quick_method%LShift_cycle .and. errormax .gt. quick_method%LShift_err) then
+            if(LShift) then
                if(NBSuse .ne. nbasis) then
                   call MAT_DGEMM ('n', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, quick_qm_struct%oldvecb, &
                         NBSuse, quick_qm_struct%vec, NBSuse, 0.0d0, quick_scratch%hold4, NBSuse)

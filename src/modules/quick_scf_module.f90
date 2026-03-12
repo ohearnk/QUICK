@@ -712,7 +712,7 @@ contains
            !        call DMatMul(nbasis,X,VEC,CO)    ! C=XC'
            ! Near-linear dependency: use hold4(NBSuse,NBSuse) as intermediate.
            ! Standard case: use hold2(nbasis,nbasis) as intermediate.
-           if(idiis .ge. quick_method%LShift_cycle .and. errormax .gt. quick_method%LShift_err)then
+           if(LShift)then
               if(NBSuse .ne. nbasis) then
                  call MAT_DGEMM ('n', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, quick_qm_struct%oldvec, &
                        NBSuse, quick_qm_struct%vec, NBSuse, 0.0d0, quick_scratch%hold4, NBSuse)
