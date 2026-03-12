@@ -213,10 +213,19 @@ contains
      double precision :: Sum2Mat,rms, shift
      integer :: I,J,K,L,IERROR, homo
   
-     double precision :: oldEnergy=0.0d0,E1e ! energy for last iteration, and 1e-energy
-     double precision :: PRMS,PCHANGE, tmp
+      double precision :: oldEnergy=0.0d0,E1e ! energy for last iteration, and 1e-energy
+      double precision :: PRMS,PCHANGE, tmp
 
-     double precision :: c_coords(3),c_zeta,c_chg
+      double precision :: c_coords(3),c_zeta,c_chg
+
+      ! Pointers to select the correct operator and scratch arrays depending on
+      ! whether near-linear dependency has reduced the basis (NBSuse < nbasis).
+      ! operator_ptr -> oeff (NBSuse x NBSuse) or o (nbasis x nbasis, used as NBSuse x NBSuse)
+      ! scratch_sq   -> hold4 or hold2  (NBSuse x NBSuse square scratch)
+      ! scratch_rect -> hold3 or hold   (nbasis x NBSuse rectangular scratch)
+      double precision, pointer :: operator_ptr(:,:)
+      double precision, pointer :: scratch_sq(:,:)
+      double precision, pointer :: scratch_rect(:,:)
 
      !---------------------------------------------------------------------------
      ! The purpose of this subroutine is to utilize Pulay's accelerated
@@ -258,6 +267,21 @@ contains
      !---------------------------------------------------------------------------
   
      if(master) call allocate_quick_scf(ierr)
+
+     ! Set up pointers so the DIIS loop uses a single code path regardless of
+     ! whether near-linear dependency has reduced the basis (NBSuse < nbasis):
+     !   operator_ptr -> oeff (NBSuse x NBSuse) or o  (treated as NBSuse x NBSuse)
+     !   scratch_sq   -> hold4 or hold2  (NBSuse x NBSuse square scratch)
+     !   scratch_rect -> hold3 or hold   (nbasis x NBSuse rectangular scratch)
+     if(NBSuse .ne. nbasis) then
+        operator_ptr  => quick_qm_struct%oeff
+        scratch_sq    => quick_scratch%hold4
+        scratch_rect  => quick_scratch%hold3
+     else
+        operator_ptr  => quick_qm_struct%o
+        scratch_sq    => quick_scratch%hold2
+        scratch_rect  => quick_scratch%hold
+     end if
   
      if(master) then
         write(ioutfile,'(40x," SCF ENERGY")')
@@ -424,32 +448,16 @@ contains
            ! The easiest way to do this is to calculate e(i) . X , store
            ! this in a scratch matrix, and then calculate Transpose[X] . (e(i) . X).
            !
-           ! Near-linear dependency (NBSuse < nbasis): use hold3(nbasis,NBSuse) and
-           !   hold4(NBSuse,NBSuse) as rectangular/reduced-size intermediates.
-           ! Standard case (NBSuse == nbasis): reuse hold(nbasis,nbasis) and
-           !   hold2(nbasis,nbasis) — hold2 holds e(i); result written back into hold2,
-           !   then copied to allerror.
+           ! scratch_rect(nbasis,NBSuse) is used as the rectangular intermediate and
+           ! scratch_sq(NBSuse,NBSuse) receives the result.
            !-----------------------------------------------
-            if(NBSuse .ne. nbasis) then
-               call MAT_DGEMM ('n', 'n', nbasis, NBSuse, nbasis, 1.0d0, quick_scratch%hold2, &
-                     nbasis, quick_qm_struct%x, nbasis, 0.0d0, quick_scratch%hold3, nbasis)
+            call MAT_DGEMM ('n', 'n', nbasis, NBSuse, nbasis, 1.0d0, quick_scratch%hold2, &
+                  nbasis, quick_qm_struct%x, nbasis, 0.0d0, scratch_rect, nbasis)
 
-              call MAT_DGEMM ('t', 'n', NBSuse, NBSuse, nbasis, 1.0d0, quick_qm_struct%x, &
-                    nbasis, quick_scratch%hold3, nbasis, 0.0d0, quick_scratch%hold4, NBSuse)
+            call MAT_DGEMM ('t', 'n', NBSuse, NBSuse, nbasis, 1.0d0, quick_qm_struct%x, &
+                  nbasis, scratch_rect, nbasis, 0.0d0, scratch_sq, NBSuse)
 
-              allerror(:,:,iidiis) = quick_scratch%hold4(:,:)
-           else
-              ! Symmetric: hold2 already holds e(i); use hold as intermediate
-              ! e(i) . X -> hold
-              call MAT_DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_scratch%hold2, &
-                    nbasis, quick_qm_struct%x, nbasis, 0.0d0, quick_scratch%hold, nbasis)
-
-              ! X^T . hold -> hold2  (overwrites e(i), which is no longer needed)
-              call MAT_DGEMM ('t', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_qm_struct%x, &
-                    nbasis, quick_scratch%hold, nbasis, 0.0d0, quick_scratch%hold2, nbasis)
-
-              allerror(:,:,iidiis) = quick_scratch%hold2(:,:)
-           end if
+            allerror(:,:,iidiis) = scratch_sq(:,:)
 
            ! allerror matrix contains the error in orthogonal basis.
            ! allerror has dimension NBSuse,NBSuse,iidiis
@@ -503,22 +511,11 @@ contains
            endif
   
             ! Copy the current error slice (j=iidiis) into a scratch array.
-            ! Near-linear dependency: use hold4 (NBSuse x NBSuse).
-            ! Standard case: use hold2/hold (nbasis x nbasis = NBSuse x NBSuse).
-            if(NBSuse .ne. nbasis) then
-               quick_scratch%hold4(:,:) = allerror(:,:,iidiis)
-            else
-               quick_scratch%hold2(:,:) = allerror(:,:,iidiis)
-            end if
+            scratch_sq(:,:) = allerror(:,:,iidiis)
 
             do I=1,IDIISfinal
                ! Calculate and sum together the diagonal elements of e(i) Transpose(e(j))).
-               if(NBSuse .ne. nbasis) then
-                  BIJ=Sum2Mat(quick_scratch%hold4,allerror(:,:,I),NBSuse)
-               else
-                  quick_scratch%hold(:,:) = allerror(:,:,I)
-                  BIJ=Sum2Mat(quick_scratch%hold2,quick_scratch%hold,NBSuse)
-               end if
+               BIJ=Sum2Mat(scratch_sq,allerror(:,:,I),NBSuse)
               
               ! Now place this in the B matrix.
               if(idiis.le.quick_method%maxdiisscf)then
@@ -536,20 +533,11 @@ contains
   
            if(idiis.gt.quick_method%maxdiisscf)then
               ! Roll allerror ring buffer: save slot 1, shift down, restore to last slot.
-              ! Near-linear dependency: use hold4 as temp; symmetric: use hold2.
-              if(NBSuse .ne. nbasis) then
-                 quick_scratch%hold4(:,:) = allerror(:,:,1)
-                 do J=1,quick_method%maxdiisscf-1
-                    allerror(:,:,J) = allerror(:,:,J+1)
-                 enddo
-                 allerror(:,:,quick_method%maxdiisscf) = quick_scratch%hold4(:,:)
-              else
-                 quick_scratch%hold2(:,:) = allerror(:,:,1)
-                 do J=1,quick_method%maxdiisscf-1
-                    allerror(:,:,J) = allerror(:,:,J+1)
-                 enddo
-                 allerror(:,:,quick_method%maxdiisscf) = quick_scratch%hold2(:,:)
-              end if
+               scratch_sq(:,:) = allerror(:,:,1)
+               do J=1,quick_method%maxdiisscf-1
+                  allerror(:,:,J) = allerror(:,:,J+1)
+               enddo
+               allerror(:,:,quick_method%maxdiisscf) = scratch_sq(:,:)
            endif
   
            ! Now that all the BIJ elements are in place, fill in all the column
@@ -636,73 +624,41 @@ contains
             ! 8) Diagonalize the operator matrix to form a new density matrix.
             ! First you have to transpose this into an orthogonal basis, which
             ! is accomplished by calculating Transpose[X] . O . X.
-            ! Near-linear dependency (NBSuse < nbasis): use hold3(nbasis,NBSuse) as rectangular intermediate;
-            !   result stored in oeff(NBSuse,NBSuse).
-            ! Standard case (NBSuse == nbasis): use hold(nbasis,nbasis) as intermediate;
-            !   result stored back in o(nbasis,nbasis).
+            ! scratch_rect(nbasis,NBSuse) is used as the rectangular intermediate;
+            ! operator_ptr(NBSuse,NBSuse) receives the result.
             !-----------------------------------------------
-            if(NBSuse .ne. nbasis) then
-               call MAT_DGEMM ('n', 'n', nbasis, NBSuse, nbasis, 1.0d0, quick_qm_struct%o, &
-                     nbasis, quick_qm_struct%x, nbasis, 0.0d0, quick_scratch%hold3, nbasis)
+            call MAT_DGEMM ('n', 'n', nbasis, NBSuse, nbasis, 1.0d0, quick_qm_struct%o, &
+                  nbasis, quick_qm_struct%x, nbasis, 0.0d0, scratch_rect, nbasis)
 
-               call MAT_DGEMM ('t', 'n', NBSuse, NBSuse, nbasis, 1.0d0, quick_qm_struct%x, &
-                     nbasis, quick_scratch%hold3, nbasis, 0.0d0, quick_qm_struct%oeff, NBSuse)
-            else
-               call MAT_DGEMM ('n', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_qm_struct%o, &
-                     nbasis, quick_qm_struct%x, nbasis, 0.0d0, quick_scratch%hold, nbasis)
-
-               call MAT_DGEMM ('t', 'n', nbasis, nbasis, nbasis, 1.0d0, quick_qm_struct%x, &
-                     nbasis, quick_scratch%hold, nbasis, 0.0d0, quick_qm_struct%o, nbasis)
-            end if
+            call MAT_DGEMM ('t', 'n', NBSuse, NBSuse, nbasis, 1.0d0, quick_qm_struct%x, &
+                  nbasis, scratch_rect, nbasis, 0.0d0, operator_ptr, NBSuse)
 
             !-----------------------------------------------
-            !  Level shifting if the DIIS error is large
-            ! Near-linear dependency: rotate oeff into eigenbasis via hold4(NBSuse,NBSuse),
-            !   shift virtual eigenvalues, rotate back.
-            ! Standard case: rotate o into eigenbasis via hold2(nbasis,nbasis),
-            !   shift virtual eigenvalues, rotate back.
+            !  Level shifting if the DIIS error is large.
+            !  operator_ptr(NBSuse,NBSuse) is rotated into the eigenbasis via
+            !  scratch_sq(NBSuse,NBSuse), virtual eigenvalues are shifted, then
+            !  rotated back.
             !-----------------------------------------------
             if(idiis .ge. quick_method%LShift_cycle .and. errormax .gt. quick_method%LShift_err)then
                LShift = .true.
-               if(NBSuse .ne. nbasis) then
-                  call MAT_DGEMM ('n', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, quick_qm_struct%oeff, &
-                       NBSuse, quick_qm_struct%oldvec, NBSuse, 0.0d0, quick_scratch%hold4, NBSuse)
+               call MAT_DGEMM ('n', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, operator_ptr, &
+                    NBSuse, quick_qm_struct%oldvec, NBSuse, 0.0d0, scratch_sq, NBSuse)
 
-                  call MAT_DGEMM ('t', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, quick_qm_struct%oldvec, &
-                       NBSuse, quick_scratch%hold4, NBSuse, 0.0d0, quick_qm_struct%oeff, NBSuse)
+               call MAT_DGEMM ('t', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, quick_qm_struct%oldvec, &
+                    NBSuse, scratch_sq, NBSuse, 0.0d0, operator_ptr, NBSuse)
 
-                  homo = quick_molspec%nelec/2
-                  shift = quick_qm_struct%oeff(homo+1,homo+1) - quick_qm_struct%oeff(homo,homo)
-                  do I=homo+1,NBSuse
-                     quick_qm_struct%oeff(I,I) = quick_qm_struct%oeff(I,I) + (quick_method%LShift_gap - shift)
-                  enddo
-               else
-                  call MAT_DGEMM ('n', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, quick_qm_struct%o, &
-                       NBSuse, quick_qm_struct%oldvec, NBSuse, 0.0d0, quick_scratch%hold2, NBSuse)
-
-                  call MAT_DGEMM ('t', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, quick_qm_struct%oldvec, &
-                       NBSuse, quick_scratch%hold2, NBSuse, 0.0d0, quick_qm_struct%o, NBSuse)
-
-                  homo = quick_molspec%nelec/2
-                  shift = quick_qm_struct%o(homo+1,homo+1) - quick_qm_struct%o(homo,homo)
-                  do I=homo+1,NBSuse
-                     quick_qm_struct%o(I,I) = quick_qm_struct%o(I,I) + (quick_method%LShift_gap - shift)
-                  enddo
-               end if
+               homo = quick_molspec%nelec/2
+               shift = operator_ptr(homo+1,homo+1) - operator_ptr(homo,homo)
+               do I=homo+1,NBSuse
+                  operator_ptr(I,I) = operator_ptr(I,I) + (quick_method%LShift_gap - shift)
+               enddo
             endif
 
-            ! Now diagonalize the operator matrix.
-            ! Near-linear dependency (NBSuse < nbasis): diagonalize oeff(NBSuse,NBSuse).
-            ! Standard case (NBSuse == nbasis): diagonalize o(nbasis,nbasis) in place.
+            ! Now diagonalize the operator matrix (operator_ptr points to oeff or o).
             RECORD_TIME(timer_begin%TDiag)
 
-            if(NBSuse .ne. nbasis) then
-               call MAT_DIAG(quick_qm_struct%oeff, NBSuse, NBSuse, quick_qm_struct%E, &
-                       quick_qm_struct%vec)
-            else
-               call MAT_DIAG(quick_qm_struct%o, NBSuse, NBSuse, quick_qm_struct%E, &
-                       quick_qm_struct%vec)
-            end if
+            call MAT_DIAG(operator_ptr, NBSuse, NBSuse, quick_qm_struct%E, &
+                    quick_qm_struct%vec)
 
             RECORD_TIME(timer_end%TDiag)
 
@@ -710,22 +666,13 @@ contains
            ! The C' is from the above diagonalization.  Also, save the previous
            ! Density matrix to check for convergence.
            !        call DMatMul(nbasis,X,VEC,CO)    ! C=XC'
-           ! Near-linear dependency: use hold4(NBSuse,NBSuse) as intermediate.
-           ! Standard case: use hold2(nbasis,nbasis) as intermediate.
+           ! scratch_sq(NBSuse,NBSuse) is used as intermediate when level-shifting.
            if(LShift)then
-              if(NBSuse .ne. nbasis) then
-                 call MAT_DGEMM ('n', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, quick_qm_struct%oldvec, &
-                       NBSuse, quick_qm_struct%vec, NBSuse, 0.0d0, quick_scratch%hold4, NBSuse)
-                 call MAT_DGEMM ('n', 'n', nbasis, NBSuse, NBSuse, 1.0d0, quick_qm_struct%x, &
-                       nbasis, quick_scratch%hold4, NBSuse, 0.0d0, quick_qm_struct%co, nbasis)
-                 quick_qm_struct%oldvec(:,:) = quick_scratch%hold4(:,:)
-              else
-                 call MAT_DGEMM ('n', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, quick_qm_struct%oldvec, &
-                       NBSuse, quick_qm_struct%vec, NBSuse, 0.0d0, quick_scratch%hold2, NBSuse)
-                 call MAT_DGEMM ('n', 'n', nbasis, NBSuse, NBSuse, 1.0d0, quick_qm_struct%x, &
-                       nbasis, quick_scratch%hold2, NBSuse, 0.0d0, quick_qm_struct%co, nbasis)
-                 quick_qm_struct%oldvec(:,:) = quick_scratch%hold2(:,:)
-              end if
+              call MAT_DGEMM ('n', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, quick_qm_struct%oldvec, &
+                    NBSuse, quick_qm_struct%vec, NBSuse, 0.0d0, scratch_sq, NBSuse)
+              call MAT_DGEMM ('n', 'n', nbasis, NBSuse, NBSuse, 1.0d0, quick_qm_struct%x, &
+                    nbasis, scratch_sq, NBSuse, 0.0d0, quick_qm_struct%co, nbasis)
+              quick_qm_struct%oldvec(:,:) = scratch_sq(:,:)
            else
                call MAT_DGEMM ('n', 'n', nbasis, NBSuse, NBSuse, 1.0d0, quick_qm_struct%x, &
                      nbasis, quick_qm_struct%vec, NBSuse, 0.0d0, quick_qm_struct%co,nbasis)

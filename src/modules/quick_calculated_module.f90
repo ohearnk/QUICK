@@ -193,7 +193,7 @@ module quick_calculated_module
 
    end type quick_qm_struct_type
 
-   type (quick_qm_struct_type) quick_qm_struct
+   type (quick_qm_struct_type), target :: quick_qm_struct
 
    !----------------------
    ! Interface

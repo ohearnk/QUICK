@@ -37,7 +37,7 @@ module quick_scratch_module
 #endif
     end type quick_scratch_type
     
-    type (quick_scratch_type) quick_scratch
+    type (quick_scratch_type), target :: quick_scratch
     
 !    double precision, dimension(:,:), allocatable :: V2  !,hold,hold2
     
