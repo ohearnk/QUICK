@@ -1,0 +1,231 @@
+| *********************************************************************************************************
+| **                                                                                                     **
+| **           888888888888                                                                              **
+| **         8888888888888888                                                                            **
+| **      888888888888888888                                                                             **
+| **     888888888888888888                                                                              **
+| **    888888888888888                                                                                  **
+| **   88888888888888888888                               88888                       8888:              **
+| **   8888888888888888888888Z                            88888                       8888:              **
+| **   888888888888888888888888?                          88888                       8888:              **
+| **   8888888888888      8888888                                        888888       8888:              **
+| **    88888888888         888888     8888:     88888    88888        888888888I     8888:    888888    **
+| **    8888888888           88888:    8888:     88888    88888      $888888888888    8888:   888888     **
+| **    I8Z 88888             88888    8888:     88888    88888    .888888     8888   8888: 888888       **
+| **    .8Z 88888             88888    8888:     88888    88888    $88888             8888:88888         **
+| **     8I 88888      .=88. .88888    8888:     88888    88888    88888              8888888888         **
+| **    :8  88888      888888$8888$    8888:     88888    88888    8888O              88888888888        **
+| **   ,7   +88888.     8888888888.    8888:     88888    88888    888888             88888O888888       **
+| **         $888888:.   .8888888      88888....888888    88888     888888     8888   8888:  888888      **
+| **          I8888888888888888888     888888888888888    88888     O888888888888O    8888:   888888     **
+| **            O888888888888888888     88888888888888    88888       88888888888$    8888:    888888    **
+| **               8888888Z     888      .8888I  88888    88888         8888888       8888:     888888   **
+| **                                                                                                     **
+| **                                                                                                     **
+| **                                         Copyright (c) 2025                                          **
+| **                          Regents of the University of California San Diego                          **
+| **                                    & Michigan State University                                      **
+| **                                        All Rights Reserved.                                         **
+| **                                                                                                     **
+| **             This software is subject to the terms of the Mozilla Public License, v. 2.0.            **
+| **                                                                                                     **
+| *********************************************************************************************************
+|                                                                                                          
+| Cite this work as:                                                                                       
+| Manathunga, M.; O'Hearn, K. A.; Shajan, A.; Smith, J.; Miao, Y.; He, X.; Ayers, K.;                      
+| Brothers, E.; Palos, E.; Tripathy, V.; Goetz, A.W.; Merz, K.M. QUICK-25.03.                              
+| University of California,San Diego, CA and                                                               
+| Michigan State University, East Lansing, MI, 2025                                                        
+|                                                                                                          
+| If you have any comments or queries, please reach out to us on GitHub issues or discussion sections:     
+| https://github.com/merzlab/QUICK.                                                                        
+|                                                                                                          
+| TASK STARTS ON: Thu Mar 12 17:23:33 2026
+| INPUT FILE :    ene_benzene_ub3lyp_aug-cc-pvdz_triplet.in
+| OUTPUT FILE:    ene_benzene_ub3lyp_aug-cc-pvdz_triplet.out
+| BASIS SET PATH: /scratch/vtripathy/QUICK/install/basis
+
+| - MPI Enabled -
+| TOTAL RANKS     =    20
+| MASTER NAME     = flamey                        
+
+ @ Read Job And Atom
+
+  KEYWORD=UDFT B3LYP BASIS=AUG-CC-PVDZ CUTOFF=1.0E-10 DENSERMS=1.0E-6 MULT=3
+ ============== JOB CARD =============
+ METHOD = DENSITY FUNCTIONAL THEORY
+ USING LIBXC VERSION: 4.3.4
+ FUNCTIONAL INFORMATION:
+ NAME = B3LYP FAMILY = HYBRID GGA KIND = EXCHANGE CORRELATION
+ DIRECT SCF 
+ SAD INITAL GUESS 
+ UNRESTRICTED SYSTEM
+ USE DIIS SCF
+ PRINT ENERGY EVERY CYCLE
+ READ SAD GUESS FROM FILE
+ STANDARD GRID = SG1
+ Level shifting allowed after cycle    3
+ DIIS error must exceed 0.100 for level shifting
+ HOMO-LUMO gap after level shifting = 0.200
+ MAX SCF CYCLES =    200
+ MAX DIIS CYCLES =   10
+ DELTA DENSITY START CYCLE =    3
+ COMPUTATIONAL CUTOFF: 
+      TWO-e INTEGRAL         =  0.100E-09
+      BASIS SET PRIME        =  0.100E-10
+      MATRIX ELEMENTS        =  0.100E-09
+      BASIS FUNCTION         =  0.100E-05
+      NEAR-LINEAR DEPENDENCY =  0.100E-04
+ DENSITY MATRIX MAXIMUM RMS FOR CONVERGENCE  =  0.100E-05
+ BASIS SET = AUG-CC-PVDZ,  TYPE = CARTESIAN
+| BASIS FILE = /scratch/vtripathy/QUICK/install/basis/AUG-CC-PVDZ.BAS
+| DATA FILE  =    ene_benzene_ub3lyp_aug-cc-pvdz_triplet.dat
+
+ @ Finish reading job
+
+
+ @ Begin SAD initial guess
+
+ For Atom Kind =    1
+ ELEMENT = C 
+ BASIS FUNCTIONS =   25
+ For Atom Kind =    2
+ ELEMENT = H 
+ BASIS FUNCTIONS =    9
+
+ @ Finish SAD initial guess
+
+
+ @ Begin Reading Molecular Information
+
+
+ =========== Molecule Input ==========
+ TOTAL MOLECULAR CHARGE  =    0    MULTIPLICITY                =    3
+ TOTAL ATOM NUMBER       =   12    NUMBER OF ATOM TYPES        =    2
+ NUMBER OF HYDROGEN ATOM =    6    NUMBER OF NON-HYDROGEN ATOM =    6
+ NUMBER OF ALPHA ELECTRONS =   22
+ NUMBER OF BETA ELECTRONS  =   20
+
+ -- INPUT GEOMETRY -- :
+    C           0.6950      -1.2040       0.0000
+    C           1.3910       0.0000       0.0000
+    C           0.6950       1.2040       0.0000
+    C          -0.6950       1.2040       0.0000
+    C          -1.3910       0.0000       0.0000
+    C          -0.6950      -1.2040       0.0000
+    H           1.2420      -2.1520       0.0000
+    H           2.4850       0.0000       0.0000
+    H           1.2420       2.1520       0.0000
+    H          -1.2420       2.1520       0.0000
+    H          -2.4850       0.0000       0.0000
+    H          -1.2420      -2.1520       0.0000
+
+ -- DISTANCE MATRIX -- :
+              1           2           3           4           5
+      1     0.00000
+      2     2.62803     0.00000
+      3     4.55046     2.62803     0.00000
+      4     5.25417     4.55146     2.62672     0.00000
+      5     4.55146     5.25722     4.55146     2.62803     0.00000
+      6     2.62672     4.55146     5.25417     4.55046     2.62803
+      7     2.06829     4.07643     6.42561     7.32246     6.42612
+      8     4.07661     2.06736     4.07661     6.42563     7.32458
+      9     6.42561     4.07643     2.06829     4.07527     6.42612
+     10     7.32246     6.42612     4.07527     2.06829     4.07643
+     11     6.42563     7.32458     6.42563     4.07661     2.06736
+     12     4.07527     6.42612     7.32246     6.42561     4.07643
+              6           7           8           9          10
+      6     0.00000
+      7     4.07527     0.00000
+      8     6.42563     4.69632     0.00000
+      9     7.32246     8.13338     4.69632     0.00000
+     10     6.42561     9.39075     8.13277     4.69408     0.00000
+     11     4.07661     8.13277     9.39194     8.13277     4.69632
+     12     2.06829     4.69408     8.13277     9.39075     8.13338
+             11          12
+     11     0.00000
+     12     4.69632     0.00000
+
+============== BASIS INFOS ==============
+ BASIS FUNCTIONS =  204
+ NSHELL =   84 NPRIM  =  324
+ JSHELL =   84 JBASIS =  180
+
+
+ @ End Reading Molecular Information 
+
+
+ @ Begin XC Quadrature Formation
+
+ OCTAGO: OCTree Algorithm for Grid Operations 
+   PRUNING CUTOFF       = 0.100E-06
+   INITIAL GRID POINTS  =       45408
+|   FINAL GRID POINTS    =       30871
+|   SIGNIFICANT NUMBER OF BASIS FUNCTIONS     =       83630
+|   SIGNIFICANT NUMBER OF PRIMITIVE FUNCTIONS =       88256
+
+ @ End XC Quadrature Formation
+
+
+ @ Begin Energy Calculation
+
+| Number of total basis functions:    204
+| Number of linearly independent basis functions:    200
+| condition number of overlap matrix:    1.113E+07
+| Smallest eigenvalue of overlap matrix:    1.973E-06
+
+                                         USCF ENERGY
+| ------------------------------------------------------------------------------------------------------------------------
+| NCYC       ENERGY         DELTA_E      SCF_TIME  DII_CYC   DII_TIME   O_TIME  DIAG_TIME    MAX_ERR    RMS_CHG    MAX_CHG
+| ------------------------------------------------------------------------------------------------------------------------
+|  1   -234.044260330      ------         0.573     1        0.05      0.52      0.01    0.2144E+01  0.2579E-01  0.5506E+00
+|  2   -231.998920477  -.204534E+01       1.359     2        0.05      1.31      0.01    0.1400E+00  0.1255E-01  0.4149E+00
+|  3   -231.977008394  -.219121E-01       1.373     3        0.07      1.31      0.01    0.1534E+00  0.3374E-02  0.1066E+00
+|   ***  Level shifting applied to alpha ( HOMO-LUMO gap =  0.014 au ) ***
+|   ***  Level shifting applied to beta ( HOMO-LUMO gap =  0.048 au ) ***
+|  4   -232.109035251  0.132027E+00       1.383     4        0.05      1.33      0.01    0.2354E-01  0.2326E-02  0.8435E-01
+|  5   -232.114178946  0.514369E-02       1.337     5        0.05      1.28      0.01    0.3435E-02  0.3683E-03  0.1577E-01
+|  6   -232.114462644  0.283698E-03       1.320     6        0.05      1.27      0.01    0.8294E-03  0.1107E-03  0.4393E-02
+|  7   -232.114498536  0.358921E-04       1.299     7        0.05      1.25      0.01    0.5813E-03  0.7003E-04  0.2560E-02
+|  8   -232.114517007  0.184710E-04       1.305     8        0.05      1.25      0.01    0.3295E-03  0.6311E-04  0.1318E-02
+|  9   -232.114528496  0.114891E-04       1.270     9        0.05      1.22      0.01    0.3191E-03  0.5281E-04  0.1078E-02
+| 10   -232.114536703  0.820731E-05       1.286    10        0.05      1.23      0.01    0.2791E-03  0.1280E-03  0.2603E-02
+| 11   -232.114550836  0.141323E-04       1.301     1        0.05      1.25      0.01    0.1837E-03  0.1840E-03  0.3408E-02
+| 12   -232.114559747  0.891181E-05       1.308     2        0.05      1.26      0.01    0.2943E-04  0.1151E-04  0.2621E-03
+| 13   -232.114559969  0.221214E-06       1.222     3        0.05      1.17      0.01    0.2299E-04  0.8308E-05  0.1950E-03
+| 14   -232.114560047  0.783241E-07       1.226     4        0.05      1.17      0.01    0.6292E-05  0.3278E-05  0.6589E-04
+| 15   -232.114560054  0.741437E-08       1.188     5        0.05      1.14      0.01    0.4190E-05  0.1438E-05  0.2690E-04
+| 16   -232.114560055  0.684850E-09       1.176     6        0.05      1.12      0.01    0.4218E-05  0.1704E-06  0.4019E-05
+| ------------------------------------------------------------------------------------------------------------------------
+| REACH CONVERGENCE AFTER  16 CYCLES
+| MAX ERROR = 0.421833E-05   RMS CHANGE = 0.170370E-06   MAX CHANGE = 0.401919E-05
+| -----------------------------------------------
+ ALPHA ELECTRON DENSITY    =   22.0003623671
+ BETA ELECTRON DENSITY     =   20.0003262025
+ ELECTRONIC ENERGY    =   -435.858884090
+ CORE_CORE REPULSION  =    203.744324035
+ TOTAL ENERGY         =   -232.114560055
+
+ @ End Energy calculation
+
+  Skipping one-electron property calculation.
+
+ @ Output Timing Information
+
+------------- TIMING ---------------
+| INITIAL GUESS TIME  =     0.354771000(  1.74%)
+| DFT GRID OPERATIONS =     0.060587000(  0.30%)
+| TOTAL SCF TIME      =    19.925519000( 97.72%)
+|       TOTAL OP TIME      =    19.074332000( 93.55%)
+|             TOTAL 1e TIME      =     0.002181000(  0.01%)
+|             TOTAL 2e TIME      =    16.539994000( 81.12%)
+|             TOTAL EXC TIME     =     2.474412000( 12.14%)
+|       TOTAL DII TIME      =     0.851174000(  4.17%)
+|             TOTAL DIAG TIME    =     0.012482000(  0.06%)
+| TOTAL TIME          =    20.390377000
+------------------------------------
+| Job cpu time:  0 days  0 hours  0 minutes 20.4 seconds.
+
+ @ Finish Output Timing Information
+
+| Normal Termination. Task Finished on: Thu Mar 12 17:23:53 2026
