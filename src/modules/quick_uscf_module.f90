@@ -179,7 +179,7 @@ contains
      integer :: lsolerr = 0
      integer :: IDIIS_Error_Start, IDIIS_Error_End
      double precision :: BIJ,DENSEJI,errormax,OJK,temp
-     double precision :: Sum2Mat,rms, shift, bandgap
+     double precision :: Sum2Mat,rms, shift, bandgap, bandgapb
      integer :: I,J,K,L,IERROR, homo, homob
   
       double precision :: oldEnergy=0.0d0,E1e ! energy for last iteriation, and 1e-energy
@@ -625,7 +625,8 @@ contains
             !-----------------------------------------------
             homo = quick_molspec%nelec      ! number of alpha electrons
             bandgap = quick_qm_struct%E(homo+1) - quick_qm_struct%E(homo)
-            if(idiis .ge. quick_method%LShift_cycle .and. errormax .gt. quick_method%LShift_err .and. quick_method%LShift_gap .gt. bandgap) then
+            if(idiis .ge. quick_method%LShift_cycle .and. errormax .gt. quick_method%LShift_err .and. &
+               quick_method%LShift_gap .gt. bandgap) then
                LShift = .true.
                call MAT_DGEMM ('n', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, alpha_op_ptr, &
                     NBSuse, quick_qm_struct%oldvec, NBSuse, 0.0d0, scratch_sq, NBSuse)
@@ -711,8 +712,9 @@ contains
             ! Applied when DIIS error is large enough and we are past LShift_cycle.
             !-----------------------------------------------
             homob = quick_molspec%nelecb    ! number of beta electrons
-            bandgap = quick_qm_struct%Eb(homob+1) - quick_qm_struct%Eb(homob)
-            if(idiis .ge. quick_method%LShift_cycle .and. errormax .gt. quick_method%LShift_err .and. quick_method%LShift_gap .gt. bandgap) then
+            bandgapb = quick_qm_struct%Eb(homob+1) - quick_qm_struct%Eb(homob)
+            if(idiis .ge. quick_method%LShift_cycle .and. errormax .gt. quick_method%LShift_err .and. &
+               quick_method%LShift_gap .gt. bandgapb) then
                LShiftb = .true.
                call MAT_DGEMM ('n', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, beta_op_ptr, &
                     NBSuse, quick_qm_struct%oldvecb, NBSuse, 0.0d0, scratch_sq, NBSuse)
@@ -720,7 +722,7 @@ contains
                call MAT_DGEMM ('t', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, quick_qm_struct%oldvecb, &
                     NBSuse, scratch_sq, NBSuse, 0.0d0, beta_op_ptr, NBSuse)
 
-               shift = quick_method%LShift_gap - bandgap
+               shift = quick_method%LShift_gap - bandgapb
                do I=homob+1,NBSuse
                   beta_op_ptr(I,I) = beta_op_ptr(I,I) + shift
                enddo
@@ -806,7 +808,8 @@ contains
            write (ioutfile,'(E10.4,2x)',advance="no") errormax
            write (ioutfile,'(E10.4,2x,E10.4)')  PRMS,PCHANGE
 
-           if(LShift) write (ioutfile,'("|   ***  Level shifting is being applied  ***")')
+           if(Lshift) write (ioutfile,'("|   ***  Level shifting applied to alpha ( HOMO-LUMO gap = ",F6.3," au ) ***")') bandgap
+           if(Lshiftb) write (ioutfile,'("|   ***  Level shifting applied to beta ( HOMO-LUMO gap = ",F6.3," au ) ***")') bandgapb
            if (lsolerr /= 0) write (ioutfile,'(" DIIS FAILED !!", &
                  & " PERFORM NORMAL SCF. (NOT FATAL.)")')
   

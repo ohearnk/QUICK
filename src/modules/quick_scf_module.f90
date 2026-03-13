@@ -641,7 +641,8 @@ contains
             !-----------------------------------------------
             homo = quick_molspec%nelec/2
             bandgap = quick_qm_struct%E(homo+1) - quick_qm_struct%E(homo)
-            if(idiis .ge. quick_method%LShift_cycle .and. errormax .gt. quick_method%LShift_err .and. quick_method%LShift_gap .gt. bandgap)then
+            if(idiis .ge. quick_method%LShift_cycle .and. errormax .gt. quick_method%LShift_err .and. &
+               quick_method%LShift_gap .gt. bandgap)then
                LShift = .true.
                call MAT_DGEMM ('n', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, operator_ptr, &
                     NBSuse, quick_qm_struct%oldvec, NBSuse, 0.0d0, scratch_sq, NBSuse)
@@ -733,7 +734,7 @@ contains
            write (ioutfile,'(E10.4,2x)',advance="no") errormax
            write (ioutfile,'(E10.4,2x,E10.4)')  PRMS,PCHANGE
   
-           if(LShift) write (ioutfile,'("|   ***  Level shifting is being applied  ***")')
+           if(LShift) write (ioutfile,'("|   ***  Level shifting applied  ( HOMO-LUMO gap = ",F6.3," au ) ***")')bandgap
            if (lsolerr /= 0) write (ioutfile,'(" DIIS FAILED !!", &
                  & " PERFORM NORMAL SCF. (NOT FATAL.)")')
   
