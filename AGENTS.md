@@ -76,7 +76,7 @@ directory (or can be run from the repo root as `tools/runtest`). `QUICK_BASIS` m
 
 ```bash
 cd install
-./runtest --serial --full        # 181 CPU tests
+./runtest --serial --full        # 186 CPU tests
 ```
 
 ### Run the short test suite (CI default)
@@ -273,9 +273,9 @@ src/libxc/           DFT XC functional library (libxc)
 src/util/util.fh     Project-wide Fortran preprocessor header (MUST include)
 quick-cmake/         Amber build-system glue and GPU helpers
 test/                Regression test inputs (*.in), GPU lists, references (saved/*.out)
-test/testlist_full.txt      Full CPU test list (~181 tests)
+test/testlist_full.txt      Full CPU test list (~186 tests)
 test/testlist_short.txt     Short CPU test list (31 tests)
-test/testlist_full_gpu.txt  Full GPU test list (~181 tests)
+test/testlist_full_gpu.txt  Full GPU test list (~187 tests)
 test/testlist_short_gpu.txt Short GPU test list
 tools/runtest        Test runner script
 basis/               Basis set data files
