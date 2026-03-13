@@ -97,7 +97,7 @@ module quick_method_module
         ! Level shift
         integer :: LShift_cycle = 3              ! After what cycle allow Level shifting
         double precision :: LShift_err = 0.1d0   ! Minimum error for allowing Level shifting
-        double precision :: LShift_gap = 0.2d0   ! HOMO-LUMO gap after Level shifting
+        double precision :: LShift_gap = 0.2d0   ! Maximum HOMO-LUMO gap to allow Level shifting
 
         ! Initial guess part
         logical :: SAD = .true.        ! SAD initial guess(default)
@@ -463,7 +463,7 @@ module quick_method_module
 
            write(io,'(" Level shifting allowed after cycle ", I4)') self%LShift_cycle
            write(io,'(" DIIS error must exceed ", F5.3," for level shifting")') self%LShift_err
-           write(io,'(" HOMO-LUMO gap after level shifting = ", F5.3)') self%LShift_gap
+           write(io,'(" Max HOMO-LUMO gap to allow level shifting = ", F5.3)') self%LShift_gap
 
             if (self%opt) then
                 write(io,'(" GEOMETRY OPTIMIZATION")',advance="no")

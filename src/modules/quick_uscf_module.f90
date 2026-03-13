@@ -621,7 +621,8 @@ contains
 
             !-----------------------------------------------
             ! Alpha level shifting (independent, using homo = # alpha electrons)
-            ! Applied when DIIS error is large enough and we are past LShift_cycle.
+            ! Applied when DIIS error is large enough, we are past LShift_cycle and
+            ! small HOMO-LUMO gap.
             !-----------------------------------------------
             homo = quick_molspec%nelec      ! number of alpha electrons
             bandgap = quick_qm_struct%E(homo+1) - quick_qm_struct%E(homo)
@@ -709,7 +710,8 @@ contains
 
             !-----------------------------------------------
             ! Beta level shifting (independent, using homob = # beta electrons)
-            ! Applied when DIIS error is large enough and we are past LShift_cycle.
+            ! Applied when DIIS error is large enough, we are past LShift_cycle and
+            ! small HOMO-LUMO gap.
             !-----------------------------------------------
             homob = quick_molspec%nelecb    ! number of beta electrons
             bandgapb = quick_qm_struct%Eb(homob+1) - quick_qm_struct%Eb(homob)
