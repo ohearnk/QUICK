@@ -60,7 +60,7 @@ set_property(DIRECTORY . PROPERTY COMPILE_DEFINITIONS $<$<CONFIG:Debug>:DEBUG>)
 
 option(WARNINGS "Enable warnings." FALSE)
 
-set(CMAKE_Fortran_FLAGS "")
+set(CMAKE_Fortran_FLAGS "-std=f2008")
 set(CMAKE_C_FLAGS "")
 set(CMAKE_CXX_FLAGS "")
 
@@ -184,7 +184,7 @@ if("${CMAKE_Fortran_COMPILER_ID}" STREQUAL "GNU")
 endif()
 
 
-# Clang
+# LLVM (Clang C/C++, Flang Fortran)
 # --------------------------------------------------------------------
 if("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang" OR "${CMAKE_C_COMPILER_ID}" STREQUAL "AppleClang")
     if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND ${CMAKE_HOST_SYSTEM_PROCESSOR} STREQUAL "arm64")
@@ -238,6 +238,11 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR "${CMAKE_CXX_COMPILER_ID}" STR
 	    add_flags(CXX -Wno-uninitialized -Wno-maybe-uninitialized)
 	endif()
     endif()
+endif()
+
+if("${CMAKE_Fortran_COMPILER_ID}" STREQUAL "LLVMFlang")
+    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -cpp")
+    list(APPEND OPT_FFLAGS "-O2" "-mtune=native")
 endif()
 
 
