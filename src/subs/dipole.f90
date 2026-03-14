@@ -8,7 +8,7 @@
     subroutine dipole
     use allmod
     implicit double precision(a-h,o-z)
-    real*8 xyzdipole(3,natom)
+    double precision xyzdipole(3,natom)
 !-------------------------------------------------------
 ! The purpose of this subroutine is to generate the Mulliken and Lowdin
 ! charges, and then calculate the dipole moment.
