@@ -309,6 +309,17 @@ jobs:
             hdf5-install: ''
             hdf5-restart-support: FALSE
           - os: 'ubuntu-24.04'
+            compiler-type: 'LLVM'
+            mpi-type: 'OpenMPI'
+            compiler-version: '18'
+            c-compiler: 'clang'
+            cxx-compiler: 'clang++'
+            fortran-compiler: 'flang'
+            compiler-install: 'clang-18 flang-18'
+            mpi-install: 'openmpi-bin openmpi-common libopenmpi-dev'
+            hdf5-install: ''
+            hdf5-restart-support: FALSE
+          - os: 'ubuntu-24.04'
             compiler-type: 'INTELLLVM'
             mpi-type: 'Intel-MPI'
             compiler-version: '2024.2.1'
@@ -497,12 +508,15 @@ jobs:
             fi
             sudo apt-get install -y ${{ matrix.compiler-install }} ${{ matrix.mpi-install }} \
               cmake ${{ matrix.hdf5-install }}
-            if [[ ${{ matrix.compiler-type }} == 'GNU' || ${{ matrix.compiler-type }} == 'CLANG' ]]; then
+            if [[ ${{ matrix.compiler-type }} == 'GNU' || ${{ matrix.compiler-type }} == 'CLANG' || ${{ matrix.compiler-type }} == 'LLVM' ]]; then
               sudo rm /usr/bin/${{ matrix.c-compiler }}
               sudo ln -s -T ${{ matrix.c-compiler }}-${{ matrix.compiler-version }} /usr/bin/${{ matrix.c-compiler }}
               sudo rm /usr/bin/${{ matrix.cxx-compiler }}
               sudo ln -s -T ${{ matrix.cxx-compiler }}-${{ matrix.compiler-version }} /usr/bin/${{ matrix.cxx-compiler }}
               if [[ ${{ matrix.compiler-type }} == 'GNU' ]]; then
+                sudo rm /usr/bin/${{ matrix.fortran-compiler }}
+                sudo ln -s -T ${{ matrix.fortran-compiler }}-${{ matrix.compiler-version }} /usr/bin/${{ matrix.fortran-compiler }}
+              elif [[ ${{ matrix.compiler-type }} == 'LLVM' ]]; then
                 sudo rm /usr/bin/${{ matrix.fortran-compiler }}
                 sudo ln -s -T ${{ matrix.fortran-compiler }}-${{ matrix.compiler-version }} /usr/bin/${{ matrix.fortran-compiler }}
               fi
