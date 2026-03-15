@@ -124,6 +124,89 @@ PARALLEL_TEST_COUNT    # number of tests to run in parallel (GNU parallel)
 
 ---
 
+## Diagnosing Failing Tests
+
+### Test harness tolerances
+
+The `runtest` script compares output against saved references using `test/dacdif`, which
+calls `test/ndiff.awk` with a hardcoded absolute-error threshold per check type. There is
+no per-test override; the thresholds are set in `tools/runtest`:
+
+| Check function | Absolute-error threshold | Quantity compared |
+|---|---|---|
+| `check_energy` | `4.0e-5` | Total / electronic / nuclear repulsion energies (Hartree) |
+| `check_gradient` | `4.0e-3` | Analytical gradient components (Hartree/Bohr) |
+| `check_opt` | `4.0e-3` | Optimized geometry and force elements |
+| `check_dipole` | `4.0e-3` | Mulliken/Löwdin charges and dipole (Debye) |
+| `check_esp_charge` | `1.0e-5` | ESP-fitted atomic charges |
+| `check_vdw_surface` | `2.0e-7` | ESP values on vdW surface |
+| `check_esp_grid` | `2.0e-7` | ESP values on external grid point file |
+| `check_chk` (density restart) | `1.0e-8` | Total energy after density-matrix restart |
+| `check_chk` (xyz restart) | `2.0e-4` | Cartesian coordinates after xyz restart |
+
+### Physics cutoff keywords
+
+The following keywords in `.in` files control integral screening thresholds and directly
+affect numerical results across platforms and compiler configurations:
+
+| Keyword | Internal default | Standard test value | Tightest value used |
+|---|---|---|---|
+| `cutoff=` | `1.0e-7` | `1.0e-9` | `1.0e-12` |
+| `gradcutoff=` | `1.0e-7` | *(not set explicitly in any test)* | `1.0e-12` |
+| `xccutoff=` | `1.0e-7` | *(not set in most tests)* | `1.0e-12` |
+| `basiscutoff=` | `1.0e-6` | *(not set in most tests)* | `1.0e-12` |
+
+`gradcutoff=` applies only to gradient and geometry optimization tests. `xccutoff=` and
+`basiscutoff=` apply only to DFT tests. `denserms=` (SCF convergence criterion) is
+intentionally excluded — it controls iteration count, not the numerical precision of the
+converged result, so tightening it does not help platform-consistency failures.
+
+### Diagnostic workflow for a borderline failure
+
+If a test fails with a numeric deviation slightly above the threshold:
+
+1. **Find the exact deviation.** In `runtest-verbose.log` (or the `test/runs/` directory),
+   locate the `ndiff.awk` summary line for the failing test:
+   ```
+   ### Maximum absolute error in matching lines = X.XXe-YY at line N field M
+   ```
+
+2. **Make a scratch copy** of the failing input and tighten the physics cutoffs. Apply
+   only the keywords relevant to the test type:
+   ```
+   # All test types:
+   cutoff=1.0e-12
+
+   # Gradient and geometry optimization tests — also add:
+   gradcutoff=1.0e-12
+
+   # DFT tests — also add:
+   xccutoff=1.0e-12
+   basiscutoff=1.0e-12
+   ```
+
+3. **Run the binary directly** on the scratch copy:
+   ```bash
+   export QUICK_BASIS=/path/to/install/basis
+   /path/to/install/bin/quick <scratch_copy>.in
+   ```
+
+4. **Compare against the saved reference** using `dacdif` with the threshold matching the
+   failing check type (see table above). For example, for an energy test:
+   ```bash
+   test/dacdif -k -a 4.0e-5 test/saved/<stem>.out <scratch_copy>.out
+   ```
+
+5. **Interpret the result:**
+   - Failure disappears → the production `.in` file's cutoffs are too loose for this
+     platform/configuration. Update the cutoffs in `test/<stem>.in` and regenerate the
+     reference output in `test/saved/<stem>.out`.
+   - Failure persists → the root cause is elsewhere (algorithm change, compiler
+     floating-point behaviour, platform ABI). Investigate the logic change or consider
+     regenerating the reference output after confirming correctness.
+
+---
+
 ## Code Style Guidelines
 
 ### Languages
