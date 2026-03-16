@@ -641,29 +641,29 @@ contains
                enddo
             endif
 
-             ! Now diagonalize the alpha operator matrix.
-             RECORD_TIME(timer_begin%TDiag)
-             call MAT_DIAG(alpha_op_ptr, NBSuse, NBSuse, quick_qm_struct%E, quick_qm_struct%vec)
+            ! Now diagonalize the alpha operator matrix.
+            RECORD_TIME(timer_begin%TDiag)
+            call MAT_DIAG(alpha_op_ptr, NBSuse, NBSuse, quick_qm_struct%E, quick_qm_struct%vec)
             RECORD_TIME(timer_end%TDiag)
 
             timer_cumer%TDiag = timer_end%TDiag - timer_begin%TDiag
    
-             ! Calculate C = XC' and form a new alpha density matrix.
-             if(LShift) then
-                call MAT_DGEMM ('n', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, quick_qm_struct%oldvec, &
-                      NBSuse, quick_qm_struct%vec, NBSuse, 0.0d0, scratch_sq, NBSuse)
-                call MAT_DGEMM ('n', 'n', nbasis, NBSuse, NBSuse, 1.0d0, quick_qm_struct%x, &
-                      nbasis, scratch_sq, NBSuse, 0.0d0, quick_qm_struct%co, nbasis)
-                quick_qm_struct%oldvec(:,:) = scratch_sq(:,:)
+            ! Calculate C = XC' and form a new alpha density matrix.
+            if(LShift) then
+               call MAT_DGEMM ('n', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, quick_qm_struct%oldvec, &
+                    NBSuse, quick_qm_struct%vec, NBSuse, 0.0d0, scratch_sq, NBSuse)
+               call MAT_DGEMM ('n', 'n', nbasis, NBSuse, NBSuse, 1.0d0, quick_qm_struct%x, &
+                    nbasis, scratch_sq, NBSuse, 0.0d0, quick_qm_struct%co, nbasis)
+               quick_qm_struct%oldvec(:,:) = scratch_sq(:,:)
             else
                call MAT_DGEMM ('n', 'n', nbasis, NBSuse, NBSuse, 1.0d0, quick_qm_struct%x, &
-                     nbasis, quick_qm_struct%vec, NBSuse, 0.0d0, quick_qm_struct%co, nbasis)
+                    nbasis, quick_qm_struct%vec, NBSuse, 0.0d0, quick_qm_struct%co, nbasis)
                quick_qm_struct%oldvec(:,:) = quick_qm_struct%vec(:,:)
             endif
 
             ! Form new alpha density matrix using MO coefficients
             call MAT_DGEMM ('n', 't', nbasis, nbasis, quick_molspec%nelec, 1.0d0, quick_qm_struct%co, &
-                  nbasis, quick_qm_struct%co, nbasis, 0.0d0, quick_qm_struct%dense, nbasis)
+                 nbasis, quick_qm_struct%co, nbasis, 0.0d0, quick_qm_struct%dense, nbasis)
 
             ! Now check for alpha convergence. pchange is the max change, prms is the rms.
             PCHANGE=0.d0
