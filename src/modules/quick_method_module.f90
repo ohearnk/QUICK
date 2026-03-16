@@ -830,7 +830,7 @@ module quick_method_module
             if (index(keyWD,'BASIS=').ne.0)  then
                 tempstring=' '
                 call read(keywd, 'BASIS', tempstring)
-                if(index(tempstring,'+') /= 0) self%diffuse_basis_funcs=.true.
+                if(index(tempstring,'+') /= 0 .or. index(tempstring,'AUG-') /= 0 ) self%diffuse_basis_funcs=.true.
             endif
 
             if (index(keyWD,'COARSEINT').ne.0) self%coarse_cutoff=.true.
