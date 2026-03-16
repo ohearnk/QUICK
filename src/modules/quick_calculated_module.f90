@@ -233,7 +233,7 @@ module quick_calculated_module
 contains
 
    !--------------------------------------
-   ! subroutine to allocate lists whose
+   ! subroutine to allocate arrays whose
    ! dimensions depend on near-linear
    ! dependency
    !--------------------------------------
@@ -246,8 +246,8 @@ contains
        type (quick_qm_struct_type) self
 
        ! alpha fields
-       if(self%NBSuse.ne.self%nbasis)then
-           if(.not. allocated(self%oeff))allocate(self%oeff(self%NBSuse,self%NBSuse))
+       if(self%NBSuse.ne.self%nbasis) then
+           if(.not. allocated(self%oeff)) allocate(self%oeff(self%NBSuse,self%NBSuse))
            self%oeff = 0.0d0
        endif
        if(.not. allocated(self%x))      allocate(self%x(self%nbasis,self%NBSuse))
@@ -335,14 +335,14 @@ contains
          if(.not. allocated(self%CPHFB)) allocate(self%CPHFB(idimA,natom*3))
       endif
 
-       ! if unrestricted, some more varibles is required to be allocated
-       if (quick_method%unrst) then
-          if(.not. allocated(self%ob)) allocate(self%ob(nbasis,nbasis))
-          if(.not. allocated(self%obSave)) allocate(self%obSave(nbasis,nbasis))
-          if(.not. allocated(self%denseab)) allocate(self%denseab(nbasis,nbasis))
-          if(.not. allocated(self%densebSave)) allocate(self%densebSave(nbasis,nbasis))
-          if(.not. allocated(self%densebOld)) allocate(self%densebOld(nbasis,nbasis))
-       endif
+      ! if unrestricted, some more variables need to be allocated
+      if (quick_method%unrst) then
+         if(.not. allocated(self%ob)) allocate(self%ob(nbasis,nbasis))
+         if(.not. allocated(self%obSave)) allocate(self%obSave(nbasis,nbasis))
+         if(.not. allocated(self%denseab)) allocate(self%denseab(nbasis,nbasis))
+         if(.not. allocated(self%densebSave)) allocate(self%densebSave(nbasis,nbasis))
+         if(.not. allocated(self%densebOld)) allocate(self%densebOld(nbasis,nbasis))
+      endif
 
       if (quick_method%unrst .or. quick_method%DFT) then
          if(.not. allocated(self%denseb)) allocate(self%denseb(nbasis,nbasis))
@@ -437,7 +437,7 @@ contains
       call write_real8_rank3(idatafile, "Mulliken", nbasis, 1, 1, self%Mulliken, fail)
       call write_real8_rank3(idatafile, "Lowdin", nbasis, 1, 1, self%Lowdin, fail)
 
-      ! if unrestricted, some more varibles is required to be allocated
+      ! if unrestricted, some more variables need to be allocated
       if (quick_method%unrst) then
          call write_real8_rank3(idatafile, "cob", nbasis, NBSuse, 1, self%cob, fail)
          call write_real8_rank3(idatafile, "Eb", NBSuse, 1, 1, self%Eb, fail)
@@ -507,7 +507,7 @@ contains
          if (allocated(self%CPHFB)) deallocate(self%CPHFB)
       endif
 
-      ! if unrestricted, some more varibles is required to be allocated
+      ! if unrestricted, some more variables need to be allocated
       if (quick_method%unrst) then
          if(allocated(self%ob)) deallocate(self%ob)
          if(allocated(self%obSave)) deallocate(self%obSave)
@@ -656,7 +656,7 @@ contains
          call zeroMatrix2(self%CPHFA,idimA,natom*3)
       endif
 
-      ! if unrestricted, some more varibles is required to be allocated
+      ! if unrestricted, some more variables need to be allocated
       if (quick_method%unrst) then
          if (allocated(self%cob))  call zeroMatrix(self%cob,nbasis)
          call zeroMatrix(self%denseab,nbasis)
