@@ -517,7 +517,6 @@ jobs:
                 sudo rm /usr/bin/${{ matrix.fortran-compiler }}
                 sudo ln -s -T ${{ matrix.fortran-compiler }}-${{ matrix.compiler-version }} /usr/bin/${{ matrix.fortran-compiler }}
               elif [[ ${{ matrix.compiler-type }} == 'LLVM' ]]; then
-                sudo rm /usr/bin/${{ matrix.fortran-compiler }}
                 sudo ln -s -T ${{ matrix.fortran-compiler }}-${{ matrix.compiler-version }} /usr/bin/${{ matrix.fortran-compiler }}
               fi
             fi
