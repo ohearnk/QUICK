@@ -261,7 +261,7 @@ subroutine fullx
    ! Similarly:
    ! Xji = Sum(k=1,m) Ajk * transpose(U)ki
    ! Xji = Sum(k=1,m) Ujk * s^(-.5)kk * transpose(U)ki
-   ! Xji = Sum(k=1,m) Ujk * s^(-.5)kk * Uik59
+   ! Xji = Sum(k=1,m) Ujk * s^(-.5)kk * Uik
 
    ! This aggravating little demonstration contains two points:
    ! 1)  X can be calculated without crossing columns in the array
