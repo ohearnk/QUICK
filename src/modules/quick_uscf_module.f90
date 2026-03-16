@@ -730,29 +730,29 @@ contains
                enddo
             endif
 
-             ! Now diagonalize the beta operator matrix.
-             RECORD_TIME(timer_begin%TDiag)
-             call MAT_DIAG(beta_op_ptr, NBSuse, NBSuse, quick_qm_struct%Eb, quick_qm_struct%vec)
+            ! Now diagonalize the beta operator matrix.
+            RECORD_TIME(timer_begin%TDiag)
+            call MAT_DIAG(beta_op_ptr, NBSuse, NBSuse, quick_qm_struct%Eb, quick_qm_struct%vec)
             RECORD_TIME(timer_end%TDiag)
 
             timer_cumer%TDiag=timer_cumer%TDiag+timer_end%TDiag-timer_begin%TDiag
 
-             ! Calculate C = XC' and form a new beta density matrix.
-             if(LShiftb) then
-                call MAT_DGEMM ('n', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, quick_qm_struct%oldvecb, &
-                      NBSuse, quick_qm_struct%vec, NBSuse, 0.0d0, scratch_sq, NBSuse)
-                call MAT_DGEMM ('n', 'n', nbasis, NBSuse, NBSuse, 1.0d0, quick_qm_struct%x, &
-                      nbasis, scratch_sq, NBSuse, 0.0d0, quick_qm_struct%cob, nbasis)
-                quick_qm_struct%oldvecb(:,:) = scratch_sq(:,:)
+            ! Calculate C = XC' and form a new beta density matrix.
+            if(LShiftb) then
+               call MAT_DGEMM ('n', 'n', NBSuse, NBSuse, NBSuse, 1.0d0, quick_qm_struct%oldvecb, &
+                    NBSuse, quick_qm_struct%vec, NBSuse, 0.0d0, scratch_sq, NBSuse)
+               call MAT_DGEMM ('n', 'n', nbasis, NBSuse, NBSuse, 1.0d0, quick_qm_struct%x, &
+                    nbasis, scratch_sq, NBSuse, 0.0d0, quick_qm_struct%cob, nbasis)
+               quick_qm_struct%oldvecb(:,:) = scratch_sq(:,:)
             else
                call MAT_DGEMM ('n', 'n', nbasis, NBSuse, NBSuse, 1.0d0, quick_qm_struct%x, &
-                     nbasis, quick_qm_struct%vec, NBSuse, 0.0d0, quick_qm_struct%cob, nbasis)
+                    nbasis, quick_qm_struct%vec, NBSuse, 0.0d0, quick_qm_struct%cob, nbasis)
                quick_qm_struct%oldvecb(:,:) = quick_qm_struct%vec(:,:)
             endif
 
             ! Form new beta density matrix using MO coefficients
             call MAT_DGEMM ('n', 't', nbasis, nbasis, quick_molspec%nelecb, 1.0d0, quick_qm_struct%cob, &
-                  nbasis, quick_qm_struct%cob, nbasis, 0.0d0, quick_qm_struct%denseb, nbasis)
+                 nbasis, quick_qm_struct%cob, nbasis, 0.0d0, quick_qm_struct%denseb, nbasis)
 
             ! Now check for beta convergence. pchange is the max change, prms2 is the rms.
             do I=1,nbasis
