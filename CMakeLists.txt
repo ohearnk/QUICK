@@ -60,7 +60,7 @@ set_property(DIRECTORY . PROPERTY COMPILE_DEFINITIONS $<$<CONFIG:Debug>:DEBUG>)
 
 option(WARNINGS "Enable warnings." FALSE)
 
-set(CMAKE_Fortran_FLAGS "-std=f2008")
+set(CMAKE_Fortran_FLAGS "")
 set(CMAKE_C_FLAGS "")
 set(CMAKE_CXX_FLAGS "")
 
