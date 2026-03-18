@@ -242,7 +242,7 @@ jobs:
             compiler-version: '18'
             c-compiler: 'clang'
             cxx-compiler: 'clang++'
-            fortran-compiler: 'flang'
+            fortran-compiler: 'flang-new'
             compiler-install: 'clang-18 flang-18'
             hdf5-install: ''
             hdf5-restart-support: FALSE
