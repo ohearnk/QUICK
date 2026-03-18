@@ -242,7 +242,7 @@ jobs:
             compiler-version: '18'
             c-compiler: 'clang'
             cxx-compiler: 'clang++'
-            fortran-compiler: 'flang-new'
+            fortran-compiler: 'flang'
             compiler-install: 'clang-18 flang-18'
             hdf5-install: ''
             hdf5-restart-support: FALSE
@@ -405,7 +405,7 @@ jobs:
                 sudo rm /usr/bin/${{ matrix.fortran-compiler }}
                 sudo ln -s -T ${{ matrix.fortran-compiler }}-${{ matrix.compiler-version }} /usr/bin/${{ matrix.fortran-compiler }}
               elif [[ ${{ matrix.compiler-type }} == 'LLVM' ]]; then
-                sudo ln -s -T ${{ matrix.fortran-compiler }}-${{ matrix.compiler-version }} /usr/bin/${{ matrix.fortran-compiler }}
+                sudo ln -s -T ${{ matrix.fortran-compiler }}-new-${{ matrix.compiler-version }} /usr/bin/${{ matrix.fortran-compiler }}
               fi
             fi
             sudo apt-get clean
