@@ -309,17 +309,6 @@ jobs:
             hdf5-install: ''
             hdf5-restart-support: FALSE
           - os: 'ubuntu-24.04'
-            compiler-type: 'LLVM'
-            mpi-type: 'OpenMPI'
-            compiler-version: '20'
-            c-compiler: 'clang'
-            cxx-compiler: 'clang++'
-            fortran-compiler: 'flang'
-            compiler-install: 'clang-20 flang-20'
-            mpi-install: 'openmpi-bin openmpi-common libopenmpi-dev'
-            hdf5-install: ''
-            hdf5-restart-support: FALSE
-          - os: 'ubuntu-24.04'
             compiler-type: 'INTELLLVM'
             mpi-type: 'Intel-MPI'
             compiler-version: '2024.2.1'
