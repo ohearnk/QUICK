@@ -27,12 +27,14 @@ function(download_and_use_miniconda)
 	if(TARGET_WINDOWS)
 		set(MINICONDA_PYTHON ${MINICONDA_INSTALL_DIR}/python.exe)
 		set(CONDA ${MINICONDA_INSTALL_DIR}/Scripts/conda.exe)
+		set(MAMBA ${MINICONDA_INSTALL_DIR}/Scripts/mamba.exe)
 		set(PIP ${MINICONDA_INSTALL_DIR}/Scripts/pip.exe)
 	else()
 		set(MINICONDA_PYTHON ${MINICONDA_INSTALL_DIR}/bin/python)
 
 		# execute using interpreter in case the miniconda install folder is in a long path and the script shebang doesn't work
-		set(CONDA ${MINICONDA_PYTHON} ${MINICONDA_INSTALL_DIR}/bin/conda) 
+		set(CONDA ${MINICONDA_PYTHON} ${MINICONDA_INSTALL_DIR}/bin/conda)
+		set(MAMBA ${MINICONDA_INSTALL_DIR}/bin/mamba) 
 		set(PIP ${MINICONDA_PYTHON} ${MINICONDA_INSTALL_DIR}/bin/pip)
 	endif()
 	
@@ -169,17 +171,10 @@ function(download_and_use_miniconda)
 	# different MKL libraries at the same time: the MKL Miniconda python was linked with, and the MKL
 	# Amber was linked with.
 	# So, to fix this, we make sure Miniconda is not using MKL.
-	execute_process(COMMAND ${CONDA} install -y nomkl)
-
-	execute_process(COMMAND ${CONDA} install -y -c conda-forge f90nml mrcfile pdb2pqr)
-	execute_process(COMMAND ${CONDA} install -y pandas)
-	
-	execute_process(COMMAND ${CONDA} install -y -q conda-build numpy=1.26.4 scipy cython=0.29 ipython notebook pytest mock
-		RESULT_VARIABLE PACKAGE_INSTALL_RETVAL)
+	execute_process(COMMAND ${MAMBA} install -y -c conda-forge nomkl f90nml mrcfile pdb2pqr pandas numba gemmi rdkit conda-build numpy=1.26.4 scipy cython=0.29 ipython notebook pytest mock RESULT_VARIABLE PACKAGE_INSTALL_RETVAL)
 	if(NOT ${PACKAGE_INSTALL_RETVAL} EQUAL 0)
 		message(FATAL_ERROR "Installation of packages failed!  Please fix what's wrong, or disable Miniconda.")
 	endif()
-	execute_process(COMMAND ${CONDA} install -y -c conda-forge rdkit)
 	
 	# Use pip to install matplotlib so we don't have to pull in the entire Qt
 	# dependency. And cache inside the Miniconda directory, since we don't want to
@@ -187,7 +182,7 @@ function(download_and_use_miniconda)
 	execute_process(COMMAND ${MINICONDA_PYTHON} -m pip --cache-dir=${MINICONDA_INSTALL_DIR}/pkgs install matplotlib RESULT_VARIABLE MATPLOTLIB_RETVAL)
 	if(NOT ${MATPLOTLIB_RETVAL} EQUAL 0)
 		# try again with conda
-		execute_process(COMMAND ${CONDA} install -y -q matplotlib RESULT_VARIABLE MATPLOTLIB_RETVAL)
+		execute_process(COMMAND ${MAMBA} install -y -q matplotlib RESULT_VARIABLE MATPLOTLIB_RETVAL)
 		if(NOT ${MATPLOTLIB_RETVAL} EQUAL 0)
 			message(FATAL_ERROR "Failed to install matplotlib!  Please fix what's wrong, or disable Miniconda.")
 		endif()
@@ -197,7 +192,7 @@ function(download_and_use_miniconda)
 	# the loser is always your own sanity!
 	if(TARGET_WINDOWS AND MINGW)
 		# Install a MinGW import library for python (discussed at https://github.com/Theano/Theano/issues/2087)
-		execute_process(COMMAND ${CONDA} install -y -q -c anaconda libpython)
+		execute_process(COMMAND ${MAMBA} install -y -q -c anaconda libpython)
 		
 		# die, preprocessor define that breaks the <cmath> header!
 		# see https://github.com/python/cpython/pull/880
