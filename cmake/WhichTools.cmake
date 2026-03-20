@@ -35,7 +35,6 @@ antechamber
 sqm
 
 #   miscellaneous:
-reduce
 sebomd
 emil
 kmmd
@@ -101,6 +100,7 @@ pysander
 pytraj
 pdb4amber
 packmol_memgen
+PyPE_RESP
 
 #	moft
 moft
@@ -252,7 +252,7 @@ if(STATIC)
 endif()
 
 if(boost_DISABLED)
-	disable_tools("Requires boost" packmol_memgen moft)
+	disable_tools("Requires boost" moft)
 endif()
 
 # Perl programs
@@ -265,9 +265,9 @@ if(perlmol_DISABLED)
 endif()
 
 #deprecated programs
-option(BUILD_DEPRECATED "Build outdated and deprecated tools, such as ptraj, moft" FALSE)
+option(BUILD_DEPRECATED "Build outdated and deprecated tools, such as ptraj" FALSE)
 if(NOT BUILD_DEPRECATED)
-	disable_tools("Deprecated tools are disabled" ptraj moft )
+	disable_tools("Deprecated tools are disabled" ptraj )
 endif()
 
 # in-development programs

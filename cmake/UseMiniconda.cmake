@@ -2,8 +2,7 @@
 # This script does not work when crosscompiling.
 #  Note: to make the initial changes as limited as possible the phrase
 #   "MINICONDA" is retained for now, but the actual download and
-#   installation comes from Miniforge3.  Only tests on Linux x86_64 so 
-#   far, not (for example) on OSX.
+#   installation comes from Miniforge3.
 
 # Send the version variables up one scope level from the caller of this macro
 macro(proxy_python_version)
@@ -158,13 +157,12 @@ function(download_and_use_miniconda)
 	# if the miniconda version has been specified (-DMINICONDA_VERSION=...)
 	# then do not update conda
 	if(MINICONDA_AUTO)
-    
-		# not needed for miniforge:
-		# execute_process(COMMAND ${CONDA} install -y --solver=classic conda-forge::conda-libmamba-solver conda-forge::libmamba conda-forge::libmambapy conda-forge::libarchive)
-		# execute_process(COMMAND ${CONDA} update --all -y)
 		execute_process(COMMAND ${CONDA} update conda -y)
 	endif()
+	execute_process(COMMAND ${CONDA} install -y python=3.12)
 	execute_process(COMMAND ${MINICONDA_PYTHON} -m pip install pip --upgrade)
+
+	execute_process(COMMAND ${MINICONDA_PYTHON} -m pip install --no-cache-dir --no-binary=mpi4py mpi4py)
 
 	# Prefer non-mkl packages.
 	# This is because if Amber is using MKL, when Python programs run they will try to talk to two
@@ -176,11 +174,12 @@ function(download_and_use_miniconda)
 	execute_process(COMMAND ${CONDA} install -y -c conda-forge f90nml mrcfile pdb2pqr)
 	execute_process(COMMAND ${CONDA} install -y pandas)
 	
-	execute_process(COMMAND ${CONDA} install -y -q conda-build numpy=1.26.4 scipy cython=0.29 ipython notebook pytest 
+	execute_process(COMMAND ${CONDA} install -y -q conda-build numpy=1.26.4 scipy cython=0.29 ipython notebook pytest mock
 		RESULT_VARIABLE PACKAGE_INSTALL_RETVAL)
 	if(NOT ${PACKAGE_INSTALL_RETVAL} EQUAL 0)
 		message(FATAL_ERROR "Installation of packages failed!  Please fix what's wrong, or disable Miniconda.")
 	endif()
+	execute_process(COMMAND ${CONDA} install -y -c conda-forge rdkit)
 	
 	# Use pip to install matplotlib so we don't have to pull in the entire Qt
 	# dependency. And cache inside the Miniconda directory, since we don't want to
