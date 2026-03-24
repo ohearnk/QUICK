@@ -130,7 +130,7 @@ contains
         double precision, intent(in) :: alpha, beta
         double precision, dimension(lda,*), intent(in) :: A
         double precision, dimension(ldb,*), intent(in) :: B
-        double precision, dimension(ldc,n), intent(out) :: C
+        double precision, dimension(ldc,n), intent(inout) :: C
 
         !internal variables
         integer(c_int) :: rb_n, rb_m, rb_k, rb_lda, rb_ldb, rb_ldc, rb_sizea, rb_sizeb, rb_sizec
@@ -182,11 +182,12 @@ contains
         ! Initialize host memory
         hA = reshape(A(1:lda,1:rb_lda), (/rb_sizea/))
         hB = reshape(B(1:ldb,1:rb_ldb), (/rb_sizeb/))
+        hC(1:rb_sizec) = reshape(C(1:ldc,1:n), (/rb_sizec/))
 
         ! Copy memory from host to device
         call HIP_CHECK(hipMemcpy(dA, c_loc(hA), int(rb_sizea, c_size_t) * 8, 1))
         call HIP_CHECK(hipMemcpy(dB, c_loc(hB), int(rb_sizeb, c_size_t) * 8, 1))
-        call HIP_CHECK(hipMemset(dC, 0, int(rb_sizec, c_size_t) * 8))
+        call HIP_CHECK(hipMemcpy(dC, c_loc(hC), int(rb_sizec, c_size_t) * 8, 1))
 
         ! Create rocBLAS handle
         call ROCBLAS_CHECK(rocblas_create_handle(c_loc(handle)))
