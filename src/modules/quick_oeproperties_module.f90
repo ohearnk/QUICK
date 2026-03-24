@@ -187,7 +187,7 @@ module quick_oeproperties_module
     use quick_basis_module, only: mpi_jshelln, mpi_jshell
     use quick_mpi_module, only: mpirank, mpierror 
 #endif
-#if defined CUDA || defined CUDA_MPIV
+#if defined CUDA || defined CUDA_MPIV || defined HIP || defined HIP_MPIV
     use quick_method_module, only: quick_method
 #endif
 
@@ -242,7 +242,7 @@ module quick_oeproperties_module
    call esp_nuc(npoints, xyz_points, esp_nuclear)
 
    ! Computes ESP_ELEC
-#if defined CUDA || defined CUDA_MPIV
+#if defined CUDA || defined CUDA_MPIV || defined HIP || defined HIP_MPIV
    call gpu_upload_oeprop(npoints, xyz_points, esp_electronic, ierr)
    call gpu_upload_density_matrix(quick_qm_struct%dense)
    if (quick_method%UNRST) call gpu_upload_beta_density_matrix(quick_qm_struct%denseb)
