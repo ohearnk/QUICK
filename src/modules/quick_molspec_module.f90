@@ -247,7 +247,6 @@ contains
          deallocate(self%extpointxyz, stat=ierr)
          allocate(self%extpointxyz(3,self%nextpoint), stat=ierr)
        endif
-       self%extchg=0.0d0
        self%extpointxyz=0.0d0
      endif
 
@@ -290,6 +289,7 @@ contains
 
       if (allocated(xyz)) deallocate(xyz)
       if (allocated(self%distnbor)) deallocate(self%distnbor)
+      if (allocated(self%AtomDistance)) deallocate(self%AtomDistance)
       if (allocated(self%iattype)) deallocate(self%iattype)
       if (allocated(self%chg)) deallocate(self%chg)
       if (allocated(self%dlfind_freezeatm)) deallocate(self%dlfind_freezeatm)
