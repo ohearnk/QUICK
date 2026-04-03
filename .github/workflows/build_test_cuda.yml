@@ -6,9 +6,13 @@ on: workflow_dispatch
 #  push:
 #    paths-ignore:
 #      - '**.md'
+#      - '.github/workflows/build_test_serial.yml'
+#      - '.github/workflows/build_test_mpi.yml'
 #  pull_request:
 #    paths-ignore:
 #      - '**.md'
+#      - '.github/workflows/build_test_serial.yml'
+#      - '.github/workflows/build_test_mpi.yml'
 
 jobs:
   build-and-test-cuda-cmake:
