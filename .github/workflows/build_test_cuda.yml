@@ -19,7 +19,7 @@ on: workflow_dispatch
 jobs:
   build-and-test-cuda-cmake:
     # The specific label for the self-hosted GPU runner
-    runs-on: [self-hosted, nrp-linux-gpu-cuda]
+    runs-on: [self-hosted, linux-gpu-cuda]
     strategy:
       fail-fast: false
       matrix:
