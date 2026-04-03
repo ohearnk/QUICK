@@ -51,10 +51,10 @@ jobs:
           echo "CXX=${{ matrix.cxx-compiler }}" >> "$GITHUB_ENV"
           echo "FC=${{ matrix.fortran-compiler }}" >> "$GITHUB_ENV"
 
-      - name: 'Install Dependencies'
-        run: |
-          apt-get update
-          apt-get install -y cmake
+     # - name: 'Install Dependencies'
+     #   run: |
+     #     apt-get update
+     #     apt-get install -y cmake
 
       - name: 'Log Software Environment Configuration'
         run: |
