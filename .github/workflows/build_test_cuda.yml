@@ -26,7 +26,7 @@ jobs:
         include:
         # Only one configuration based on versions provided inside of runner
           - os: 'ubuntu-22.04'
-            compiler-type: 'gnu'
+            compiler-type: 'GNU'
             compiler-version: '11'
             cuda-version: '12.4'
             c-compiler: 'gcc'
