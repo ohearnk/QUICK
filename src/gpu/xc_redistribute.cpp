@@ -21,6 +21,8 @@
 #include <cstring>
 #include <mpi.h>
 #include "xc_redistribute.h"
+#include "../modules/quick_comm_store.h"
+
 using namespace std;
 
 // Distribution matrix for load balancing prior to sswder calculation.
@@ -52,9 +54,10 @@ int getAdjustment(int mpisize, int mpirank, int count){
 
   ptcount[mpirank]=count;
 
-  MPI_Barrier(MPI_COMM_WORLD);
+  MPI_Comm comm = quick_get_comm_c();
+  MPI_Barrier(comm);
   // broadcast ptcount array
-  for(int i=0; i<mpisize; ++i) MPI_Bcast(&ptcount[i], 1, MPI_INT, i, MPI_COMM_WORLD);
+  for(int i=0; i<mpisize; ++i) MPI_Bcast(&ptcount[i], 1, MPI_INT, i, comm);
 
 #ifdef DEBUG 
   if(master) cout << "mpirank= "<<mpirank << " init array:" << endl;
@@ -271,22 +274,23 @@ void sswderRedistribute(int mpisize, int mpirank, int count, int ncount,
         int send_amount=distMatrix[i][j];
         if(send_amount > 0){
 
+          MPI_Comm comm = quick_get_comm_c();
           if(mpirank == i){
-            MPI_Send(&gridx[sptcount[i]], send_amount, MPI_DOUBLE, j, i+1, MPI_COMM_WORLD);
-            MPI_Send(&gridy[sptcount[i]], send_amount, MPI_DOUBLE, j, i+2, MPI_COMM_WORLD);          
-            MPI_Send(&gridz[sptcount[i]], send_amount, MPI_DOUBLE, j, i+3, MPI_COMM_WORLD);
-            MPI_Send(&exc[sptcount[i]], send_amount, MPI_DOUBLE, j, i+4, MPI_COMM_WORLD);
-            MPI_Send(&quadwt[sptcount[i]], send_amount, MPI_DOUBLE, j, i+5, MPI_COMM_WORLD);
-            MPI_Send(&gatm[sptcount[i]], send_amount, MPI_INT, j, i+6, MPI_COMM_WORLD);
+            MPI_Send(&gridx[sptcount[i]], send_amount, MPI_DOUBLE, j, i+1, comm);
+            MPI_Send(&gridy[sptcount[i]], send_amount, MPI_DOUBLE, j, i+2, comm);          
+            MPI_Send(&gridz[sptcount[i]], send_amount, MPI_DOUBLE, j, i+3, comm);
+            MPI_Send(&exc[sptcount[i]], send_amount, MPI_DOUBLE, j, i+4, comm);
+            MPI_Send(&quadwt[sptcount[i]], send_amount, MPI_DOUBLE, j, i+5, comm);
+            MPI_Send(&gatm[sptcount[i]], send_amount, MPI_INT, j, i+6, comm);
           }
 
           if(mpirank == j){
-            MPI_Recv(&ngridx[rptcount[j]], send_amount, MPI_DOUBLE, i, i+1, MPI_COMM_WORLD, &status);                 
-            MPI_Recv(&ngridy[rptcount[j]], send_amount, MPI_DOUBLE, i, i+2, MPI_COMM_WORLD, &status);
-            MPI_Recv(&ngridz[rptcount[j]], send_amount, MPI_DOUBLE, i, i+3, MPI_COMM_WORLD, &status);
-            MPI_Recv(&nexc[rptcount[j]], send_amount, MPI_DOUBLE, i, i+4, MPI_COMM_WORLD, &status);
-            MPI_Recv(&nquadwt[rptcount[j]], send_amount, MPI_DOUBLE, i, i+5, MPI_COMM_WORLD, &status);
-            MPI_Recv(&ngatm[rptcount[j]], send_amount, MPI_INT, i, i+6, MPI_COMM_WORLD, &status);
+            MPI_Recv(&ngridx[rptcount[j]], send_amount, MPI_DOUBLE, i, i+1, comm, &status);                 
+            MPI_Recv(&ngridy[rptcount[j]], send_amount, MPI_DOUBLE, i, i+2, comm, &status);
+            MPI_Recv(&ngridz[rptcount[j]], send_amount, MPI_DOUBLE, i, i+3, comm, &status);
+            MPI_Recv(&nexc[rptcount[j]], send_amount, MPI_DOUBLE, i, i+4, comm, &status);
+            MPI_Recv(&nquadwt[rptcount[j]], send_amount, MPI_DOUBLE, i, i+5, comm, &status);
+            MPI_Recv(&ngatm[rptcount[j]], send_amount, MPI_INT, i, i+6, comm, &status);
           }
 
           sptcount[i] += send_amount;

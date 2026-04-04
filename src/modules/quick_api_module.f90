@@ -125,6 +125,10 @@ contains
 
 ! allocates memory for a new quick_api_type variable
 subroutine new_quick_api_type(self, natoms, atomic_numbers, ierr)
+#ifdef MPIV
+  use mpi
+  use quick_mpi_module, only: quick_set_comm, quick_comm
+#endif
 
   implicit none
 
@@ -134,6 +138,10 @@ subroutine new_quick_api_type(self, natoms, atomic_numbers, ierr)
   integer, intent(inout)  :: ierr
   integer :: atm_type_id(natoms)
   integer :: i, natm_type
+
+#ifdef MPIV
+  call quick_set_comm(quick_comm)
+#endif
 
   ! get atom types and number of types
   call get_atom_types(natoms, atomic_numbers, natm_type, atm_type_id, ierr)
@@ -205,7 +213,7 @@ subroutine set_quick_job(fqin, keywd, natoms, atomic_numbers, reusedmx, ierr)
   ! allocate memory for quick_api_type
   call new_quick_api_type(quick_api, natoms, atomic_numbers, ierr)
 
-  quick_api%reuse_dmx=reusedmx
+  quick_api%reuse_dmx = reusedmx
 
   ! check if fqin string is a input file name or job card
   flen = LEN_TRIM(fqin)
@@ -448,7 +456,6 @@ end subroutine get_quick_energy_gradients
 
 ! runs quick, partially resembles quick main program
 subroutine run_quick(self,ierr)
-
   use quick_timer_module
   use quick_method_module, only: quick_method
   use quick_files_module
@@ -463,12 +470,9 @@ subroutine run_quick(self,ierr)
   use quick_sad_guess_module, only: getSadGuess
   use quick_molden_module, only: quick_molden, initializeExport, exportCoordinates, exportBasis, &
       exportMO, exportSCF, exportOPT
-
-
 #ifdef CEW 
   use quick_cew_module
 #endif
-
 #ifdef MPIV
   use quick_mpi_module
 #endif
@@ -654,7 +658,6 @@ subroutine run_quick(self,ierr)
 
 end subroutine run_quick
 
-
 ! this subroutine will print the step into quick output file
 subroutine print_step(self,ierr)
 
@@ -780,16 +783,17 @@ end subroutine gpu_upload_molspecs
 #ifdef MPIV
 
 ! sets mpi variables in quick api
-subroutine set_quick_mpi(mpi_rank, mpi_size, ierr)
+subroutine set_quick_mpi(mpi_comm, mpi_rank, mpi_size, ierr)
 
-  use quick_mpi_module
+  use quick_mpi_module, only: mpirank, mpisize, libMPIMode, quick_comm
 
   implicit none
 
-  integer, intent(in) :: mpi_rank, mpi_size
+  integer, intent(in) :: mpi_comm, mpi_rank, mpi_size
   integer, intent(out) :: ierr
 
   ! save information in quick_mpi module
+  quick_comm = mpi_comm
   mpirank    = mpi_rank
   mpisize    = mpi_size
   libMPIMode = .true.
@@ -802,6 +806,7 @@ end subroutine set_quick_mpi
 
 subroutine broadcast_quick_mpi_results(self,ierr)
   use mpi
+  use quick_mpi_module, only: quick_comm
 
   implicit none
 
@@ -809,9 +814,9 @@ subroutine broadcast_quick_mpi_results(self,ierr)
   integer :: mpierror
   integer, intent(inout) :: ierr
 
-  call MPI_BCAST(self%tot_ene,1,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
-  call MPI_BCAST(self%gradient,3*self%natoms,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
-  call MPI_BCAST(self%ptchg_grad,3*self%nxt_ptchg,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
+  call MPI_BCAST(self%tot_ene,1,mpi_double_precision,0,quick_comm,mpierror)
+  call MPI_BCAST(self%gradient,3*self%natoms,mpi_double_precision,0,quick_comm,mpierror)
+  call MPI_BCAST(self%ptchg_grad,3*self%nxt_ptchg,mpi_double_precision,0,quick_comm,mpierror)
 
 end subroutine
 
