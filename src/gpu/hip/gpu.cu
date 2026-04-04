@@ -2195,6 +2195,7 @@ extern "C" void gpu_upload_lri_(QUICKDouble* zeta, QUICKDouble* cc, int *ierr)
 }
 
 
+#if defined(CEW)
 //-----------------------------------------------
 //  upload information for CEW quad calculation
 //-----------------------------------------------
@@ -2221,6 +2222,7 @@ extern "C" void gpu_upload_cew_vrecip_(int *ierr)
 
     delete[] gridpt;
 }
+#endif
 
 
 //Computes grid weights before grid point packing
