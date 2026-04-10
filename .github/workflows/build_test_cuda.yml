@@ -69,9 +69,9 @@ jobs:
           echo
           echo "Fortran compiler version:"
           ${{ matrix.fortran-compiler }} --version
-          echo
-          echo "CMake version:"
-          cmake --version
+          # echo
+          # echo "CMake version:"
+          #cmake --version
           echo
           echo "GPU Information:"
           nvidia-smi
@@ -86,21 +86,24 @@ jobs:
 
       - name: 'Configure CUDA Version'
         run: |
-          mkdir build
-          cd build
-          cmake .. -DCOMPILER=${{ matrix.compiler-type }} \
-            -DCUDA=TRUE -DQUICK_USER_ARCH=ampere -DCMAKE_INSTALL_PREFIX=$PWD/../install -DENABLEF=TRUE
+          #mkdir build
+          #cd build
+          #cmake .. -DCOMPILER=${{ matrix.compiler-type }} \
+          #  -DCUDA=TRUE -DQUICK_USER_ARCH=ampere -DCMAKE_INSTALL_PREFIX=$PWD/../install -DENABLEF=TRUE
+          ./configure --cuda --enablef --shared --verbose --prefix $PWD/install ${{ matrix.compiler-type }}
 
       - name: 'Build and Install'
         run: |
-          cd build
-          cmake --build . --parallel 2 --verbose
-          cmake --install .
+          #cd build
+          #cmake --build . --parallel 2 --verbose
+          #cmake --install .
+          make -j2 all install # build and install using 2 jobs
 
       - name: 'Run Tests'
         run: |
-          cd install
-          ./runtest --cuda --full
+          #cd install
+          #./runtest --cuda --full
+          make fulltest
 
       - name: 'Upload Test Artifacts for CUDA Version'
         if: always()
@@ -109,6 +112,7 @@ jobs:
           name: cuda-cmake-tests-${{ matrix.os }}-${{ matrix.compiler-type}}-${{ matrix.compiler-version }}-${{ matrix.cuda-version }}
           path: |
             ${{ github.workspace }}/install/runtest.log
+            ${{ github.workspace }}/install/runtest-verbose.log
             ${{ github.workspace }}/install/test/runs/cuda
           retention-days: 3
           compression-level: 6
