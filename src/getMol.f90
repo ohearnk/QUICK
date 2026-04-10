@@ -40,7 +40,7 @@ subroutine getMol(ierr)
 
       ! read xyz coordinates from the .in file 
       if (.not. isTemplate) then
-        if (quick_method%read_coord) then
+        if (quick_method%readxyz) then
 #if defined(RESTART_HDF5)
           call read_hdf5_real8_rank2('xyz', (/1,1/), (/3,natom/), xyz)
 #else

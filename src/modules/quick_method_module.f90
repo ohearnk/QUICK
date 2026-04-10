@@ -47,7 +47,7 @@ module quick_method_module
         logical :: nodirect = .false.  ! conventional scf
         logical :: readDMX =  .false.  ! flag to read density matrix
         logical :: readden = .false.  ! flag to read density matrix
-        logical :: read_coord = .false.  ! flag to read coordinates
+        logical :: readxyz = .false.  ! flag to read coordinates
         logical :: writeden = .false. ! flag to write density matrix
         logical :: writexyz = .false. ! flag to write coordinates
         logical :: readSAD = .true.    ! flag to read SAD guess
@@ -261,7 +261,7 @@ module quick_method_module
             call MPI_BCAST(self%gridspacing,1,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
             call MPI_BCAST(self%lapGridSpacing,1,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
             call MPI_BCAST(self%readden,1,mpi_logical,0,MPI_COMM_WORLD,mpierror)
-            call MPI_BCAST(self%read_coord,1,mpi_logical,0,MPI_COMM_WORLD,mpierror)
+            call MPI_BCAST(self%readxyz,1,mpi_logical,0,MPI_COMM_WORLD,mpierror)
             call MPI_BCAST(self%writeden,1,mpi_logical,0,MPI_COMM_WORLD,mpierror)
             call MPI_BCAST(self%writexyz,1,mpi_logical,0,MPI_COMM_WORLD,mpierror)
             call MPI_BCAST(self%extCharges,1,mpi_logical,0,MPI_COMM_WORLD,mpierror)
@@ -439,7 +439,7 @@ module quick_method_module
             if (self%printEnergy) write(io,'(" PRINT ENERGY EVERY CYCLE")')
 
             if (self%readDMX)   write(io,'(" READ DENSITY MATRIX FROM FILE")')
-            if (self%read_coord) write(io,'(" READ COORDINATES FROM DATA FILE")')
+            if (self%readxyz) write(io,'(" READ COORDINATES FROM DATA FILE")')
             if (self%readden) write(io,'(" READ DENSITY MATRIX FROM DATA FILE")')
             if (self%writeden) write(io,'(" WRITE DENSITY MATRIX TO DATA FILE")')
             if (self%writexyz) write(io,'(" WRITE COORDINATES TO DATA FILE")')
@@ -722,8 +722,8 @@ module quick_method_module
             endif
 
             !Read coordinates
-            if (index(keyWD,'CHK_READ_COORD').ne.0)then
-              self%read_coord=.true.
+            if (index(keyWD,'CHK_READ_XYZ').ne.0)then
+              self%readxyz=.true.
             endif
 
             if (self%DFT) then
@@ -969,7 +969,7 @@ module quick_method_module
             self%calcDens = .false.    ! calculate density
             self%calcDensLap = .false. ! calculate density lap
             self%readden = .false.    ! Input density matrix
-            self%read_coord = .false.    ! Input coordinates
+            self%readxyz = .false.    ! Input coordinates
             self%writeden = .false.   ! Write density matrix to data file
             self%writexyz = .false.   ! Write coordinates to data file
             self%extCharges = .false.  ! external charge

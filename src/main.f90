@@ -117,7 +117,7 @@
     call read_Job_and_Atom(ierr)
 
     !allocate essential variables
-    call alloc(quick_molspec, quick_method%read_coord, ierr)
+    call alloc(quick_molspec, quick_method%readxyz, ierr)
     !if (quick_method%MFCC) call allocate_MFCC()
    
     RECORD_TIME(timer_end%TInitialize)
