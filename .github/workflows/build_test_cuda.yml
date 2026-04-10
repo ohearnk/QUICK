@@ -90,7 +90,7 @@ jobs:
           #cd build
           #cmake .. -DCOMPILER=${{ matrix.compiler-type }} \
           #  -DCUDA=TRUE -DQUICK_USER_ARCH=ampere -DCMAKE_INSTALL_PREFIX=$PWD/../install -DENABLEF=TRUE
-          ./configure --cuda --arch ampere --enablef --shared --verbose --prefix $PWD/install ${{ matrix.compiler-type }}
+          ./configure --cuda --arch ampere --shared --verbose --prefix $PWD/install ${{ matrix.compiler-type }}
 
       - name: 'Build and Install'
         run: |
