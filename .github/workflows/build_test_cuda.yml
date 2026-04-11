@@ -26,7 +26,7 @@ jobs:
         include:
         # Only one configuration based on versions provided inside of runner
           - os: 'ubuntu-22.04'
-            compiler-type: 'gnu'
+            compiler-type: 'GNU'
             compiler-version: '11'
             cuda-version: '12.4'
             c-compiler: 'gcc'
@@ -42,7 +42,7 @@ jobs:
       - name: 'Setup Environment Variables for Building and Running Tests'
         run: |
           echo "QUICK_BASIS=$PWD/install/basis" >> "$GITHUB_ENV"
-          echo "CUDA_HOME=/usr/local/cuda-${{ matrix.cuda-version }}" >> "$GITHUB_ENV"
+          echo "CUDA_PATH=/usr/local/cuda-${{ matrix.cuda-version }}" >> "$GITHUB_ENV"
           # Add CUDA binaries and libs to paths
           echo "PATH=$PWD/install/bin:/usr/local/cuda-${{ matrix.cuda-version }}/bin:$PATH" >> "$GITHUB_ENV"
           echo "LIBRARY_PATH=$PWD/install/lib:/usr/local/cuda-${{ matrix.cuda-version }}/lib64:$LIBRARY_PATH" >> "$GITHUB_ENV"
@@ -50,11 +50,6 @@ jobs:
           echo "CC=${{ matrix.c-compiler }}" >> "$GITHUB_ENV"
           echo "CXX=${{ matrix.cxx-compiler }}" >> "$GITHUB_ENV"
           echo "FC=${{ matrix.fortran-compiler }}" >> "$GITHUB_ENV"
-
-     # - name: 'Install Dependencies'
-     #   run: |
-     #     apt-get update
-     #     apt-get install -y cmake
 
       - name: 'Log Software Environment Configuration'
         run: |
@@ -69,9 +64,9 @@ jobs:
           echo
           echo "Fortran compiler version:"
           ${{ matrix.fortran-compiler }} --version
-          # echo
-          # echo "CMake version:"
-          #cmake --version
+          echo
+          echo "CMake version:"
+          cmake --version
           echo
           echo "GPU Information:"
           nvidia-smi
@@ -86,24 +81,21 @@ jobs:
 
       - name: 'Configure CUDA Version'
         run: |
-          #mkdir build
-          #cd build
-          #cmake .. -DCOMPILER=${{ matrix.compiler-type }} \
-          #  -DCUDA=TRUE -DQUICK_USER_ARCH=ampere -DCMAKE_INSTALL_PREFIX=$PWD/../install -DENABLEF=TRUE
-          ./configure --cuda --arch ampere --shared --verbose --prefix $PWD/install ${{ matrix.compiler-type }}
+          mkdir build
+          cd build
+          cmake .. -DCOMPILER=${{ matrix.compiler-type }} \
+            -DCUDA=TRUE -DQUICK_USER_ARCH=ampere -DCMAKE_INSTALL_PREFIX=$PWD/../install -DENABLEF=FALSE
 
       - name: 'Build and Install'
         run: |
-          #cd build
-          #cmake --build . --parallel 2 --verbose
-          #cmake --install .
-          make -j2 all install # build and install using 2 jobs
+          cd build
+          cmake --build . --parallel 2 --verbose
+          cmake --install .
 
       - name: 'Run Tests'
         run: |
-          #cd install
-          #./runtest --cuda --full
-          make fulltest
+          cd install
+          ./runtest --cuda --full
 
       - name: 'Upload Test Artifacts for CUDA Version'
         if: always()
