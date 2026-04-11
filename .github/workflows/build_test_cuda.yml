@@ -84,7 +84,7 @@ jobs:
           mkdir build
           cd build
           cmake .. -DCOMPILER=${{ matrix.compiler-type }} \
-            -DCUDA=TRUE -DQUICK_USER_ARCH=ampere -DCMAKE_INSTALL_PREFIX=$PWD/../install -DENABLEF=FALSE
+            -DCUDA=TRUE -DQUICK_USER_ARCH=ampere -DCMAKE_INSTALL_PREFIX=$PWD/../install -DENABLEF=TRUE
 
       - name: 'Build and Install'
         run: |
