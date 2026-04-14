@@ -1,20 +1,10 @@
-name: 'Build and Test QUICK CUDA Version'
+name: 'Build and Test QUICK CUDA Version (F Functions Enabled)'
 
 defaults:
   run:
     shell: bash
 
 on: workflow_dispatch
-  push:
-    paths-ignore:
-      - '**.md'
-      - '.github/workflows/build_test_serial.yml'
-      - '.github/workflows/build_test_mpi.yml'
-  pull_request:
-    paths-ignore:
-      - '**.md'
-      - '.github/workflows/build_test_serial.yml'
-      - '.github/workflows/build_test_mpi.yml'
 
 jobs:
   build-and-test-cuda:
@@ -84,7 +74,7 @@ jobs:
           mkdir build
           cd build
           cmake .. -DCOMPILER=${{ matrix.compiler-type }} \
-            -DCUDA=TRUE -DQUICK_USER_ARCH=ampere -DCMAKE_INSTALL_PREFIX=$PWD/../install -DENABLEF=FALSE
+            -DCUDA=TRUE -DQUICK_USER_ARCH=ampere -DCMAKE_INSTALL_PREFIX=$PWD/../install -DENABLEF=TRUE
 
       - name: 'Build and Install'
         run: |
