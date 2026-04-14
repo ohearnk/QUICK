@@ -4,7 +4,8 @@ defaults:
   run:
     shell: bash
 
-on: workflow_dispatch
+on: 
+  workflow_dispatch
   push:
     paths-ignore:
       - '**.md'
