@@ -354,6 +354,7 @@ subroutine dlf_run(ierr2 &
   use quick_method_module,only: quick_method
   use quick_files_module, only: write_molden
   use quick_molden_module, only: quick_molden
+  use quick_mpi_module, only: master
 #ifdef MPIV
   use mpi
   use quick_mpi_module, only: bMPI, mpierror
@@ -859,7 +860,7 @@ subroutine dlf_run(ierr2 &
      ! Append the current geometry to the optimisation trajectory dataset
      ! and rewrite the flat 'xyz' dataset so the latest geometry is always
      ! readily available for restart.
-     if (glob%iam == 0 .and. quick_method%writexyz) then
+     if (master .and. quick_method%writexyz) then
         call append_hdf5_extendable_real8_rank3('opt_traj', 3, glob%nat, glob%xcoords)
         call write_hdf5_real8_rank2(glob%xcoords, 3, glob%nat, 'xyz')
      endif
