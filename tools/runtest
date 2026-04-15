@@ -830,7 +830,12 @@ check_chk()
     "$2/dacdif" -k -a '1.0e-8' "$1_2.ene" "$1.ene" | tee -a "$3"
   fi
 
-  if [ `echo "$1" | grep '_xyz' | wc -l` -eq 1 ]; then
+  if [ `echo "$1" | grep '_intermediate_step5_xyz' | wc -l` -eq 1 ]; then
+    awk '/GEOMETRY FOR OPTIMIZATION STEP   5/,/@ Begin XC/' "$1.out" | sed -n '5,$p' | sed -e '$ d' > "$1.xyz"
+    awk '/INPUT GEOMETRY/,/DISTANCE MATRIX/ {print}' "$1_2.out" | sed -n '2,$p' | sed -e '$ d' > "$1_2.xyz"
+
+    "$2/dacdif" -k -a '2.0e-4' "$1_2.xyz" "$1.xyz" | tee -a "$3"
+  elif [ `echo "$1" | grep '_xyz$' | wc -l` -eq 1 ]; then
     awk '/OPTIMIZED GEOMETRY IN CARTESIAN/,/FORCE/ {print}' "$1.out" | sed -n '3,$p' | sed -e '$ d' | sed -e '$ d' > "$1.xyz"
     awk '/INPUT GEOMETRY/,/DISTANCE MATRIX/ {print}' "$1_2.out" | sed -n '2,$p' | sed -e '$ d' > "$1_2.xyz"
 
