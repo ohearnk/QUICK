@@ -358,6 +358,9 @@ subroutine dlf_run(ierr2 &
   use mpi
   use quick_mpi_module, only: bMPI, mpierror
 #endif
+#if defined(RESTART_HDF5)
+  use quick_io_module, only: append_hdf5_extendable_real8_rank3
+#endif
   implicit none
 #ifdef GAMESS
   real(rk) :: core(*) ! GAMESS memory, not used in DL-FIND
@@ -851,6 +854,13 @@ subroutine dlf_run(ierr2 &
        quick_molden%xyz_snapshots(:,:,quick_molden%iexport_snapshot) = glob%xcoords
        quick_molden%iexport_snapshot = quick_molden%iexport_snapshot + 1
     endif
+
+#if defined(RESTART_HDF5)
+    ! Append the current geometry to the optimisation trajectory dataset.
+    if (glob%iam == 0 .and. quick_method%writexyz) then
+       call append_hdf5_extendable_real8_rank3('opt_traj', 3, glob%nat, glob%xcoords)
+    endif
+#endif
 
 
     ! if trust-radius, test for step acceptance. 

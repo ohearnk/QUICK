@@ -32,6 +32,8 @@ module quick_io_module
   public :: write_hdf5_info
   public :: write_hdf5_int_rank1
   public :: write_hdf5_real8_rank2
+  public :: create_hdf5_extendable_real8_rank3
+  public :: append_hdf5_extendable_real8_rank3
 #endif
 
 contains
@@ -499,6 +501,20 @@ contains
       call quick_exit(OUTFILEHANDLE, 1)
     endif
 
+    ! Delete existing dataset if present so we can recreate with fresh data.
+    call h5lexists_f(file_id, datasetname, exists, hdferr)
+    if (hdferr /= 0) then
+      call PrtErr(OUTFILEHANDLE, 'Error checking dataset existence (write_hdf5_real8_rank2)')
+      call quick_exit(OUTFILEHANDLE, 1)
+    endif
+    if (exists) then
+      call h5ldelete_f(file_id, datasetname, hdferr)
+      if (hdferr /= 0) then
+        call PrtErr(OUTFILEHANDLE, 'Error deleting existing dataset (write_hdf5_real8_rank2)')
+        call quick_exit(OUTFILEHANDLE, 1)
+      endif
+    endif
+
     ! Create a simple dataspace
     call h5screate_simple_f(rank, lenArr, space_id, hdferr)
     if (hdferr /= 0) then
@@ -542,6 +558,236 @@ contains
     endif
 
   end subroutine write_hdf5_real8_rank2
+
+  !---------------------------------------------------------------------!
+  ! Create a chunked, unlimited-dimension rank-3 dataset for storing    !
+  ! data with a fixed leading shape (dim1, dim2) and an unlimited       !
+  ! third dimension that grows one step at a time.                      !
+  ! The on-disk layout is (dim1, dim2, niterations).                    !
+  ! Must be called once before the loop that appends steps.             !
+  !---------------------------------------------------------------------!
+  subroutine create_hdf5_extendable_real8_rank3(datasetname, dim1, dim2)
+    use HDF5
+    use quick_files_module, only: dataFileName
+
+    implicit none
+
+    character(len=*), intent(in) :: datasetname
+    integer,          intent(in) :: dim1, dim2
+
+    integer, parameter :: rank = 3
+    integer(HSIZE_T), dimension(rank) :: initial_dims, chunk_dims
+    integer(HSIZE_T), dimension(rank) :: max_dims
+    integer :: hdferr
+    integer(HID_T) :: file_id, space_id, dcpl_id, dset_id
+
+    initial_dims = [int(dim1, HSIZE_T), int(dim2, HSIZE_T), 0_HSIZE_T]
+    chunk_dims   = [int(dim1, HSIZE_T), int(dim2, HSIZE_T), 1_HSIZE_T]
+    max_dims     = [int(dim1, HSIZE_T), int(dim2, HSIZE_T), H5S_UNLIMITED_F]
+
+    ! Initialize FORTRAN interface.
+    call h5open_f(hdferr)
+    if (hdferr /= 0) then
+      call PrtErr(OUTFILEHANDLE, 'Error initializing HDF5 Fortran interface (create_hdf5_extendable_real8_rank3)')
+      call quick_exit(OUTFILEHANDLE, 1)
+    endif
+
+    ! Open the existing HDF5 data file for read/write.
+    call h5fopen_f(dataFileName, H5F_ACC_RDWR_F, file_id, hdferr)
+    if (hdferr /= 0) then
+      call PrtErr(OUTFILEHANDLE, 'Failed to open HDF5 data file (create_hdf5_extendable_real8_rank3)')
+      call quick_exit(OUTFILEHANDLE, 1)
+    endif
+
+    ! Create a simple dataspace with unlimited extent along the 3rd dimension.
+    call h5screate_simple_f(rank, initial_dims, space_id, hdferr, max_dims)
+    if (hdferr /= 0) then
+      call PrtErr(OUTFILEHANDLE, 'Error creating dataspace (create_hdf5_extendable_real8_rank3)')
+      call quick_exit(OUTFILEHANDLE, 1)
+    endif
+
+    ! Create a dataset creation property list and set chunked layout.
+    call h5pcreate_f(H5P_DATASET_CREATE_F, dcpl_id, hdferr)
+    if (hdferr /= 0) then
+      call PrtErr(OUTFILEHANDLE, 'Error creating property list (create_hdf5_extendable_real8_rank3)')
+      call quick_exit(OUTFILEHANDLE, 1)
+    endif
+
+    call h5pset_chunk_f(dcpl_id, rank, chunk_dims, hdferr)
+    if (hdferr /= 0) then
+      call PrtErr(OUTFILEHANDLE, 'Error setting chunk size (create_hdf5_extendable_real8_rank3)')
+      call quick_exit(OUTFILEHANDLE, 1)
+    endif
+
+    ! Create the dataset.
+    call h5dcreate_f(file_id, datasetname, H5T_NATIVE_DOUBLE, space_id, dset_id, hdferr, &
+                     dcpl_id=dcpl_id)
+    if (hdferr /= 0) then
+      call PrtErr(OUTFILEHANDLE, 'Failed to create HDF5 dataset (create_hdf5_extendable_real8_rank3)')
+      call quick_exit(OUTFILEHANDLE, 1)
+    endif
+
+    ! Close dataset.
+    call h5dclose_f(dset_id, hdferr)
+    if (hdferr /= 0) then
+      call PrtErr(OUTFILEHANDLE, 'Error closing HDF5 dataset (create_hdf5_extendable_real8_rank3)')
+      call quick_exit(OUTFILEHANDLE, 1)
+    endif
+
+    ! Close property list.
+    call h5pclose_f(dcpl_id, hdferr)
+    if (hdferr /= 0) then
+      call PrtErr(OUTFILEHANDLE, 'Error closing HDF5 property list (create_hdf5_extendable_real8_rank3)')
+      call quick_exit(OUTFILEHANDLE, 1)
+    endif
+
+    ! Close dataspace.
+    call h5sclose_f(space_id, hdferr)
+    if (hdferr /= 0) then
+      call PrtErr(OUTFILEHANDLE, 'Error closing HDF5 dataspace (create_hdf5_extendable_real8_rank3)')
+      call quick_exit(OUTFILEHANDLE, 1)
+    endif
+
+    ! Close file and interface.
+    call h5fclose_f(file_id, hdferr)
+    if (hdferr /= 0) then
+      call PrtErr(OUTFILEHANDLE, 'Error closing HDF5 file (create_hdf5_extendable_real8_rank3)')
+      call quick_exit(OUTFILEHANDLE, 1)
+    endif
+
+  end subroutine create_hdf5_extendable_real8_rank3
+
+  !---------------------------------------------------------------------!
+  ! Append one slab to a chunked rank-3 dataset created by             !
+  ! create_hdf5_extendable_real8_rank3.                                 !
+  ! Extends the dataset by 1 along the third (iteration) dimension and  !
+  ! writes slab(dim1, dim2) into the new slab.                          !
+  ! Must be called after create_hdf5_extendable_real8_rank3 and once    !
+  ! per step.                                                            !
+  !---------------------------------------------------------------------!
+  subroutine append_hdf5_extendable_real8_rank3(datasetname, dim1, dim2, slab)
+    use HDF5
+    use quick_files_module, only: dataFileName
+
+    implicit none
+
+    character(len=*),                        intent(in) :: datasetname
+    integer,                                 intent(in) :: dim1, dim2
+    double precision, dimension(dim1, dim2), intent(in) :: slab
+
+    integer, parameter :: rank = 3
+    integer(HSIZE_T), dimension(rank) :: cur_dims, new_dims, max_dims_dummy
+    integer(HSIZE_T), dimension(rank) :: start, count
+    integer :: hdferr
+    integer(HID_T) :: file_id, dset_id, file_space_id, mem_space_id
+
+    ! Initialize FORTRAN interface.
+    call h5open_f(hdferr)
+    if (hdferr /= 0) then
+      call PrtErr(OUTFILEHANDLE, 'Error initializing HDF5 Fortran interface (append_hdf5_extendable_real8_rank3)')
+      call quick_exit(OUTFILEHANDLE, 1)
+    endif
+
+    ! Open the existing HDF5 data file for read/write.
+    call h5fopen_f(dataFileName, H5F_ACC_RDWR_F, file_id, hdferr)
+    if (hdferr /= 0) then
+      call PrtErr(OUTFILEHANDLE, 'Failed to open HDF5 data file (append_hdf5_extendable_real8_rank3)')
+      call quick_exit(OUTFILEHANDLE, 1)
+    endif
+
+    ! Open the existing dataset.
+    call h5dopen_f(file_id, datasetname, dset_id, hdferr)
+    if (hdferr /= 0) then
+      call PrtErr(OUTFILEHANDLE, 'Failed to open HDF5 dataset (append_hdf5_extendable_real8_rank3)')
+      call quick_exit(OUTFILEHANDLE, 1)
+    endif
+
+    ! Get the current extent of the dataset.
+    call h5dget_space_f(dset_id, file_space_id, hdferr)
+    if (hdferr /= 0) then
+      call PrtErr(OUTFILEHANDLE, 'Error getting dataspace (append_hdf5_extendable_real8_rank3)')
+      call quick_exit(OUTFILEHANDLE, 1)
+    endif
+
+    call h5sget_simple_extent_dims_f(file_space_id, cur_dims, max_dims_dummy, hdferr)
+    if (hdferr < 0) then
+      call PrtErr(OUTFILEHANDLE, 'Error getting dataspace dimensions (append_hdf5_extendable_real8_rank3)')
+      call quick_exit(OUTFILEHANDLE, 1)
+    endif
+
+    call h5sclose_f(file_space_id, hdferr)
+
+    ! Extend the dataset by one step along the third dimension.
+    new_dims    = cur_dims
+    new_dims(3) = cur_dims(3) + 1_HSIZE_T
+
+    call h5dset_extent_f(dset_id, new_dims, hdferr)
+    if (hdferr /= 0) then
+      call PrtErr(OUTFILEHANDLE, 'Error extending dataset (append_hdf5_extendable_real8_rank3)')
+      call quick_exit(OUTFILEHANDLE, 1)
+    endif
+
+    ! Re-get the file dataspace after the extension.
+    call h5dget_space_f(dset_id, file_space_id, hdferr)
+    if (hdferr /= 0) then
+      call PrtErr(OUTFILEHANDLE, 'Error getting extended dataspace (append_hdf5_extendable_real8_rank3)')
+      call quick_exit(OUTFILEHANDLE, 1)
+    endif
+
+    ! Select the hyperslab for the new step (0-based indices).
+    start = [0_HSIZE_T, 0_HSIZE_T, cur_dims(3)]
+    count = [int(dim1, HSIZE_T), int(dim2, HSIZE_T), 1_HSIZE_T]
+
+    call h5sselect_hyperslab_f(file_space_id, H5S_SELECT_SET_F, start, count, hdferr)
+    if (hdferr /= 0) then
+      call PrtErr(OUTFILEHANDLE, 'Error selecting hyperslab (append_hdf5_extendable_real8_rank3)')
+      call quick_exit(OUTFILEHANDLE, 1)
+    endif
+
+    ! Create a simple memory dataspace matching the slab size.
+    call h5screate_simple_f(rank, count, mem_space_id, hdferr)
+    if (hdferr /= 0) then
+      call PrtErr(OUTFILEHANDLE, 'Error creating memory dataspace (append_hdf5_extendable_real8_rank3)')
+      call quick_exit(OUTFILEHANDLE, 1)
+    endif
+
+    ! Write the slab.
+    call h5dwrite_f(dset_id, H5T_NATIVE_DOUBLE, slab, count, hdferr, &
+                    mem_space_id=mem_space_id, file_space_id=file_space_id)
+    if (hdferr /= 0) then
+      call PrtErr(OUTFILEHANDLE, 'Error writing data to dataset (append_hdf5_extendable_real8_rank3)')
+      call quick_exit(OUTFILEHANDLE, 1)
+    endif
+
+    ! Close memory dataspace.
+    call h5sclose_f(mem_space_id, hdferr)
+    if (hdferr /= 0) then
+      call PrtErr(OUTFILEHANDLE, 'Error closing memory dataspace (append_hdf5_extendable_real8_rank3)')
+      call quick_exit(OUTFILEHANDLE, 1)
+    endif
+
+    ! Close file dataspace.
+    call h5sclose_f(file_space_id, hdferr)
+    if (hdferr /= 0) then
+      call PrtErr(OUTFILEHANDLE, 'Error closing file dataspace (append_hdf5_extendable_real8_rank3)')
+      call quick_exit(OUTFILEHANDLE, 1)
+    endif
+
+    ! Close dataset.
+    call h5dclose_f(dset_id, hdferr)
+    if (hdferr /= 0) then
+      call PrtErr(OUTFILEHANDLE, 'Error closing HDF5 dataset (append_hdf5_extendable_real8_rank3)')
+      call quick_exit(OUTFILEHANDLE, 1)
+    endif
+
+    ! Close file and interface.
+    call h5fclose_f(file_id, hdferr)
+    if (hdferr /= 0) then
+      call PrtErr(OUTFILEHANDLE, 'Error closing HDF5 file (append_hdf5_extendable_real8_rank3)')
+      call quick_exit(OUTFILEHANDLE, 1)
+    endif
+
+  end subroutine append_hdf5_extendable_real8_rank3
 
 #endif
 

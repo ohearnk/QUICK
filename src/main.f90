@@ -37,7 +37,7 @@
     use quick_molden_module, only : quick_molden, initializeExport, exportCoordinates, exportBasis, &
          exportMO, exportSCF, exportOPT
 #if defined(RESTART_HDF5)
-    use quick_io_module, only: write_hdf5_info, write_hdf5_int_rank1, write_hdf5_real8_rank2
+    use quick_io_module, only: write_hdf5_info, create_hdf5_extendable_real8_rank3
 #else
     use quick_io_module, only: write_int_rank0, write_int_rank3, write_real8_rank3
 #endif
@@ -147,6 +147,9 @@
     if (master .and. (quick_method%writeden .or. quick_method%writexyz)) then
         call write_hdf5_info(natom, nbasis)
     endif
+    if (master .and. quick_method%opt .and. quick_method%writexyz) then
+        call create_hdf5_extendable_real8_rank3('opt_traj', 3, natom)
+    endif
 #endif
 
 #if defined(GPU) || defined(MPIV_GPU)
@@ -221,20 +224,9 @@
         ! One electron properties (ESP, EField)
         call compute_oeprop()
 
-        if (master) then
-          if (quick_method%writeden .or. quick_method%writexyz) then
-#if defined(RESTART_HDF5)
-            if (quick_method%writexyz) then
-              call write_hdf5_int_rank1(quick_molspec%iattype, natom, 'iattype')
-              call write_hdf5_real8_rank2(quick_molspec%xyz, 3, natom, 'xyz')
-            end if
-            if (quick_method%writeden) then
-              call write_hdf5_real8_rank2(quick_qm_struct%dense, nbasis, nbasis, 'dense')
-              if (quick_method%UNRST) then
-                call write_hdf5_real8_rank2(quick_qm_struct%denseb, nbasis, nbasis, 'denseb')  
-              end if
-            end if
-#else
+#if !defined(RESTART_HDF5)
+        if(quick_method%writeden .or. quick_method%writexyz) then
+          if (master)then
             open(unit=iDataFile, file=dataFileName, status='UNKNOWN', form='UNFORMATTED', action='WRITE')
             if (quick_method%writexyz) then
               call write_int_rank0(iDataFile, "natom", natom, fail)
@@ -249,9 +241,9 @@
               end if
             end if
             close(iDataFile)
-#endif
-          endif 
+          endif
         endif
+#endif
 
     endif
 
@@ -272,20 +264,9 @@
             SAFE_CALL(lopt(ierr))         ! Cartesian
         endif
 
-        if (master) then
-          if (quick_method%writeden .or. quick_method%writexyz) then
-#if defined(RESTART_HDF5)
-            if (quick_method%writexyz) then
-              call write_hdf5_int_rank1(quick_molspec%iattype, natom, 'iattype')
-              call write_hdf5_real8_rank2(quick_molspec%xyz, 3, natom, 'xyz')
-            end if
-            if (quick_method%writeden) then
-              call write_hdf5_real8_rank2(quick_qm_struct%dense, nbasis, nbasis, 'dense')
-              if (quick_method%UNRST) then
-                call write_hdf5_real8_rank2(quick_qm_struct%denseb, nbasis, nbasis, 'denseb')  
-              end if
-            end if
-#else
+#if !defined(RESTART_HDF5)
+        if(quick_method%writeden .or. quick_method%writexyz) then
+          if (master)then
             open(unit=iDataFile, file=dataFileName, status='UNKNOWN', form='UNFORMATTED', action='WRITE')
             if (quick_method%writexyz) then
               call write_int_rank0(iDataFile, "natom", natom, fail)
@@ -300,9 +281,9 @@
               end if
             end if
             close(iDataFile)
-#endif
-          endif 
+          endif
         endif
+#endif
     endif
     
     if (.not.quick_method%opt .and. quick_method%grad) then

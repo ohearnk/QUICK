@@ -194,6 +194,9 @@ contains
 #if defined(MPIV)
      use mpi
 #endif
+#if defined(RESTART_HDF5)
+    use quick_io_module, only: write_hdf5_real8_rank2
+#endif
 
      implicit none
  
@@ -707,6 +710,13 @@ contains
         !--------------- END MPI/ALL NODES -------------------------------------
   
         if (master) then
+
+#if defined(RESTART_HDF5)
+          if (quick_method%writeden) then
+            call write_hdf5_real8_rank2(quick_qm_struct%dense, nbasis, nbasis, 'dense')
+          end if
+#endif
+
 #ifdef USEDAT
            ! open data file then write calculated info to dat file
            SAFE_CALL(quick_open(iDataFile, dataFileName, 'R', 'U', 'R',.true.,ierr)

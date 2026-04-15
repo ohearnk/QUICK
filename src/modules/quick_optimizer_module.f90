@@ -29,7 +29,7 @@ contains
 ! IOPT to control the cycles
 ! Ed Brothers. August 18,2002.
 ! 3456789012345678901234567890123456789012345678901234567890123456789012<<STOP
-  subroutine optimize(ierr)
+   subroutine optimize(ierr)
      use allmod
      use quick_gridpoints_module
      use quick_cutoff_module, only: schwarzoff
@@ -40,6 +40,9 @@ contains
      use quick_molden_module, only: quick_molden
 #ifdef MPIV
      use mpi
+#endif
+#if defined(RESTART_HDF5)
+     use quick_io_module, only: append_hdf5_extendable_real8_rank3
 #endif
      implicit double precision(a-h,o-z)
 
@@ -247,6 +250,13 @@ contains
                quick_molden%xyz_snapshots(:,:,quick_molden%iexport_snapshot)=xyz(:,:)
                quick_molden%iexport_snapshot = quick_molden%iexport_snapshot + 1
            endif
+
+#if defined(RESTART_HDF5)
+           ! Append the current geometry to the optimisation trajectory dataset.
+           if (master .and. quick_method%writexyz) then
+               call append_hdf5_extendable_real8_rank3('opt_traj', 3, natom, xyz)
+           endif
+#endif
 
            geomax = -1.d0
            georms = 0.d0
