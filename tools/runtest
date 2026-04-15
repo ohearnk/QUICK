@@ -1027,7 +1027,7 @@ print_summary()
         elif [ `sed -n '/execution failed/p' .quick.runtest.${buildtype}.summary.tmp2 | wc -l` -gt 0 ]; then
           failed_api=$(($failed_api+1))
         fi
-      elif [ `sed -n '/RW test/p' .quick.runtest.${buildtype}.summary.tmp2 | wc -l` -gt 0 ]; then
+      elif [ `sed -n '/CHK test/p' .quick.runtest.${buildtype}.summary.tmp2 | wc -l` -gt 0 ]; then
         if [ `sed -n '/possible FAILURE/p' .quick.runtest.${buildtype}.summary.tmp2 | wc -l` -gt 0 ]; then
           failed_chk=$(($failed_chk+1))
         elif [ `sed -n '/execution failed/p' .quick.runtest.${buildtype}.summary.tmp2 | wc -l` -gt 0 ]; then
@@ -1054,7 +1054,7 @@ print_summary()
     echo "    Gradient tests: $failed_grad/$tot_grad_tests (failed/total)" >> .quick.runtest.${buildtype}.summary.tmp0
     echo "    Optimization tests: $failed_opt/$tot_opt_tests (failed/total)" >> .quick.runtest.${buildtype}.summary.tmp0
     echo "    API tests: $failed_api/$tot_api_tests (failed/total)" >> .quick.runtest.${buildtype}.summary.tmp0
-    echo "    RW tests: $failed_chk/$tot_chk_tests (failed/total)" >> .quick.runtest.${buildtype}.summary.tmp0
+    echo "    CHK tests: $failed_chk/$tot_chk_tests (failed/total)" >> .quick.runtest.${buildtype}.summary.tmp0
     echo "    ESP tests: $failed_esp/$tot_esp_tests (failed/total)" >> .quick.runtest.${buildtype}.summary.tmp0
     echo "    Total tests: $failed_total/$total_tests (failed/total)" >> .quick.runtest.${buildtype}.summary.tmp0
     echo "" >> .quick.runtest.${buildtype}.summary.tmp0
@@ -1111,7 +1111,7 @@ check_mpi_gpu_mismatch()
 #   $1: test name
 check_hdf5_error()
 {
-    hdf5_error_string=`grep 'Error: CHK_READ_XYZ=' "$1_2.out" 2>/dev/null`
+    hdf5_error_string=`grep 'Error: CHK_READ_XYZ=.*restart requires HDF5 support' "$1_2.out" 2>/dev/null`
 
     if [ -z "$hdf5_error_string" ]; then ret=0 ; else ret=1 ; fi
 
