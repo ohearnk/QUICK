@@ -51,7 +51,14 @@ subroutine getMol(ierr)
           endif
 #else
           open(unit=iDataFile, file=dataFileName, status='OLD', form='UNFORMATTED')
-          call read_real8_rank3(iDataFile, "xyz", 3, natom, 1, xyz, fail)
+          if (quick_method%readxyz == 0) then
+            call read_real8_rank3(iDataFile, "xyz", 3, natom, 1, xyz, fail)
+          else
+            write(OUTFILEHANDLE, '(A,I0,A)') &
+                'Error: CHK_READ_XYZ=', quick_method%readxyz, &
+                ' restart requires HDF5 support. Recompile with -DHDF5=TRUE.'
+            call quick_exit(OUTFILEHANDLE, 1)
+          endif
           close(iDataFile)
 #endif
           quick_molspec%xyz => xyz
