@@ -16,7 +16,7 @@ subroutine getMol(ierr)
    use quick_gridpoints_module
    use quick_exception_module
 #if defined(RESTART_HDF5)
-   use quick_io_module, only: read_hdf5_real8_rank2
+   use quick_io_module, only: read_hdf5_real8_rank2, read_hdf5_opt_traj
 #else
    use quick_io_module, only: read_real8_rank3
 #endif
@@ -40,9 +40,15 @@ subroutine getMol(ierr)
 
       ! read xyz coordinates from the .in file 
       if (.not. isTemplate) then
-        if (quick_method%readxyz) then
+        if (quick_method%readxyz .ge. 0) then
 #if defined(RESTART_HDF5)
-          call read_hdf5_real8_rank2('xyz', (/1,1/), (/3,natom/), xyz)
+          ! readxyz == 0: CHK_READ_XYZ with no value -> read flat 'xyz' dataset
+          ! readxyz  > 0: CHK_READ_XYZ=N -> read step N from 'opt_traj'
+          if (quick_method%readxyz == 0) then
+            call read_hdf5_real8_rank2('xyz', (/1,1/), (/3,natom/), xyz)
+          else
+            call read_hdf5_opt_traj(quick_method%readxyz, natom, xyz)
+          endif
 #else
           open(unit=iDataFile, file=dataFileName, status='OLD', form='UNFORMATTED')
           call read_real8_rank3(iDataFile, "xyz", 3, natom, 1, xyz, fail)

@@ -144,7 +144,7 @@ contains
       implicit none
 
       type (quick_molspec_type), intent(inout) :: self
-      logical, intent(in) :: readxyz
+      integer, intent(in) :: readxyz
       integer, intent(inout) :: ierr
 
       integer i, j
@@ -155,11 +155,6 @@ contains
       if (.not. allocated(self%chg)) allocate(self%chg(natom))
       if (.not. allocated(self%AtomDistance)) allocate(self%AtomDistance(natom,natom))
       if (.not. allocated(self%dlfind_freezeatm)) allocate(self%dlfind_freezeatm(natom))
-      if (.not. readxyz) then
-         do i=1,natom
-            self%iattype(i)=0
-         enddo
-      end if
       do i=1,natom
          self%distnbor(i)=0
          self%chg(i)=0d0
@@ -446,7 +441,7 @@ contains
     if( .not. isTemplate) then
 
       ! read atom positions from checkpoint file
-      if (quick_method%readxyz) then
+      if (quick_method%readxyz .ge. 0) then
 #if defined(RESTART_HDF5)
         call read_hdf5_int_rank0('molinfo', 1, natom)
         if (.not. allocated(self%iattype)) allocate(self%iattype(natom))

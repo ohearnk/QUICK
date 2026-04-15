@@ -359,7 +359,7 @@ subroutine dlf_run(ierr2 &
   use quick_mpi_module, only: bMPI, mpierror
 #endif
 #if defined(RESTART_HDF5)
-  use quick_io_module, only: append_hdf5_extendable_real8_rank3
+  use quick_io_module, only: append_hdf5_extendable_real8_rank3, write_hdf5_real8_rank2
 #endif
   implicit none
 #ifdef GAMESS
@@ -856,10 +856,13 @@ subroutine dlf_run(ierr2 &
     endif
 
 #if defined(RESTART_HDF5)
-    ! Append the current geometry to the optimisation trajectory dataset.
-    if (glob%iam == 0 .and. quick_method%writexyz) then
-       call append_hdf5_extendable_real8_rank3('opt_traj', 3, glob%nat, glob%xcoords)
-    endif
+     ! Append the current geometry to the optimisation trajectory dataset
+     ! and rewrite the flat 'xyz' dataset so the latest geometry is always
+     ! readily available for restart.
+     if (glob%iam == 0 .and. quick_method%writexyz) then
+        call append_hdf5_extendable_real8_rank3('opt_traj', 3, glob%nat, glob%xcoords)
+        call write_hdf5_real8_rank2(glob%xcoords, 3, glob%nat, 'xyz')
+     endif
 #endif
 
 

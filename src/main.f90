@@ -37,7 +37,8 @@
     use quick_molden_module, only : quick_molden, initializeExport, exportCoordinates, exportBasis, &
          exportMO, exportSCF, exportOPT
 #if defined(RESTART_HDF5)
-    use quick_io_module, only: write_hdf5_info, create_hdf5_extendable_real8_rank3
+    use quick_io_module, only: write_hdf5_info, create_hdf5_extendable_real8_rank3, &
+                               write_hdf5_real8_rank2, write_hdf5_int_rank1
 #else
     use quick_io_module, only: write_int_rank0, write_int_rank3, write_real8_rank3
 #endif
@@ -149,6 +150,7 @@
     endif
     if (master .and. quick_method%opt .and. quick_method%writexyz) then
         call create_hdf5_extendable_real8_rank3('opt_traj', 3, natom)
+        call write_hdf5_int_rank1(quick_molspec%iattype, natom, 'iattype')
     endif
 #endif
 
@@ -224,6 +226,13 @@
         ! One electron properties (ESP, EField)
         call compute_oeprop()
 
+#if defined(RESTART_HDF5)
+        if (master .and. quick_method%writexyz) then
+            call write_hdf5_real8_rank2(quick_molspec%xyz, 3, natom, 'xyz')
+            call write_hdf5_int_rank1(quick_molspec%iattype, natom, 'iattype')
+        endif
+#endif
+
 #if !defined(RESTART_HDF5)
         if(quick_method%writeden .or. quick_method%writexyz) then
           if (master)then
@@ -295,6 +304,13 @@
 
         ! One electron properties (ESP, EField) 
         call compute_oeprop()
+
+#if defined(RESTART_HDF5)
+        if (master .and. quick_method%writexyz) then
+            call write_hdf5_real8_rank2(quick_molspec%xyz, 3, natom, 'xyz')
+            call write_hdf5_int_rank1(quick_molspec%iattype, natom, 'iattype')
+        endif
+#endif
 
     endif
 

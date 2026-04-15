@@ -34,6 +34,7 @@ module quick_io_module
   public :: write_hdf5_real8_rank2
   public :: create_hdf5_extendable_real8_rank3
   public :: append_hdf5_extendable_real8_rank3
+  public :: read_hdf5_opt_traj
 #endif
 
 contains
@@ -788,6 +789,139 @@ contains
     endif
 
   end subroutine append_hdf5_extendable_real8_rank3
+
+  !---------------------------------------------------------------------!
+  ! Read a single geometry slab from the 'opt_traj' rank-3 dataset.    !
+  ! step  : 1-based step index to retrieve (must be > 0)               !
+  ! natom : number of atoms                                             !
+  ! xyz_out : (3, natom) array that receives the coordinates            !
+  ! Raises a fatal error if step exceeds the number of stored steps.   !
+  !---------------------------------------------------------------------!
+  subroutine read_hdf5_opt_traj(step, natom, xyz_out)
+    use HDF5
+    use quick_files_module, only: dataFileName
+
+    implicit none
+
+    integer, intent(in)                           :: step
+    integer, intent(in)                           :: natom
+    double precision, dimension(3, natom), intent(out) :: xyz_out
+
+    integer, parameter :: rank = 3
+    double precision, dimension(3, natom, 1)      :: buf
+    integer(HSIZE_T), dimension(rank) :: cur_dims, max_dims_dummy
+    integer(HSIZE_T), dimension(rank) :: start, count
+    integer(HID_T) :: file_id, dset_id, file_space_id, mem_space_id
+    integer :: hdferr
+    integer(HSIZE_T) :: target_step
+
+    ! Initialize FORTRAN interface.
+    call h5open_f(hdferr)
+    if (hdferr /= 0) then
+      call PrtErr(OUTFILEHANDLE, 'Error initializing HDF5 Fortran interface (read_hdf5_opt_traj)')
+      call quick_exit(OUTFILEHANDLE, 1)
+    endif
+
+    ! Open the HDF5 data file read-only.
+    call h5fopen_f(dataFileName, H5F_ACC_RDONLY_F, file_id, hdferr)
+    if (hdferr /= 0) then
+      call PrtErr(OUTFILEHANDLE, 'Failed to open HDF5 data file (read_hdf5_opt_traj)')
+      call quick_exit(OUTFILEHANDLE, 1)
+    endif
+
+    ! Open the opt_traj dataset.
+    call h5dopen_f(file_id, 'opt_traj', dset_id, hdferr)
+    if (hdferr /= 0) then
+      call PrtErr(OUTFILEHANDLE, 'Failed to open opt_traj dataset (read_hdf5_opt_traj)')
+      call quick_exit(OUTFILEHANDLE, 1)
+    endif
+
+    ! Get current dimensions to validate and find the last step.
+    call h5dget_space_f(dset_id, file_space_id, hdferr)
+    if (hdferr /= 0) then
+      call PrtErr(OUTFILEHANDLE, 'Error getting dataspace (read_hdf5_opt_traj)')
+      call quick_exit(OUTFILEHANDLE, 1)
+    endif
+
+    call h5sget_simple_extent_dims_f(file_space_id, cur_dims, max_dims_dummy, hdferr)
+    if (hdferr < 0) then
+      call PrtErr(OUTFILEHANDLE, 'Error getting dataspace dimensions (read_hdf5_opt_traj)')
+      call quick_exit(OUTFILEHANDLE, 1)
+    endif
+
+    ! Bounds check: step is 1-based.
+    if (int(step, HSIZE_T) > cur_dims(3)) then
+      write(OUTFILEHANDLE, '("| Error: CHK_READ_XYZ=",I0," is out of range.",&
+            &" opt_traj contains ",I0," step(s).")') step, int(cur_dims(3))
+      call quick_exit(OUTFILEHANDLE, 1)
+    endif
+
+    target_step = int(step - 1, HSIZE_T)   ! convert to 0-based
+
+    call h5sclose_f(file_space_id, hdferr)
+
+    ! Re-get file dataspace for hyperslab selection.
+    call h5dget_space_f(dset_id, file_space_id, hdferr)
+    if (hdferr /= 0) then
+      call PrtErr(OUTFILEHANDLE, 'Error re-getting dataspace (read_hdf5_opt_traj)')
+      call quick_exit(OUTFILEHANDLE, 1)
+    endif
+
+    start = [0_HSIZE_T, 0_HSIZE_T, target_step]
+    count = [3_HSIZE_T, int(natom, HSIZE_T), 1_HSIZE_T]
+
+    call h5sselect_hyperslab_f(file_space_id, H5S_SELECT_SET_F, start, count, hdferr)
+    if (hdferr /= 0) then
+      call PrtErr(OUTFILEHANDLE, 'Error selecting hyperslab (read_hdf5_opt_traj)')
+      call quick_exit(OUTFILEHANDLE, 1)
+    endif
+
+    ! Create memory dataspace matching the slab.
+    call h5screate_simple_f(rank, count, mem_space_id, hdferr)
+    if (hdferr /= 0) then
+      call PrtErr(OUTFILEHANDLE, 'Error creating memory dataspace (read_hdf5_opt_traj)')
+      call quick_exit(OUTFILEHANDLE, 1)
+    endif
+
+    ! Read the slab into buf(3, natom, 1).
+    call h5dread_f(dset_id, H5T_NATIVE_DOUBLE, buf, count, hdferr, &
+                   mem_space_id=mem_space_id, file_space_id=file_space_id)
+    if (hdferr /= 0) then
+      call PrtErr(OUTFILEHANDLE, 'Error reading data from opt_traj (read_hdf5_opt_traj)')
+      call quick_exit(OUTFILEHANDLE, 1)
+    endif
+
+    xyz_out = buf(:,:,1)
+
+    ! Close memory dataspace.
+    call h5sclose_f(mem_space_id, hdferr)
+    if (hdferr /= 0) then
+      call PrtErr(OUTFILEHANDLE, 'Error closing memory dataspace (read_hdf5_opt_traj)')
+      call quick_exit(OUTFILEHANDLE, 1)
+    endif
+
+    ! Close file dataspace.
+    call h5sclose_f(file_space_id, hdferr)
+    if (hdferr /= 0) then
+      call PrtErr(OUTFILEHANDLE, 'Error closing file dataspace (read_hdf5_opt_traj)')
+      call quick_exit(OUTFILEHANDLE, 1)
+    endif
+
+    ! Close dataset.
+    call h5dclose_f(dset_id, hdferr)
+    if (hdferr /= 0) then
+      call PrtErr(OUTFILEHANDLE, 'Error closing HDF5 dataset (read_hdf5_opt_traj)')
+      call quick_exit(OUTFILEHANDLE, 1)
+    endif
+
+    ! Close file.
+    call h5fclose_f(file_id, hdferr)
+    if (hdferr /= 0) then
+      call PrtErr(OUTFILEHANDLE, 'Error closing HDF5 file (read_hdf5_opt_traj)')
+      call quick_exit(OUTFILEHANDLE, 1)
+    endif
+
+  end subroutine read_hdf5_opt_traj
 
 #endif
 
