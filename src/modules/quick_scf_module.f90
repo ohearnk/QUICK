@@ -712,7 +712,7 @@ contains
         if (master) then
 
 #if defined(RESTART_HDF5)
-          if (quick_method%writeden) then
+          if (quick_method%writechk) then
             call write_hdf5_real8_rank2(quick_qm_struct%dense, nbasis, nbasis, 'dense')
           end if
 #endif

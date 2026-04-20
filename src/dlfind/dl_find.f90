@@ -860,7 +860,7 @@ subroutine dlf_run(ierr2 &
      ! Append the current geometry to the optimisation trajectory dataset
      ! and rewrite the flat 'xyz' dataset so the latest geometry is always
      ! readily available for restart.
-     if (master .and. quick_method%writexyz) then
+     if (master .and. quick_method%writechk) then
         call append_hdf5_extendable_real8_rank3('opt_traj', 3, glob%nat, glob%xcoords)
         call write_hdf5_real8_rank2(glob%xcoords, 3, glob%nat, 'xyz')
      endif
