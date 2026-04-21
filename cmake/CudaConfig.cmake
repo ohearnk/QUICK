@@ -112,7 +112,7 @@ else()
 		    # 13.3 and 12.6 is a special case where stackoverflow and
 		    # nvidia disagree; allow based on Gerald Monard's testing.
 		    OR ( CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 13.3
-			AND CUDA_VERSION VERSION__EQUAL 12.6 )
+			AND CUDA_VERSION VERSION_EQUAL 12.6 )
 		    OR ( CMAKE_CXX_COMPILER_VERSION VERSION_LESS 13.3
 			AND CUDA_VERSION VERSION_GREATER_EQUAL 12.4
 			AND CUDA_VERSION VERSION_LESS_EQUAL 12.6 )
