@@ -60,11 +60,9 @@ set_property(DIRECTORY . PROPERTY COMPILE_DEFINITIONS $<$<CONFIG:Debug>:DEBUG>)
 
 option(WARNINGS "Enable warnings." FALSE)
 
-if(NOT ${COMPILER} STREQUAL MANUAL)
-    set(CMAKE_Fortran_FLAGS "")
-    set(CMAKE_C_FLAGS "")
-    set(CMAKE_CXX_FLAGS "")
-endif()
+set(CMAKE_Fortran_FLAGS "")
+set(CMAKE_C_FLAGS "")
+set(CMAKE_CXX_FLAGS "")
 
 set(OPT_FFLAGS "")
 set(OPT_CFLAGS "")
