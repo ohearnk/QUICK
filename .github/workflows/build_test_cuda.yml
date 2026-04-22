@@ -4,20 +4,21 @@ defaults:
   run:
     shell: bash
 
-on: workflow_dispatch
-#  push:
-#    paths-ignore:
-#      - '**.md'
-#      - '.github/workflows/build_test_serial.yml'
-#      - '.github/workflows/build_test_mpi.yml'
-#  pull_request:
-#    paths-ignore:
-#      - '**.md'
-#      - '.github/workflows/build_test_serial.yml'
-#      - '.github/workflows/build_test_mpi.yml'
+on: 
+  workflow_dispatch:
+  push:
+    paths-ignore:
+      - '**.md'
+      - '.github/workflows/build_test_serial.yml'
+      - '.github/workflows/build_test_mpi.yml'
+  pull_request:
+    paths-ignore:
+      - '**.md'
+      - '.github/workflows/build_test_serial.yml'
+      - '.github/workflows/build_test_mpi.yml'
 
 jobs:
-  build-and-test-cuda-cmake:
+  build-and-test-cuda:
     # The specific label for the self-hosted GPU runner
     runs-on: [self-hosted, linux-gpu-cuda]
     strategy:
@@ -26,14 +27,14 @@ jobs:
         include:
         # Only one configuration based on versions provided inside of runner
           - os: 'ubuntu-22.04'
-            compiler-type: 'gnu'
+            compiler-type: 'GNU'
             compiler-version: '11'
             cuda-version: '12.4'
             c-compiler: 'gcc'
             cxx-compiler: 'g++'
             fortran-compiler: 'gfortran'
 
-    name: ${{ matrix.os }} - CUDA ${{ matrix.cuda-version }} - CMake - ${{ matrix.compiler-type }}
+    name: ${{ matrix.os }} - CUDA ${{ matrix.cuda-version }} - ${{ matrix.compiler-type }}
 
     steps:
       - name: 'Checkout Repository'
@@ -83,17 +84,13 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake .. \
-            -DCOMPILER=${{ matrix.compiler-type }} \
-            -DCUDA=TRUE \
-            -DQUICK_USER_ARCH=ampere \
-            -DCMAKE_INSTALL_PREFIX=$PWD/../install \
-            -DENABLEF=TRUE
+          cmake .. -DCOMPILER=${{ matrix.compiler-type }} \
+            -DCUDA=TRUE -DQUICK_USER_ARCH=ampere -DCMAKE_INSTALL_PREFIX=$PWD/../install -DENABLEF=FALSE
 
       - name: 'Build and Install'
         run: |
           cd build
-          cmake --build . --parallel 2 --verbose
+          cmake --build . --parallel 3 --verbose
           cmake --install .
 
       - name: 'Run Tests'
@@ -105,9 +102,10 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: cuda-cmake-tests-${{ matrix.os }}-${{ matrix.compiler-type}}-${{ matrix.compiler-version }}-${{ matrix.cuda-version }}
+          name: cuda-tests-${{ matrix.os }}-${{ matrix.compiler-type}}-${{ matrix.compiler-version }}-${{ matrix.cuda-version }}
           path: |
             ${{ github.workspace }}/install/runtest.log
+            ${{ github.workspace }}/install/runtest-verbose.log
             ${{ github.workspace }}/install/test/runs/cuda
           retention-days: 3
           compression-level: 6
@@ -115,7 +113,7 @@ jobs:
       - name: 'Download Test Artifacts for CUDA Version'
         uses: actions/download-artifact@v4
         with:
-          name: cuda-cmake-tests-${{ matrix.os }}-${{ matrix.compiler-type}}-${{ matrix.compiler-version }}-${{ matrix.cuda-version }}
+          name: cuda-tests-${{ matrix.os }}-${{ matrix.compiler-type}}-${{ matrix.compiler-version }}-${{ matrix.cuda-version }}
 
       - name: 'Display Artifacts'
         run: |
