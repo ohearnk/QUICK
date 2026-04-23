@@ -1368,7 +1368,7 @@ if [ -n "$PARALLEL_TEST_COUNT" ]; then
   export -f set_job_gpus set_test run_test run_test_api run_energy_test run_grad_test run_opt_test run_api_test \
 	  run_chk_test run_esp_test check_chk check_energy check_gradient check_opt \
           check_esp_charge check_esp_grid check_vdw_surface check_dipole \
-          clean_up check_f_error check_mpi_gpu_mismatch lock_file unlock_file
+          clean_up check_f_error check_hdf5_error check_mpi_gpu_mismatch lock_file unlock_file
 fi
 
 #  !---------------------------------------------------------------------!
