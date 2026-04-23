@@ -1,26 +1,14 @@
-name: 'Build and Test QUICK CUDA Version'
+name: 'Build and Test QUICK CUDA Version (F Functions Enabled)'
 
 defaults:
   run:
     shell: bash
 
-on: 
-  workflow_dispatch:
-  push:
-    paths-ignore:
-      - '**.md'
-      - '.github/workflows/build_test_serial.yml'
-      - '.github/workflows/build_test_mpi.yml'
-      - '.github/workflows/build_test_cuda_enablef.yml'
-  pull_request:
-    paths-ignore:
-      - '**.md'
-      - '.github/workflows/build_test_serial.yml'
-      - '.github/workflows/build_test_mpi.yml'
-      - '.github/workflows/build_test_cuda_enablef.yml'
+on: workflow_dispatch
 
 jobs:
   build-and-test-cuda:
+    timeout-minutes: 2880 # set timeout to 48 hours
     # The specific label for the self-hosted GPU runner
     runs-on: [self-hosted, linux-gpu-cuda]
     strategy:
@@ -87,7 +75,7 @@ jobs:
           mkdir build
           cd build
           cmake .. -DCOMPILER=${{ matrix.compiler-type }} \
-            -DCUDA=TRUE -DQUICK_USER_ARCH=ampere -DCMAKE_INSTALL_PREFIX=$PWD/../install -DENABLEF=FALSE
+            -DCUDA=TRUE -DQUICK_USER_ARCH=ampere -DCMAKE_INSTALL_PREFIX=$PWD/../install -DENABLEF=TRUE
 
       - name: 'Build and Install'
         run: |
