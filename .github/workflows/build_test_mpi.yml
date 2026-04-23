@@ -8,9 +8,15 @@ on:
   push:
     paths-ignore:
       - '**.md'
+      - '.github/workflows/build_test_serial.yml'
+      - '.github/workflows/build_test_cuda.yml'
+      - '.github/workflows/build_test_cuda_enablef.yml'
   pull_request:
     paths-ignore:
       - '**.md'
+      - '.github/workflows/build_test_serial.yml'
+      - '.github/workflows/build_test_cuda.yml'
+      - '.github/workflows/build_test_cuda_enablef.yml'
 
 jobs:
   build-and-test-mpi-legacy-configure-make:
