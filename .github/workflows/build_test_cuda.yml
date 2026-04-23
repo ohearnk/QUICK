@@ -11,11 +11,13 @@ on:
       - '**.md'
       - '.github/workflows/build_test_serial.yml'
       - '.github/workflows/build_test_mpi.yml'
+      - '.github/workflows/build_test_cuda_enablef.yml'
   pull_request:
     paths-ignore:
       - '**.md'
       - '.github/workflows/build_test_serial.yml'
       - '.github/workflows/build_test_mpi.yml'
+      - '.github/workflows/build_test_cuda_enablef.yml'
 
 jobs:
   build-and-test-cuda:
