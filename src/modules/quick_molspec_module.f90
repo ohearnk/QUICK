@@ -364,11 +364,7 @@ contains
     use quick_exception_module
     use quick_method_module, only: quick_method
     use quick_files_module, only : iDataFile, dataFileName
-#if defined(RESTART_HDF5)
-    use quick_io_module, only: read_hdf5_int_rank0, read_hdf5_int_rank1
-#else
-    use quick_io_module, only: read_int_rank0, read_int_rank3
-#endif
+    use quick_io_module, only: chk_read
 
     implicit none
 
@@ -442,17 +438,9 @@ contains
 
       ! read atom positions from checkpoint file
       if (quick_method%readxyz .ge. 0) then
-#if defined(RESTART_HDF5)
-        call read_hdf5_int_rank0('molinfo', 1, natom)
+        call chk_read('natom', natom, fail)
         if (.not. allocated(self%iattype)) allocate(self%iattype(natom))
-        call read_hdf5_int_rank1('iattype', 1, natom, self%iattype)
-#else
-        open(unit=iDataFile, file=dataFileName, status='OLD', form='UNFORMATTED')
-        call read_int_rank0(iDataFile, "natom", natom, fail)
-        if (.not. allocated(self%iattype)) allocate(self%iattype(natom))
-        call read_int_rank3(iDataFile, "iattype", natom, 1, 1, self%iattype, fail)
-        close(iDataFile)
-#endif
+        call chk_read('iattype', natom, self%iattype, fail)
 
         ! Reading external charges from data file is not yet implemented
         nextatom = 0

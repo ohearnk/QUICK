@@ -20,22 +20,56 @@ module quick_io_module
 
   implicit none
 
-  public :: write_int_rank0, read_int_rank0
-  public :: write_real8_rank0, read_real8_rank0  
-  public :: write_int_rank3, read_int_rank3
-  public :: write_real8_rank3, read_real8_rank3
+  private
 
-#if defined(RESTART_HDF5)
-  public :: read_hdf5_real8_rank2
-  public :: read_hdf5_int_rank0
-  public :: read_hdf5_int_rank1
-  public :: write_hdf5_info
-  public :: write_hdf5_int_rank1
-  public :: write_hdf5_real8_rank2
-  public :: create_hdf5_extendable_real8_rank3
-  public :: append_hdf5_extendable_real8_rank3
-  public :: read_hdf5_opt_traj
-#endif
+  !-------------------------------------------------------------------!
+  ! Module-level file unit for non-HDF5 checkpoint I/O (-1 = closed) !
+  !-------------------------------------------------------------------!
+  integer :: chk_unit = -1
+
+  !-------------------------------------------------------------------!
+  ! Public API                                                        !
+  !-------------------------------------------------------------------!
+  public :: chk_init, chk_close
+  public :: chk_write, chk_read, chk_update
+  public :: chk_create_opt_traj, chk_append_opt_traj, chk_read_opt_traj
+
+  !-------------------------------------------------------------------!
+  ! Generic interface: chk_write                                      !
+  ! Resolved by type/rank of the data argument:                       !
+  !   integer scalar          -> chk_write_int_scalar                 !
+  !   integer rank-1 array    -> chk_write_int_rank1                  !
+  !   real8   rank-2 array    -> chk_write_real8_rank2                !
+  !-------------------------------------------------------------------!
+  interface chk_write
+     module procedure chk_write_int_scalar
+     module procedure chk_write_int_rank1
+     module procedure chk_write_real8_rank2
+  end interface chk_write
+
+  !-------------------------------------------------------------------!
+  ! Generic interface: chk_read                                       !
+  ! Resolved by type/rank of the data argument:                       !
+  !   integer scalar          -> chk_read_int_scalar                  !
+  !   integer rank-1 array    -> chk_read_int_rank1                   !
+  !   real8   rank-2 array    -> chk_read_real8_rank2                 !
+  !-------------------------------------------------------------------!
+  interface chk_read
+     module procedure chk_read_int_scalar
+     module procedure chk_read_int_rank1
+     module procedure chk_read_real8_rank2
+  end interface chk_read
+
+  !-------------------------------------------------------------------!
+  ! Generic interface: chk_update                                     !
+  ! In-place overwrite of an already-written dataset.                 !
+  ! HDF5: overwrites the existing dataset.                            !
+  ! non-HDF5: no-op (sequential binary format does not support        !
+  !           in-place overwrite).                                     !
+  !-------------------------------------------------------------------!
+  interface chk_update
+     module procedure chk_update_real8_rank2
+  end interface chk_update
 
 contains
 
@@ -924,6 +958,373 @@ contains
   end subroutine read_hdf5_opt_traj
 
 #endif
+
+  !=====================================================================!
+  ! Public wrapper subroutines — dispatch to HDF5 or binary checkpoint  !
+  ! All #if defined(RESTART_HDF5) guards are confined to this section.  !
+  !=====================================================================!
+
+  !---------------------------------------------------------------------!
+  ! chk_init: initialise the checkpoint file and record natom/nbasis.   !
+  ! non-HDF5: opens the binary file and writes natom + nbasis records.  !
+  ! HDF5: creates the HDF5 file and writes the 'molinfo' dataset.       !
+  !---------------------------------------------------------------------!
+  subroutine chk_init(natom, nbasis, fail)
+    use quick_files_module, only: iDataFile, dataFileName
+    implicit none
+    integer, intent(in)  :: natom, nbasis
+    integer, intent(out) :: fail
+
+    fail = 0
+#if defined(RESTART_HDF5)
+    call write_hdf5_info(natom, nbasis)
+    fail = 1
+#else
+    chk_unit = iDataFile
+    open(unit=chk_unit, file=dataFileName, status='UNKNOWN', &
+         form='UNFORMATTED', action='WRITE')
+    call write_int_rank0(chk_unit, 'natom',  natom,  fail)
+    call write_int_rank0(chk_unit, 'nbasis', nbasis, fail)
+    fail = 1
+#endif
+  end subroutine chk_init
+
+  !---------------------------------------------------------------------!
+  ! chk_close: finalise the checkpoint file.                            !
+  ! non-HDF5: closes the open binary file unit.                         !
+  ! HDF5: no-op (each HDF5 routine manages its own file handles).       !
+  !---------------------------------------------------------------------!
+  subroutine chk_close(fail)
+    implicit none
+    integer, intent(out) :: fail
+
+    fail = 1
+#if !defined(RESTART_HDF5)
+    if (chk_unit /= -1) then
+      close(chk_unit)
+      chk_unit = -1
+    end if
+#endif
+  end subroutine chk_close
+
+  !---------------------------------------------------------------------!
+  ! chk_write_int_scalar: write one integer scalar to the checkpoint.   !
+  ! non-HDF5: writes a tagged binary record to chk_unit.                !
+  ! HDF5: integer scalars (natom, nbasis) live in 'molinfo' via         !
+  !       chk_init; this procedure is a no-op for HDF5.                 !
+  !---------------------------------------------------------------------!
+  subroutine chk_write_int_scalar(key, value, fail)
+    implicit none
+    character(len=*), intent(in)  :: key
+    integer,          intent(in)  :: value
+    integer,          intent(out) :: fail
+
+    fail = 0
+#if defined(RESTART_HDF5)
+    ! natom/nbasis are written by chk_init via write_hdf5_info; no-op here.
+    fail = 1
+#else
+    call write_int_rank0(chk_unit, key, value, fail)
+#endif
+  end subroutine chk_write_int_scalar
+
+  !---------------------------------------------------------------------!
+  ! chk_write_int_rank1: write a 1-D integer array to the checkpoint.   !
+  ! non-HDF5: writes '#key', 'II', element count, then the array to     !
+  !           chk_unit.                                                  !
+  ! HDF5: calls write_hdf5_int_rank1.                                   !
+  !---------------------------------------------------------------------!
+  subroutine chk_write_int_rank1(key, n, array, fail)
+    implicit none
+    character(len=*),      intent(in)  :: key
+    integer,               intent(in)  :: n
+    integer, dimension(n), intent(in)  :: array
+    integer,               intent(out) :: fail
+
+    integer   :: i, k, l
+    character :: kline*40
+
+    fail = 0
+#if defined(RESTART_HDF5)
+    call write_hdf5_int_rank1(array, n, key)
+    fail = 1
+#else
+    l = len(key)
+    if (l >= 40) then
+       kline = key(1:40)
+    else
+       kline(1:l) = key(1:l)
+       do k = l+1, 40
+          kline(k:k) = ' '
+       enddo
+    endif
+    write(chk_unit) '#'//kline(1:40)
+    write(chk_unit) 'II'
+    write(chk_unit) n
+    write(chk_unit) (array(i), i=1,n)
+    fail = 1
+#endif
+  end subroutine chk_write_int_rank1
+
+  !---------------------------------------------------------------------!
+  ! chk_write_real8_rank2: write a rank-2 double precision array.       !
+  ! non-HDF5: writes '#key', 'RR', element count, then the array in     !
+  !           column-major order to chk_unit.                            !
+  ! HDF5: calls write_hdf5_real8_rank2.                                 !
+  !---------------------------------------------------------------------!
+  subroutine chk_write_real8_rank2(key, n1, n2, array, fail)
+    implicit none
+    character(len=*),               intent(in)  :: key
+    integer,                        intent(in)  :: n1, n2
+    double precision, dimension(n1,n2), intent(in)  :: array
+    integer,                        intent(out) :: fail
+
+    integer   :: i, j, k, l
+    character :: kline*40
+
+    fail = 0
+#if defined(RESTART_HDF5)
+    call write_hdf5_real8_rank2(array, n1, n2, key)
+    fail = 1
+#else
+    l = len(key)
+    if (l >= 40) then
+       kline = key(1:40)
+    else
+       kline(1:l) = key(1:l)
+       do k = l+1, 40
+          kline(k:k) = ' '
+       enddo
+    endif
+    write(chk_unit) '#'//kline(1:40)
+    write(chk_unit) 'RR'
+    write(chk_unit) n1*n2
+    write(chk_unit) ((array(i,j), i=1,n1), j=1,n2)
+    fail = 1
+#endif
+  end subroutine chk_write_real8_rank2
+
+  !---------------------------------------------------------------------!
+  ! chk_read_int_scalar: read one integer scalar from the checkpoint.   !
+  ! non-HDF5: opens the binary file, rewinds, searches by key, closes.  !
+  ! HDF5: maps key to the appropriate 'molinfo' element index:          !
+  !   'natom'  -> molinfo[1]                                            !
+  !   'nbasis' -> molinfo[2]                                            !
+  !---------------------------------------------------------------------!
+  subroutine chk_read_int_scalar(key, value, fail)
+    use quick_files_module, only: iDataFile, dataFileName
+    implicit none
+    character(len=*), intent(in)  :: key
+    integer,          intent(out) :: value
+    integer,          intent(out) :: fail
+
+    fail = 0
+#if defined(RESTART_HDF5)
+    if (trim(key) == 'natom') then
+       call read_hdf5_int_rank0('molinfo', 1, value)
+       fail = 1
+    else if (trim(key) == 'nbasis') then
+       call read_hdf5_int_rank0('molinfo', 2, value)
+       fail = 1
+    end if
+#else
+    open(unit=iDataFile, file=dataFileName, status='OLD', form='UNFORMATTED')
+    call read_int_rank0(iDataFile, key, value, fail)
+    close(iDataFile)
+#endif
+  end subroutine chk_read_int_scalar
+
+  !---------------------------------------------------------------------!
+  ! chk_read_int_rank1: read a 1-D integer array from the checkpoint.   !
+  ! non-HDF5: opens the binary file, searches for the key with type     !
+  !           'II' and element count n, reads the array, closes.        !
+  !           Compatible with data written by the legacy write_int_rank3 !
+  !           (which stored rank-1 data as rank-3 with trailing dims=1). !
+  ! HDF5: calls read_hdf5_int_rank1 starting at index 1.               !
+  !---------------------------------------------------------------------!
+  subroutine chk_read_int_rank1(key, n, array, fail)
+    use quick_files_module, only: iDataFile, dataFileName
+    implicit none
+    character(len=*),      intent(in)  :: key
+    integer,               intent(in)  :: n
+    integer, dimension(n), intent(out) :: array
+    integer,               intent(out) :: fail
+
+    integer   :: i, k, l, num
+    character :: kline*40, ktype*2, line*41
+
+    fail = 0
+#if defined(RESTART_HDF5)
+    call read_hdf5_int_rank1(key, 1, n, array)
+    fail = 1
+#else
+    l = len(key)
+    if (l >= 40) then
+       kline = key(1:40)
+    else
+       kline(1:l) = key(1:l)
+       do k = l+1, 40
+          kline(k:k) = ' '
+       enddo
+    endif
+    open(unit=iDataFile, file=dataFileName, status='OLD', form='UNFORMATTED')
+    rewind(iDataFile)
+    do
+       read(iDataFile, end=100, err=120) line
+       if (line(1:1) .ne. '#') cycle
+       if (index(line, kline) == 0) cycle
+       read(iDataFile, end=100, err=100) ktype
+       if (ktype .ne. 'II') exit
+       read(iDataFile, end=100, err=100) num
+       if (num .ne. n) exit
+       read(iDataFile, end=100, err=100) (array(i), i=1,n)
+       fail = 1
+       exit
+    120 continue
+    enddo
+    100 continue
+    close(iDataFile)
+#endif
+  end subroutine chk_read_int_rank1
+
+  !---------------------------------------------------------------------!
+  ! chk_read_real8_rank2: read a rank-2 double precision array.         !
+  ! non-HDF5: opens the binary file, searches for the key with type     !
+  !           'RR' and element count n1*n2, reads the array, closes.    !
+  !           Compatible with data written by the legacy                  !
+  !           write_real8_rank3 (trailing third dim = 1).               !
+  ! HDF5: calls read_hdf5_real8_rank2 starting at index (1,1).         !
+  !---------------------------------------------------------------------!
+  subroutine chk_read_real8_rank2(key, n1, n2, array, fail)
+    use quick_files_module, only: iDataFile, dataFileName
+    implicit none
+    character(len=*),                    intent(in)  :: key
+    integer,                             intent(in)  :: n1, n2
+    double precision, dimension(n1, n2), intent(out) :: array
+    integer,                             intent(out) :: fail
+
+    integer   :: i, j, k, l, num
+    character :: kline*40, ktype*2, line*41
+
+    fail = 0
+#if defined(RESTART_HDF5)
+    call read_hdf5_real8_rank2(key, (/1,1/), (/n1,n2/), array)
+    fail = 1
+#else
+    l = len(key)
+    if (l >= 40) then
+       kline = key(1:40)
+    else
+       kline(1:l) = key(1:l)
+       do k = l+1, 40
+          kline(k:k) = ' '
+       enddo
+    endif
+    open(unit=iDataFile, file=dataFileName, status='OLD', form='UNFORMATTED')
+    rewind(iDataFile)
+    do
+       read(iDataFile, end=100, err=120) line
+       if (line(1:1) .ne. '#') cycle
+       if (index(line, kline) == 0) cycle
+       read(iDataFile, end=100, err=100) ktype
+       if (ktype .ne. 'RR') exit
+       read(iDataFile, end=100, err=100) num
+       if (num .ne. n1*n2) exit
+       read(iDataFile, end=100, err=100) ((array(i,j), i=1,n1), j=1,n2)
+       fail = 1
+       exit
+    120 continue
+    enddo
+    100 continue
+    close(iDataFile)
+#endif
+  end subroutine chk_read_real8_rank2
+
+  !---------------------------------------------------------------------!
+  ! chk_update_real8_rank2: overwrite a rank-2 double precision dataset.!
+  ! Intended for mid-SCF in-progress checkpointing.                     !
+  ! HDF5: calls write_hdf5_real8_rank2 which deletes and rewrites the   !
+  !       dataset in-place.                                              !
+  ! non-HDF5: no-op. Sequential binary format does not support          !
+  !           in-place overwrite; the final converged value is           !
+  !           captured by the end-of-calculation chk_write call.        !
+  !---------------------------------------------------------------------!
+  subroutine chk_update_real8_rank2(key, n1, n2, array, fail)
+    implicit none
+    character(len=*),               intent(in)  :: key
+    integer,                        intent(in)  :: n1, n2
+    double precision, dimension(n1,n2), intent(in)  :: array
+    integer,                        intent(out) :: fail
+
+    fail = 1
+#if defined(RESTART_HDF5)
+    call write_hdf5_real8_rank2(array, n1, n2, key)
+#endif
+  end subroutine chk_update_real8_rank2
+
+  !---------------------------------------------------------------------!
+  ! chk_create_opt_traj: create the extendable optimisation trajectory  !
+  ! dataset (HDF5 only; no-op for non-HDF5 builds).                    !
+  !---------------------------------------------------------------------!
+  subroutine chk_create_opt_traj(natom, fail)
+    implicit none
+    integer, intent(in)  :: natom
+    integer, intent(out) :: fail
+
+    fail = 1
+#if defined(RESTART_HDF5)
+    call create_hdf5_extendable_real8_rank3('opt_traj', 3, natom)
+#endif
+  end subroutine chk_create_opt_traj
+
+  !---------------------------------------------------------------------!
+  ! chk_append_opt_traj: append one geometry step to the opt_traj       !
+  ! dataset and refresh the flat 'xyz' dataset (HDF5 only).             !
+  ! non-HDF5: no-op; the final geometry is written by chk_write at      !
+  !           the end of the optimisation.                               !
+  !---------------------------------------------------------------------!
+  subroutine chk_append_opt_traj(natom, xyz, fail)
+    implicit none
+    integer,                          intent(in)  :: natom
+    double precision, dimension(3,natom), intent(in)  :: xyz
+    integer,                          intent(out) :: fail
+
+    fail = 1
+#if defined(RESTART_HDF5)
+    call append_hdf5_extendable_real8_rank3('opt_traj', 3, natom, xyz)
+    call write_hdf5_real8_rank2(xyz, 3, natom, 'xyz')
+#endif
+  end subroutine chk_append_opt_traj
+
+  !---------------------------------------------------------------------!
+  ! chk_read_opt_traj: read a specific geometry step from the opt_traj  !
+  ! dataset (HDF5).                                                      !
+  ! non-HDF5: issues a fatal error directing the user to recompile with  !
+  !           HDF5 support.                                              !
+  !---------------------------------------------------------------------!
+  subroutine chk_read_opt_traj(step, natom, xyz, fail)
+    implicit none
+    integer,                               intent(in)  :: step
+    integer,                               intent(in)  :: natom
+    double precision, dimension(3, natom), intent(out) :: xyz
+    integer,                               intent(out) :: fail
+
+    fail = 0
+#if defined(RESTART_HDF5)
+    call read_hdf5_opt_traj(step, natom, xyz)
+    fail = 1
+#else
+    write(OUTFILEHANDLE, '(A,I0,A)') &
+        'Error: CHK_READ_XYZ=', step, &
+        ' restart requires HDF5 support. Recompile with -DHDF5=TRUE.'
+    call quick_exit(OUTFILEHANDLE, 1)
+#endif
+  end subroutine chk_read_opt_traj
+
+  !=====================================================================!
+  ! Private low-level binary checkpoint subroutines (non-HDF5 only).   !
+  ! Used internally by the chk_init and chk_read_* wrappers above.     !
+  !=====================================================================!
 
   ! write one int value to chk file
   subroutine write_int_rank0(chk,key,nvalu,fail)

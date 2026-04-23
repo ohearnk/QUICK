@@ -69,11 +69,7 @@ contains
   subroutine uscf(ierr)
      use allmod
      use quick_molden_module, only: quick_molden, exportMO, exportSCF
-#if defined(RESTART_HDF5)
-     use quick_io_module, only: read_hdf5_int_rank0, read_hdf5_real8_rank2
-#else
-     use quick_io_module, only: read_int_rank0, read_real8_rank3
-#endif
+      use quick_io_module, only: chk_read
 
      implicit none
 
@@ -103,17 +99,9 @@ contains
  
       if (quick_method%readden) then
         if (master) then
-#if defined(RESTART_HDF5)
-         call read_hdf5_int_rank0('molinfo', 2, nbasis)
-         call read_hdf5_real8_rank2('dense', (/1,1/), (/nbasis,nbasis/), quick_qm_struct%dense)
-         call read_hdf5_real8_rank2('denseb', (/1,1/), (/nbasis,nbasis/), quick_qm_struct%denseb)
-#else
-         open(unit=iDataFile, file=dataFileName, status='OLD', form='UNFORMATTED')
-         call read_int_rank0(iDataFile, "nbasis", nbasis, fail)
-         call read_real8_rank3(iDataFile, "dense", nbasis, nbasis, 1, quick_qm_struct%dense, fail)
-         call read_real8_rank3(iDataFile, "denseb", nbasis, nbasis, 1, quick_qm_struct%denseb, fail)
-         close(iDataFile)
-#endif
+         call chk_read('nbasis', nbasis, fail)
+         call chk_read('dense', nbasis, nbasis, quick_qm_struct%dense, fail)
+         call chk_read('denseb', nbasis, nbasis, quick_qm_struct%denseb, fail)
        endif
      endif
   
@@ -162,9 +150,7 @@ contains
 #ifdef MPIV
      use mpi
 #endif
-#if defined(RESTART_HDF5)
-    use quick_io_module, only: write_hdf5_real8_rank2
-#endif
+     use quick_io_module, only: chk_update
 
      implicit none
  
@@ -787,12 +773,10 @@ contains
   
         if (master) then
 
-#if defined(RESTART_HDF5)
           if (quick_method%writechk) then
-              call write_hdf5_real8_rank2(quick_qm_struct%dense, nbasis, nbasis, 'dense')
-              call write_hdf5_real8_rank2(quick_qm_struct%denseb, nbasis, nbasis, 'denseb')  
+              call chk_update('dense', nbasis, nbasis, quick_qm_struct%dense, fail)
+              call chk_update('denseb', nbasis, nbasis, quick_qm_struct%denseb, fail)
           end if
-#endif
 
 #ifdef USEDAT
            ! open data file then write calculated info to dat file

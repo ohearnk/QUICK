@@ -36,12 +36,8 @@
     use quick_calculated_module, only: quick_qm_struct
     use quick_molden_module, only : quick_molden, initializeExport, exportCoordinates, exportBasis, &
          exportMO, exportSCF, exportOPT
-#if defined(RESTART_HDF5)
-    use quick_io_module, only: write_hdf5_info, create_hdf5_extendable_real8_rank3, &
-                               write_hdf5_real8_rank2, write_hdf5_int_rank1
-#else
-    use quick_io_module, only: write_int_rank0, write_int_rank3, write_real8_rank3
-#endif
+    use quick_io_module, only: chk_init, chk_close, chk_write, &
+                               chk_create_opt_traj, chk_append_opt_traj
     use quick_timer_module, only : timer_end, timer_cumer, timer_begin
     use quick_method_module, only : quick_method
     use quick_files_module, only: ioutfile, outFileName, iDataFile, dataFileName
@@ -144,15 +140,13 @@
     !-----------------------------------------------------------------
     SAFE_CALL(getMol(ierr))
 
-#if defined(RESTART_HDF5)
     if (master .and. quick_method%writechk) then
-        call write_hdf5_info(natom, nbasis)
+        call chk_init(natom, nbasis, fail)
         if (quick_method%opt) then
-            call create_hdf5_extendable_real8_rank3('opt_traj', 3, natom)
-            call write_hdf5_int_rank1(quick_molspec%iattype, natom, 'iattype')
+            call chk_create_opt_traj(natom, fail)
+            call chk_write('iattype', natom, quick_molspec%iattype, fail)
         endif
     endif
-#endif
 
 #if defined(GPU) || defined(MPIV_GPU)
     call gpu_allocate_scratch(quick_method%grad .or. quick_method%opt)
@@ -227,23 +221,16 @@
         call compute_oeprop()
 
         if (master .and. quick_method%writechk) then
-#if defined(RESTART_HDF5)
-            call write_hdf5_real8_rank2(quick_molspec%xyz, 3, natom, 'xyz')
-            call write_hdf5_int_rank1(quick_molspec%iattype, natom, 'iattype')
-#else
-            open(unit=iDataFile, file=dataFileName, status='UNKNOWN', form='UNFORMATTED', action='WRITE')
-            call write_int_rank0(iDataFile, "natom", natom, fail)
-            call write_int_rank3(iDataFile, "iattype", natom, 1, 1, quick_molspec%iattype, fail)
-            call write_real8_rank3(iDataFile, "xyz", 3, natom, 1, quick_molspec%xyz, fail)
-            call write_int_rank0(iDataFile, "nbasis", nbasis, fail)
-            call write_real8_rank3(iDataFile, "dense", nbasis, nbasis, 1, quick_qm_struct%dense, fail)
+            call chk_write('xyz', 3, natom, quick_molspec%xyz, fail)
+            call chk_write('iattype', natom, quick_molspec%iattype, fail)
+#if !defined(RESTART_HDF5)
+            call chk_write('dense', nbasis, nbasis, quick_qm_struct%dense, fail)
             if (quick_method%UNRST) then
-              call write_real8_rank3(iDataFile, "denseb", nbasis, nbasis, 1, quick_qm_struct%denseb, fail)
+                call chk_write('denseb', nbasis, nbasis, quick_qm_struct%denseb, fail)
             end if
-            close(iDataFile)
+            call chk_close(fail)
 #endif
         endif
-
     endif
 
     !------------------------------------------------------------------
@@ -265,16 +252,12 @@
 
 #if !defined(RESTART_HDF5)
         if (master .and. quick_method%writechk) then
-            open(unit=iDataFile, file=dataFileName, status='UNKNOWN', form='UNFORMATTED', action='WRITE')
-            call write_int_rank0(iDataFile, "natom", natom, fail)
-            call write_int_rank3(iDataFile, "iattype", natom, 1, 1, quick_molspec%iattype, fail)
-            call write_real8_rank3(iDataFile, "xyz", 3, natom, 1, quick_molspec%xyz, fail)
-            call write_int_rank0(iDataFile, "nbasis", nbasis, fail)
-            call write_real8_rank3(iDataFile, "dense", nbasis, nbasis, 1, quick_qm_struct%dense, fail)
+            call chk_write('xyz', 3, natom, quick_molspec%xyz, fail)
+            call chk_write('dense', nbasis, nbasis, quick_qm_struct%dense, fail)
             if (quick_method%UNRST) then
-              call write_real8_rank3(iDataFile, "denseb", nbasis, nbasis, 1, quick_qm_struct%denseb, fail)
+                call chk_write('denseb', nbasis, nbasis, quick_qm_struct%denseb, fail)
             end if
-            close(iDataFile)
+            call chk_close(fail)
         endif
 #endif
     endif
@@ -290,20 +273,14 @@
         call compute_oeprop()
 
         if (master .and. quick_method%writechk) then
-#if defined(RESTART_HDF5)
-            call write_hdf5_real8_rank2(quick_molspec%xyz, 3, natom, 'xyz')
-            call write_hdf5_int_rank1(quick_molspec%iattype, natom, 'iattype')
-#else
-            open(unit=iDataFile, file=dataFileName, status='UNKNOWN', form='UNFORMATTED', action='WRITE')
-            call write_int_rank0(iDataFile, "natom", natom, fail)
-            call write_int_rank3(iDataFile, "iattype", natom, 1, 1, quick_molspec%iattype, fail)
-            call write_real8_rank3(iDataFile, "xyz", 3, natom, 1, quick_molspec%xyz, fail)
-            call write_int_rank0(iDataFile, "nbasis", nbasis, fail)
-            call write_real8_rank3(iDataFile, "dense", nbasis, nbasis, 1, quick_qm_struct%dense, fail)
+            call chk_write('xyz', 3, natom, quick_molspec%xyz, fail)
+            call chk_write('iattype', natom, quick_molspec%iattype, fail)
+#if !defined(RESTART_HDF5)
+            call chk_write('dense', nbasis, nbasis, quick_qm_struct%dense, fail)
             if (quick_method%UNRST) then
-              call write_real8_rank3(iDataFile, "denseb", nbasis, nbasis, 1, quick_qm_struct%denseb, fail)
+              call chk_write('denseb', nbasis, nbasis, quick_qm_struct%denseb, fail)
             end if
-            close(iDataFile)
+            call chk_close(fail)
 #endif
         endif
 

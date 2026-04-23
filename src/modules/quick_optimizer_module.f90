@@ -41,9 +41,7 @@ contains
 #ifdef MPIV
      use mpi
 #endif
-#if defined(RESTART_HDF5)
-     use quick_io_module, only: append_hdf5_extendable_real8_rank3, write_hdf5_real8_rank2
-#endif
+     use quick_io_module, only: chk_append_opt_traj
      implicit double precision(a-h,o-z)
 
      logical :: done,diagco
@@ -251,15 +249,9 @@ contains
                quick_molden%iexport_snapshot = quick_molden%iexport_snapshot + 1
            endif
 
-#if defined(RESTART_HDF5)
-           ! Append the current geometry to the optimisation trajectory dataset
-           ! and rewrite the flat 'xyz' dataset so the latest geometry is always
-           ! readily available for restart.
            if (master .and. quick_method%writechk) then
-               call append_hdf5_extendable_real8_rank3('opt_traj', 3, natom, xyz)
-               call write_hdf5_real8_rank2(xyz, 3, natom, 'xyz')
+               call chk_append_opt_traj(natom, xyz, fail)
            endif
-#endif
 
            geomax = -1.d0
            georms = 0.d0

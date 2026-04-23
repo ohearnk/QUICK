@@ -15,11 +15,7 @@ subroutine getMol(ierr)
    use allmod
    use quick_gridpoints_module
    use quick_exception_module
-#if defined(RESTART_HDF5)
-   use quick_io_module, only: read_hdf5_real8_rank2, read_hdf5_opt_traj
-#else
-   use quick_io_module, only: read_real8_rank3
-#endif
+   use quick_io_module, only: chk_read, chk_read_opt_traj
 #ifdef MPIV
    use mpi
 #endif
@@ -41,26 +37,13 @@ subroutine getMol(ierr)
       ! read xyz coordinates from the .in file 
       if (.not. isTemplate) then
         if (quick_method%readxyz .ge. 0) then
-#if defined(RESTART_HDF5)
           ! readxyz == 0: CHK_READ_XYZ with no value -> read flat 'xyz' dataset
           ! readxyz  > 0: CHK_READ_XYZ=N -> read step N from 'opt_traj'
           if (quick_method%readxyz == 0) then
-            call read_hdf5_real8_rank2('xyz', (/1,1/), (/3,natom/), xyz)
+            call chk_read('xyz', 3, natom, xyz, fail)
           else
-            call read_hdf5_opt_traj(quick_method%readxyz, natom, xyz)
+            call chk_read_opt_traj(quick_method%readxyz, natom, xyz, fail)
           endif
-#else
-          open(unit=iDataFile, file=dataFileName, status='OLD', form='UNFORMATTED')
-          if (quick_method%readxyz == 0) then
-            call read_real8_rank3(iDataFile, "xyz", 3, natom, 1, xyz, fail)
-          else
-            write(OUTFILEHANDLE, '(A,I0,A)') &
-                'Error: CHK_READ_XYZ=', quick_method%readxyz, &
-                ' restart requires HDF5 support. Recompile with -DHDF5=TRUE.'
-            call quick_exit(OUTFILEHANDLE, 1)
-          endif
-          close(iDataFile)
-#endif
           quick_molspec%xyz => xyz
         else
           call quick_open(infile,inFileName,'O','F','W',.true.,ierr)
