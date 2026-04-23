@@ -323,10 +323,21 @@ if("${CMAKE_Fortran_COMPILER_ID}" STREQUAL "PGI" OR "${CMAKE_Fortran_COMPILER_ID
 endif()
 
 
-# CRAY: NOT SUPPORTED
+# CRAY
 # --------------------------------------------------------------------
-if(${COMPILER} STREQUAL CRAY)
-    message(FATAL_ERROR "CRAY compiler not supported by QUICK.")
+
+if("${CMAKE_C_COMPILER_ID}" STREQUAL "CRAY")
+    list(APPEND OPT_CFLAGS "-O2" "-funroll-loops" "-ffast-math")
+#    list(APPEND OPT_CFLAGS "-Ofast" "-funroll-loops")
+endif()
+
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "CRAY")
+    list(APPEND OPT_CXXFLAGS "-O2" "-funroll-loops" "-ffast-math")
+#    list(APPEND OPT_CXXFLAGS "-Ofast" "-funroll-loops")
+endif()
+
+if("${CMAKE_Fortran_COMPILER_ID}" STREQUAL "CRAY")
+#    list(APPEND OPT_FFLAGS "-O3" "-hfp3")
 endif()
 
 
