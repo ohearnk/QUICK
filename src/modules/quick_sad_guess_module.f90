@@ -45,18 +45,21 @@ contains
      use quick_cew_module, only : quick_cew
 #endif
   
-     implicit double precision(a-h,o-z)
-  
+     implicit none
+
      logical :: present, MPIsaved, readSAD
-     double precision:: xyzsaved(3,natom)
+     double precision :: xyzsaved(3,natom)
      character(len=80) :: keywd
      character(len=20) :: tempstring
      character(len=340) :: sadfile
-     integer natomsaved
+     integer :: natomsaved
      type(quick_method_type) quick_method_save
      type(quick_molspec_type) quick_molspec_save
      integer, intent(inout) :: ierr
      logical :: use_cew_save
+     integer :: istart, ifinal, ibasisstart, ibasisend
+     integer :: iitemp, i, j, ii, jj, nsenhai, fail
+     double precision :: diagelement, diagelementb, temp
   
      ! first save some important value
      quick_method_save=quick_method
