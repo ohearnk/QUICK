@@ -52,7 +52,7 @@ contains
      COMMON /LB3/MP,LP,GTOL,STPMIN,STPMAX
 
      logical lsearch,diis
-     integer IMCSRCH,nstor,ndiis
+     integer IMCSRCH,nstor,ndiis, fail
      double precision gnorm,dnorm,diagter,safeDX,gntest,gtest,sqnpar,accls,oldGrad(3*natom),coordsold(natom*3)
      double precision EChg
      integer, intent(inout) :: ierr
@@ -334,8 +334,6 @@ contains
            call PrtAct(ioutfile,"Finish Optimization for This Step")
            Elast = quick_qm_struct%Etot
 
-           ! If read is on, write out a restart file.
-           if (quick_method%readdmx) call wrtrestart
         endif
 
         !-------------- END MPI/MASTER --------------------

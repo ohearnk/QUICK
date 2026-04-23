@@ -365,7 +365,7 @@ subroutine dlf_run(ierr2 &
   real(rk) :: core(*) ! GAMESS memory, not used in DL-FIND
 #endif
   integer  :: iimage,ivar,status,image_status,taskfarm_mode
-  integer  :: icount, kiter, iat, jat
+  integer  :: icount, kiter, iat, jat, fail
   real(rk) :: svar
   logical  :: tconv,trestarted,trerun_energy
   logical  :: needhessian ! do we need a Hessian?

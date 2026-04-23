@@ -114,7 +114,6 @@ contains
   ! 3456789012345678901234567890123456789012345678901234567890123456789012<<STOP
   subroutine scf(ierr)
      use allmod
-      use quick_io_module, only: chk_read
 
      implicit none
 
@@ -126,13 +125,6 @@ contains
 
      done = .false.
 
-      if (quick_method%readden) then
-        if (master) then
-         call chk_read('nbasis', nbasis, fail)
-         call chk_read('dense', nbasis, nbasis, quick_qm_struct%dense, fail)
-       endif
-     endif
-  
      !-----------------------------------------------------------------
      ! The purpose of this subroutine is to perform scf cycles.  At this
      ! point, X has been formed. The remaining steps are:
@@ -201,7 +193,7 @@ contains
      integer :: IDIIS_Error_Start, IDIIS_Error_End
      double precision :: BIJ,DENSEJI,errormax,OJK,temp
      double precision :: Sum2Mat,rms, shift, bandgap
-     integer :: I,J,K,L,IERROR, homo
+     integer :: I,J,K,L,IERROR, homo, fail
   
       double precision :: oldEnergy=0.0d0,E1e ! energy for last iteration, and 1e-energy
       double precision :: PRMS,PCHANGE, tmp
@@ -702,13 +694,6 @@ contains
             call chk_update('dense', nbasis, nbasis, quick_qm_struct%dense, fail)
           end if
 
-#ifdef USEDAT
-           ! open data file then write calculated info to dat file
-           SAFE_CALL(quick_open(iDataFile, dataFileName, 'R', 'U', 'R',.true.,ierr)
-           rewind(iDataFile)
-           call dat(quick_qm_struct, iDataFile)
-           close(iDataFile)
-#endif
            current_diis=mod(idiis-1,quick_method%maxdiisscf)
            current_diis=current_diis+1
            

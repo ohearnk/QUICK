@@ -39,6 +39,7 @@ contains
      use quick_gridpoints_module
      use quick_files_module
      use quick_exception_module
+     use quick_io_module, only: chk_read
 
 #ifdef CEW 
      use quick_cew_module, only : quick_cew
@@ -154,10 +155,12 @@ contains
            !if (quick_method%DFT .OR. quick_method%SEDFT) call get_sigrad
   
            ! Initialize Density arrays. Create initial density matrix guess.
-           present = .false.
-           if (quick_method%readdmx) inquire (file=dmxfilename,exist=present)
-           if (present) then
-              return
+           if (quick_method%readden) then
+               call chk_read('nbasis', nbasis, fail)
+               call chk_read('dense', nbasis, nbasis, quick_qm_struct%dense, fail)
+               if (quick_method%UNRST) then
+                   call chk_read('denseb', nbasis, nbasis, quick_qm_struct%denseb, fail)
+               endif
            else
               ! Initial Guess
               diagelement=dble(quick_molspec%nelec)/dble(nbasis)

@@ -45,7 +45,6 @@ module quick_method_module
         ! the second section includes some advanced option
         logical :: debug =  .false.    ! debug mode
         logical :: nodirect = .false.  ! conventional scf
-        logical :: readDMX =  .false.  ! flag to read density matrix
         logical :: readden = .false.  ! flag to read density matrix
         integer :: readxyz = -1       ! flag to read coordinates
         logical :: writechk = .false. ! flag to checkpoint data
@@ -231,7 +230,6 @@ module quick_method_module
             call MPI_BCAST(self%UNRST,1,mpi_logical,0,MPI_COMM_WORLD,mpierror)
             call MPI_BCAST(self%debug,1,mpi_logical,0,MPI_COMM_WORLD,mpierror)
             call MPI_BCAST(self%nodirect,1,mpi_logical,0,MPI_COMM_WORLD,mpierror)
-            call MPI_BCAST(self%readDMX,1,mpi_logical,0,MPI_COMM_WORLD,mpierror)
             call MPI_BCAST(self%diisSCF,1,mpi_logical,0,MPI_COMM_WORLD,mpierror)
             call MPI_BCAST(self%prtGap,1,mpi_logical,0,MPI_COMM_WORLD,mpierror)
             call MPI_BCAST(self%opt,1,mpi_logical,0,MPI_COMM_WORLD,mpierror)
@@ -436,7 +434,6 @@ module quick_method_module
             if (self%prtGap)    write(io,'(" PRINT HOMO-LUMO GAP")')
             if (self%printEnergy) write(io,'(" PRINT ENERGY EVERY CYCLE")')
 
-            if (self%readDMX)   write(io,'(" READ DENSITY MATRIX FROM FILE")')
             if (self%readxyz .ge. 0) write(io,'(" READ COORDINATES FROM DATA FILE")')
             if (self%readden) write(io,'(" READ DENSITY MATRIX FROM DATA FILE")')
             if (self%writechk) write(io,'(" CHECKPOINTING TO DATA FILE")')
@@ -679,7 +676,6 @@ module quick_method_module
             if (index(keyWD,'HESSIAN').ne.0)    self%analHess=.true.
             if (index(keyWD,'FREQ').ne.0)       self%freq=.true.
             if (index(keywd,'DEBUG').ne.0)      self%debug=.true.
-            if (index(keyWD,'READ').ne.0)       self%readDMX=.true.
             if (index(keyWD,'RDSAD').ne.0)      self%readSAD=.true.  ! READSAD would clash with READ
             if (index(keyWD,'WRSAD').ne.0) then
                self%writeSAD = .true.
@@ -931,7 +927,6 @@ module quick_method_module
 
             self%debug =  .false.     ! debug mode
             self%nodirect = .false.   ! conventional SCF
-            self%readDMX =  .false.   ! flag to read density matrix
             self%readSAD =  .true.    ! flag to read sad guess
             self%writeSAD = .false.   ! flag to write sad guess
             self%diisSCF =  .false.   ! DIIS SCF
