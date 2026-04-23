@@ -61,6 +61,9 @@ contains
      integer :: iitemp, i, j, ii, jj, nsenhai, fail
      double precision :: diagelement, diagelementb, temp
   
+     ! If density will be read from checkpoint, the SAD guess is not needed.
+     if (quick_method%readden) return
+
      ! first save some important value
      quick_method_save=quick_method
      quick_molspec_save=quick_molspec
@@ -158,21 +161,13 @@ contains
            !if (quick_method%DFT .OR. quick_method%SEDFT) call get_sigrad
   
            ! Initialize Density arrays. Create initial density matrix guess.
-           if (quick_method%readden) then
-               call chk_read('nbasis', nbasis, fail)
-               call chk_read('dense', nbasis, nbasis, quick_qm_struct%dense, fail)
-               if (quick_method%UNRST) then
-                   call chk_read('denseb', nbasis, nbasis, quick_qm_struct%denseb, fail)
-               endif
-           else
-              ! Initial Guess
-              diagelement=dble(quick_molspec%nelec)/dble(nbasis)
-              diagelementb=dble(quick_molspec%nelecb)/dble(nbasis)+1.d-8
-              do I=1,nbasis
-                 quick_qm_struct%dense(I,I)=diagelement
-                 quick_qm_struct%denseb(I,I)=diagelementb
-              enddo
-           endif
+           ! Initial Guess
+           diagelement=dble(quick_molspec%nelec)/dble(nbasis)
+           diagelementb=dble(quick_molspec%nelecb)/dble(nbasis)+1.d-8
+           do I=1,nbasis
+              quick_qm_struct%dense(I,I)=diagelement
+              quick_qm_struct%denseb(I,I)=diagelementb
+           enddo
   
            ! AWG Check if SAD file is present when requesting readSAD
            ! AWG If not present fall back to computing SAD guess

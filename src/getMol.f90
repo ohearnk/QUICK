@@ -233,11 +233,12 @@ end subroutine check_quick_method_and_molspec
 !--------------------------------------
 subroutine initialGuess(ierr)
    use allmod
-   use quick_sad_guess_module, only: getSadDense 
+   use quick_sad_guess_module, only: getSadDense
    use quick_exception_module
+   use quick_io_module, only: chk_read
    implicit none
    logical :: present
-   integer :: failed
+   integer :: failed, fail
    character(len=80) :: keyWD
    integer n,sadAtom
    integer Iatm,i,j
@@ -283,12 +284,19 @@ subroutine initialGuess(ierr)
       !   call MFCC_initial_guess
       !endif
 
-      !  SAD inital guess
-      if (quick_method%SAD) then
+      !  SAD initial guess or density read from checkpoint
+      if (quick_method%readden) then
+         if (master) then
+            call chk_read('dense', nbasis, nbasis, quick_qm_struct%dense, fail)
+            if (quick_method%unrst) then
+               call chk_read('denseb', nbasis, nbasis, quick_qm_struct%denseb, fail)
+            endif
+         endif
+      else if (quick_method%SAD) then
          call getSadDense
       endif
 
-      if(quick_method%unrst) then
+      if(quick_method%unrst .and. .not. quick_method%readden) then
         do I=1,nbasis
           do J =1,nbasis
             quick_qm_struct%dense(J,I) = quick_qm_struct%dense(J,I)/2.d0
