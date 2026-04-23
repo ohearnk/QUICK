@@ -15,7 +15,7 @@ on:
       - '.github/workflows/build_test_cuda_enablef.yml'
 
 concurrency:
-  group: pr-${{ github.event.pull_request.number }}
+  group: pr-${{ github.event.pull_request.number }}-serial
   cancel-in-progress: true
 
 jobs:
