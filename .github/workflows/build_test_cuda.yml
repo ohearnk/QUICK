@@ -76,6 +76,29 @@ jobs:
           echo "CUDA Compiler version:"
           nvcc --version
 
+      - name: 'Detect GPU Architecture'
+        run: |
+          # Get the first GPU name from nvidia-smi
+          GPU_NAME=$(nvidia-smi --query-gpu=name --format=csv,noheader | head -n 1)
+          echo "Detected GPU: $GPU_NAME"
+
+          case "$GPU_NAME" in
+            # Ampere Architecture
+            *"A2"*|*"A10"*|*"A40"*|*"A100"*|*"RTX-3090"*|*"RTX-A4000"*|*"RTX-A5000"*|*"RTX-A6000"*)
+              QUICK_ARCH="ampere"
+            ;;
+            # Turing Architecture
+            *"T4"*|*"RTX-2080"*|*"RTX-8000"*|*"TITAN-RTX"*|*"Quadro-RTX-6000"*)
+              QUICK_ARCH="turing"
+            ;;
+            echo "Unknown GPU: $GPU_NAME. Defaulting to 'ampere'."
+            QUICK_ARCH="ampere"
+            ;;
+          esac
+          
+          echo "Setting QUICK_USER_ARCH to: $QUICK_ARCH"
+          echo "QUICK_USER_ARCH=$QUICK_ARCH" >> "$GITHUB_ENV"
+
       # cleans up in case previous builds/installs persist
       - name: 'Cleanup Previous Builds'
         run: |
@@ -87,7 +110,7 @@ jobs:
           mkdir build
           cd build
           cmake .. -DCOMPILER=${{ matrix.compiler-type }} \
-            -DCUDA=TRUE -DQUICK_USER_ARCH=ampere -DCMAKE_INSTALL_PREFIX=$PWD/../install -DENABLEF=FALSE
+            -DCUDA=TRUE -DQUICK_USER_ARCH=${{ env.QUICK_USER_ARCH }} -DCMAKE_INSTALL_PREFIX=$PWD/../install -DENABLEF=FALSE
 
       - name: 'Build and Install'
         run: |
