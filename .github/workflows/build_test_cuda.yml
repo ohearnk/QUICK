@@ -91,7 +91,7 @@ jobs:
             *"T4"*|*"RTX-2080"*|*"RTX-8000"*|*"TITAN-RTX"*|*"Quadro-RTX-6000"*)
               QUICK_ARCH="turing"
             ;;
-            echo "Unknown GPU: $GPU_NAME. Defaulting to 'ampere'."
+            echo "Unknown GPU: ${GPU_NAME}. Defaulting to 'ampere'."
             QUICK_ARCH="ampere"
             ;;
           esac
