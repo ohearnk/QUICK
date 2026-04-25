@@ -127,7 +127,7 @@ contains
 subroutine new_quick_api_type(self, natoms, atomic_numbers, ierr)
 #ifdef MPIV
   use mpi
-  use quick_mpi_module, only: quick_set_comm, quick_comm
+  use quick_mpi_module, only: quick_comm
 #endif
 
   implicit none
@@ -140,7 +140,7 @@ subroutine new_quick_api_type(self, natoms, atomic_numbers, ierr)
   integer :: i, natm_type
 
 #ifdef MPIV
-  call quick_set_comm(quick_comm)
+  !quick_comm = comm
 #endif
 
   ! get atom types and number of types
@@ -276,7 +276,7 @@ subroutine set_quick_job(fqin, keywd, natoms, atomic_numbers, reusedmx, ierr)
   SAFE_CALL(mgpu_query(mpisize, mpirank, mgpu_id, ierr))
   SAFE_CALL(mgpu_setup(ierr))
   if (master) SAFE_CALL(mgpu_write_info(iOutFile, mpisize, mgpu_ids, ierr))
-  SAFE_CALL(mgpu_init_device(mpirank, mpisize, mgpu_id, ierr))
+  SAFE_CALL(mgpu_init_device(quick_comm, mpirank, mpisize, mgpu_id, ierr))
 #endif
   call gpu_allocate_scratch(.true.)
 #endif
