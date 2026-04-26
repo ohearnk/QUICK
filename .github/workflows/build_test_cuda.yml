@@ -84,15 +84,15 @@ jobs:
 
           case "$GPU_NAME" in
             # Ampere Architecture
-            *"A2"*|*"A10"*|*"A40"*|*"A100"*|*"RTX-3090"*|*"RTX-A4000"*|*"RTX-A5000"*|*"RTX-A6000"*)
+            *"A2"*|*"A10"*|*"A40"*|*"A100"*|*"3090"*|*"A4000"*|*"A5000"*|*"A6000"*)
               QUICK_ARCH="ampere"
             ;;
             # Turing Architecture
-            *"T4"*|*"RTX-2080"*|*"RTX-8000"*|*"TITAN-RTX"*|*"Quadro-RTX-6000"*)
+            *"T4"*|*"2080"*|*"8000"*|*"TITAN-RTX"*|*"6000"*)
               QUICK_ARCH="turing"
             ;;
             # Ada lovelace Architecture
-            *L4*|*L40*|*4090*|*Ada-Generation*)
+            *L4*|*L40*|*4090*|*Ada*)
               QUICK_ARCH="adalovelace"
             ;;
             *V100*)
