@@ -91,6 +91,13 @@ jobs:
             *"T4"*|*"RTX-2080"*|*"RTX-8000"*|*"TITAN-RTX"*|*"Quadro-RTX-6000"*)
               QUICK_ARCH="turing"
             ;;
+            # Ada lovelace Architecture
+            *L4*|*L40*|*4090*|*Ada-Generation*)
+              QUICK_ARCH="adalovelace"
+            ;;
+            *V100*)
+              QUICK_ARCH="volta"
+            ;;
             *)
               echo "Unknown GPU: ${GPU_NAME}. Defaulting to 'ampere'."
               QUICK_ARCH="ampere"
