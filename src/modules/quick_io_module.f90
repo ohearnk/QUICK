@@ -700,7 +700,7 @@ contains
   ! Must be called after create_hdf5_extendable_real8_rank3 and once    !
   ! per step.                                                            !
   !---------------------------------------------------------------------!
-  subroutine append_hdf5_extendable_real8_rank3(datasetname, dim1, dim2, slab)
+  subroutine append_hdf5_extendable_real8_rank3(slab, dim1, dim2, datasetname)
     use HDF5
     use quick_files_module, only: dataFileName
 
@@ -1291,7 +1291,7 @@ contains
 
     fail = 1
 #if defined(RESTART_HDF5)
-    call append_hdf5_extendable_real8_rank3('opt_traj', 3, natom, xyz)
+    call append_hdf5_extendable_real8_rank3(xyz, 3, natom, 'opt_traj')
     call write_hdf5_real8_rank2(xyz, 3, natom, 'xyz')
 #endif
   end subroutine chk_append_opt_traj
