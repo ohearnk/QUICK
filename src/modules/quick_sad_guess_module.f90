@@ -39,7 +39,6 @@ contains
      use quick_gridpoints_module
      use quick_files_module
      use quick_exception_module
-     use quick_io_module, only: chk_read
 
 #ifdef CEW 
      use quick_cew_module, only : quick_cew
@@ -57,8 +56,7 @@ contains
      type(quick_molspec_type) quick_molspec_save
      integer, intent(inout) :: ierr
      logical :: use_cew_save
-     integer :: istart, ifinal, ibasisstart, ibasisend
-     integer :: iitemp, i, j, ii, jj, nsenhai, fail
+     integer :: iitemp, i, j, ii, jj, nsenhai
      double precision :: diagelement, diagelementb, temp
   
      ! If density will be read from checkpoint, the SAD guess is not needed.
@@ -75,11 +73,6 @@ contains
      natomsaved=natom
      xyzsaved=xyz
      MPIsaved=bMPI
-  
-     istart = 1
-     ifinal = 80
-     ibasisstart = 1
-     ibasisend = 80
   
      ! Then give them new value
      bMPI=.false.
