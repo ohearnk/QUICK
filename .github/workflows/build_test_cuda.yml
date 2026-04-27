@@ -36,7 +36,7 @@ jobs:
             cxx-compiler: 'g++'
             fortran-compiler: 'gfortran'
 
-    name: ${{ matrix.os }} - CUDA ${{ matrix.cuda-version }} - CMake - ${{ matrix.compiler-type } - ${{ matrix.compiler-version }}}
+    name: ${{ matrix.os }} - CUDA ${{ matrix.cuda-version }} - CMake - ${{ matrix.compiler-type }} - ${{ matrix.compiler-version }}
 
     steps:
       - name: 'Checkout Repository'
