@@ -124,14 +124,14 @@ if(CUDA AND NOT HIP)
             list(APPEND CUDA_NVCC_FLAGS -DUSE_LEGACY_ATOMICS)
             set(DISABLE_OPTIMIZER_CONSTANTS TRUE)          
 
-	elseif((${CUDA_VERSION} VERSION_GREATER_EQUAL 13.0) AND (${CUDA_VERSION} VERSION_LESS_EQUAL 13.1.1))
+	elseif((${CUDA_VERSION} VERSION_GREATER_EQUAL 13.0) AND (${CUDA_VERSION} VERSION_LESS_EQUAL 13.2))
             message(STATUS "Configuring QUICK for SM7.5, SM8.0, SM8.6, SM8.9, SM9.0, SM10.0, SM12.0, and SM12.1")
             list(APPEND CUDA_NVCC_FLAGS ${SM75FLAGS} ${SM80FLAGS} ${SM86FLAGS} ${SM89FLAGS} ${SM90FLAGS} ${SM100FLAGS} ${SM120FLAGS} ${SM121FLAGS})
             list(APPEND CUDA_NVCC_FLAGS -DUSE_LEGACY_ATOMICS)
             set(DISABLE_OPTIMIZER_CONSTANTS TRUE)          
 
 	else()
-	    message(FATAL_ERROR "Error: Unsupported CUDA version. ${PROJECT_NAME} requires CUDA version >= 8.0 and <= 12.4.  Please upgrade your CUDA installation or disable building with CUDA.")
+	    message(FATAL_ERROR "Error: Unsupported CUDA version. ${PROJECT_NAME} requires CUDA version >= 8.0 and <= 13.2.  Please upgrade your CUDA installation or disable building with CUDA.")
 	endif()
 
     else()
