@@ -969,23 +969,24 @@ contains
   ! non-HDF5: opens the binary file and writes natom + nbasis records.  !
   ! HDF5: creates the HDF5 file and writes the 'molinfo' dataset.       !
   !---------------------------------------------------------------------!
-  subroutine chk_init(natom, nbasis, fail)
+  subroutine chk_init(natom, nbasis)
     use quick_files_module, only: iDataFile, dataFileName
     implicit none
     integer, intent(in)  :: natom, nbasis
-    integer, intent(out) :: fail
+    integer, intent :: fail
 
-    fail = 0
 #if defined(RESTART_HDF5)
     call write_hdf5_info(natom, nbasis)
-    fail = 1
 #else
     chk_unit = iDataFile
     open(unit=chk_unit, file=dataFileName, status='UNKNOWN', &
          form='UNFORMATTED', action='WRITE')
     call write_int_rank0(chk_unit, 'natom',  natom,  fail)
     call write_int_rank0(chk_unit, 'nbasis', nbasis, fail)
-    fail = 1
+    if(fail .ne. 1) then
+        call PrtErr(OUTFILEHANDLE, 'failed to write natom and nbasis to datafile in write_int_rank0')
+        call quick_exit(OUTFILEHANDLE, 1)
+    endif
 #endif
   end subroutine chk_init
 
@@ -994,11 +995,9 @@ contains
   ! non-HDF5: closes the open binary file unit.                         !
   ! HDF5: no-op (each HDF5 routine manages its own file handles).       !
   !---------------------------------------------------------------------!
-  subroutine chk_close(fail)
+  subroutine chk_close()
     implicit none
-    integer, intent(out) :: fail
 
-    fail = 1
 #if !defined(RESTART_HDF5)
     if (chk_unit /= -1) then
       close(chk_unit)
@@ -1013,18 +1012,20 @@ contains
   ! HDF5: integer scalars (natom, nbasis) live in 'molinfo' via         !
   !       chk_init; this procedure is a no-op for HDF5.                 !
   !---------------------------------------------------------------------!
-  subroutine chk_write_int_scalar(key, value, fail)
+  subroutine chk_write_int_scalar(key, value)
     implicit none
     character(len=*), intent(in)  :: key
     integer,          intent(in)  :: value
-    integer,          intent(out) :: fail
+    integer,          intent :: fail
 
-    fail = 0
 #if defined(RESTART_HDF5)
     ! natom/nbasis are written by chk_init via write_hdf5_info; no-op here.
-    fail = 1
 #else
     call write_int_rank0(chk_unit, key, value, fail)
+    if(fail .ne. 1) then
+        call PrtErr(OUTFILEHANDLE, 'failed to write scalar data to datafile in write_int_rank0')
+        call quick_exit(OUTFILEHANDLE, 1)
+    endif
 #endif
   end subroutine chk_write_int_scalar
 
@@ -1044,10 +1045,8 @@ contains
     integer   :: i, k, l
     character :: kline*40
 
-    fail = 0
 #if defined(RESTART_HDF5)
     call write_hdf5_int_rank1(array, n, key)
-    fail = 1
 #else
     l = len(key)
     if (l >= 40) then
@@ -1058,6 +1057,7 @@ contains
           kline(k:k) = ' '
        enddo
     endif
+    fail = 0
     write(chk_unit) '#'//kline(1:40)
     write(chk_unit) 'II'
     write(chk_unit) n
@@ -1082,10 +1082,8 @@ contains
     integer   :: i, j, k, l
     character :: kline*40
 
-    fail = 0
 #if defined(RESTART_HDF5)
     call write_hdf5_real8_rank2(array, n1, n2, key)
-    fail = 1
 #else
     l = len(key)
     if (l >= 40) then
@@ -1096,6 +1094,7 @@ contains
           kline(k:k) = ' '
        enddo
     endif
+    fail = 0
     write(chk_unit) '#'//kline(1:40)
     write(chk_unit) 'RR'
     write(chk_unit) n1*n2
@@ -1111,25 +1110,27 @@ contains
   !   'natom'  -> molinfo[1]                                            !
   !   'nbasis' -> molinfo[2]                                            !
   !---------------------------------------------------------------------!
-  subroutine chk_read_int_scalar(key, value, fail)
+  subroutine chk_read_int_scalar(key, value)
     use quick_files_module, only: iDataFile, dataFileName
     implicit none
     character(len=*), intent(in)  :: key
     integer,          intent(out) :: value
-    integer,          intent(out) :: fail
+    integer,          intent :: fail
 
-    fail = 0
 #if defined(RESTART_HDF5)
     if (trim(key) == 'natom') then
        call read_hdf5_int_rank0('molinfo', 1, value)
-       fail = 1
     else if (trim(key) == 'nbasis') then
        call read_hdf5_int_rank0('molinfo', 2, value)
-       fail = 1
     end if
 #else
+    fail = 0
     open(unit=iDataFile, file=dataFileName, status='OLD', form='UNFORMATTED')
     call read_int_rank0(iDataFile, key, value, fail)
+    if(fail .ne. 1) then
+        call PrtErr(OUTFILEHANDLE, 'failed to read scalar data from datafile in read_int_rank0')
+        call quick_exit(OUTFILEHANDLE, 1)
+    endif
     close(iDataFile)
 #endif
   end subroutine chk_read_int_scalar
@@ -1153,10 +1154,8 @@ contains
     integer   :: i, k, l, num
     character :: kline*40, ktype*2, line*41
 
-    fail = 0
 #if defined(RESTART_HDF5)
     call read_hdf5_int_rank1(key, 1, n, array)
-    fail = 1
 #else
     l = len(key)
     if (l >= 40) then
@@ -1167,6 +1166,7 @@ contains
           kline(k:k) = ' '
        enddo
     endif
+    fail = 0
     open(unit=iDataFile, file=dataFileName, status='OLD', form='UNFORMATTED')
     rewind(iDataFile)
     do
@@ -1206,10 +1206,8 @@ contains
     integer   :: i, j, k, l, num
     character :: kline*40, ktype*2, line*41
 
-    fail = 0
 #if defined(RESTART_HDF5)
     call read_hdf5_real8_rank2(key, (/1,1/), (/n1,n2/), array)
-    fail = 1
 #else
     l = len(key)
     if (l >= 40) then
@@ -1220,6 +1218,7 @@ contains
           kline(k:k) = ' '
        enddo
     endif
+    fail = 0
     open(unit=iDataFile, file=dataFileName, status='OLD', form='UNFORMATTED')
     rewind(iDataFile)
     do
@@ -1249,14 +1248,12 @@ contains
   !           in-place overwrite; the final converged value is           !
   !           captured by the end-of-calculation chk_write call.        !
   !---------------------------------------------------------------------!
-  subroutine chk_update_real8_rank2(key, n1, n2, array, fail)
+  subroutine chk_update_real8_rank2(key, n1, n2, array)
     implicit none
     character(len=*),               intent(in)  :: key
     integer,                        intent(in)  :: n1, n2
     double precision, dimension(n1,n2), intent(in)  :: array
-    integer,                        intent(out) :: fail
 
-    fail = 1
 #if defined(RESTART_HDF5)
     call write_hdf5_real8_rank2(array, n1, n2, key)
 #endif
@@ -1266,12 +1263,10 @@ contains
   ! chk_create_opt_traj: create the extendable optimisation trajectory  !
   ! dataset (HDF5 only; no-op for non-HDF5 builds).                    !
   !---------------------------------------------------------------------!
-  subroutine chk_create_opt_traj(natom, fail)
+  subroutine chk_create_opt_traj(natom)
     implicit none
     integer, intent(in)  :: natom
-    integer, intent(out) :: fail
 
-    fail = 1
 #if defined(RESTART_HDF5)
     call create_hdf5_extendable_real8_rank3('opt_traj', 3, natom)
 #endif
@@ -1283,13 +1278,11 @@ contains
   ! non-HDF5: no-op; the final geometry is written by chk_write at      !
   !           the end of the optimisation.                               !
   !---------------------------------------------------------------------!
-  subroutine chk_append_opt_traj(natom, xyz, fail)
+  subroutine chk_append_opt_traj(natom, xyz)
     implicit none
     integer,                          intent(in)  :: natom
     double precision, dimension(3,natom), intent(in)  :: xyz
-    integer,                          intent(out) :: fail
 
-    fail = 1
 #if defined(RESTART_HDF5)
     call append_hdf5_extendable_real8_rank3(xyz, 3, natom, 'opt_traj')
     call write_hdf5_real8_rank2(xyz, 3, natom, 'xyz')
@@ -1312,7 +1305,6 @@ contains
     fail = 0
 #if defined(RESTART_HDF5)
     call read_hdf5_opt_traj(step, natom, xyz)
-    fail = 1
 #else
     write(OUTFILEHANDLE, '(A,I0,A)') &
         'Error: CHK_READ_XYZ=', step, &
@@ -1331,7 +1323,7 @@ contains
      implicit none
      integer chk,nvalu,i,j,k,l,fail
      character kline*40,key*(*)
-  
+ 
      l=len(key)
      if (l>=40) then
         kline=key(1:40)
@@ -1342,9 +1334,13 @@ contains
         enddo
      endif
   
+     fail=0
+ 
      write(chk) '#'//kline(1:40)
      write(chk) 'I '
      write(chk) nvalu
+
+     fail=1
   
   end
   
@@ -1468,6 +1464,7 @@ contains
         enddo
      endif
   
+     fail=0
      write(chk) '#'//kline(1:40)
      write(chk) 'II'
      write(chk) x*y*z
@@ -1534,10 +1531,12 @@ contains
         enddo
      endif
   
+     fail=0
      write(chk) '#'//kline(1:40)
      write(chk) 'RR'
      write(chk) x*y*z
      write(chk) (((dim(i,j,k),i=1,x),j=1,y),k=1,z)
+     fail=1
      return
   
   end

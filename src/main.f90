@@ -37,7 +37,7 @@
     use quick_molden_module, only : quick_molden, initializeExport, exportCoordinates, exportBasis, &
          exportMO, exportSCF, exportOPT
     use quick_io_module, only: chk_init, chk_close, chk_write, &
-                               chk_create_opt_traj, chk_append_opt_traj
+                               chk_create_opt_traj
     use quick_timer_module, only : timer_end, timer_cumer, timer_begin
     use quick_method_module, only : quick_method
     use quick_files_module, only: ioutfile, outFileName, iDataFile, dataFileName
