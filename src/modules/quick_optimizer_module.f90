@@ -250,7 +250,7 @@ contains
            endif
 
            if (master .and. quick_method%writechk) then
-               call chk_append_opt_traj(natom, xyz, fail)
+               call chk_append_opt_traj(natom, xyz)
            endif
 
            geomax = -1.d0

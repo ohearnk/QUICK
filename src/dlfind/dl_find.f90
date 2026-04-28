@@ -858,7 +858,7 @@ subroutine dlf_run(ierr2 &
      ! and rewrite the flat 'xyz' dataset so the latest geometry is always
      ! readily available for restart.
      if (master .and. quick_method%writechk) then
-        call chk_append_opt_traj(glob%nat, glob%xcoords, fail)
+        call chk_append_opt_traj(glob%nat, glob%xcoords)
      endif
 
 

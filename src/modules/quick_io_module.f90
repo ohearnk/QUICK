@@ -973,7 +973,7 @@ contains
     use quick_files_module, only: iDataFile, dataFileName
     implicit none
     integer, intent(in)  :: natom, nbasis
-    integer, intent :: fail
+    integer :: fail
 
 #if defined(RESTART_HDF5)
     call write_hdf5_info(natom, nbasis)
@@ -1016,7 +1016,7 @@ contains
     implicit none
     character(len=*), intent(in)  :: key
     integer,          intent(in)  :: value
-    integer,          intent :: fail
+    integer :: fail
 
 #if defined(RESTART_HDF5)
     ! natom/nbasis are written by chk_init via write_hdf5_info; no-op here.
@@ -1035,12 +1035,12 @@ contains
   !           chk_unit.                                                  !
   ! HDF5: calls write_hdf5_int_rank1.                                   !
   !---------------------------------------------------------------------!
-  subroutine chk_write_int_rank1(key, n, array, fail)
+  subroutine chk_write_int_rank1(key, n, array)
     implicit none
     character(len=*),      intent(in)  :: key
     integer,               intent(in)  :: n
     integer, dimension(n), intent(in)  :: array
-    integer,               intent(out) :: fail
+    integer                            :: fail
 
     integer   :: i, k, l
     character :: kline*40
@@ -1072,12 +1072,12 @@ contains
   !           column-major order to chk_unit.                            !
   ! HDF5: calls write_hdf5_real8_rank2.                                 !
   !---------------------------------------------------------------------!
-  subroutine chk_write_real8_rank2(key, n1, n2, array, fail)
+  subroutine chk_write_real8_rank2(key, n1, n2, array)
     implicit none
     character(len=*),               intent(in)  :: key
     integer,                        intent(in)  :: n1, n2
     double precision, dimension(n1,n2), intent(in)  :: array
-    integer,                        intent(out) :: fail
+    integer                                         :: fail
 
     integer   :: i, j, k, l
     character :: kline*40
@@ -1115,7 +1115,7 @@ contains
     implicit none
     character(len=*), intent(in)  :: key
     integer,          intent(out) :: value
-    integer,          intent :: fail
+    integer :: fail
 
 #if defined(RESTART_HDF5)
     if (trim(key) == 'natom') then
@@ -1143,13 +1143,13 @@ contains
   !           (which stored rank-1 data as rank-3 with trailing dims=1). !
   ! HDF5: calls read_hdf5_int_rank1 starting at index 1.               !
   !---------------------------------------------------------------------!
-  subroutine chk_read_int_rank1(key, n, array, fail)
+  subroutine chk_read_int_rank1(key, n, array)
     use quick_files_module, only: iDataFile, dataFileName
     implicit none
     character(len=*),      intent(in)  :: key
     integer,               intent(in)  :: n
     integer, dimension(n), intent(out) :: array
-    integer,               intent(out) :: fail
+    integer                            :: fail
 
     integer   :: i, k, l, num
     character :: kline*40, ktype*2, line*41
@@ -1195,13 +1195,13 @@ contains
   !           write_real8_rank3 (trailing third dim = 1).               !
   ! HDF5: calls read_hdf5_real8_rank2 starting at index (1,1).         !
   !---------------------------------------------------------------------!
-  subroutine chk_read_real8_rank2(key, n1, n2, array, fail)
+  subroutine chk_read_real8_rank2(key, n1, n2, array)
     use quick_files_module, only: iDataFile, dataFileName
     implicit none
     character(len=*),                    intent(in)  :: key
     integer,                             intent(in)  :: n1, n2
     double precision, dimension(n1, n2), intent(out) :: array
-    integer,                             intent(out) :: fail
+    integer                                          :: fail
 
     integer   :: i, j, k, l, num
     character :: kline*40, ktype*2, line*41
@@ -1295,14 +1295,12 @@ contains
   ! non-HDF5: issues a fatal error directing the user to recompile with  !
   !           HDF5 support.                                              !
   !---------------------------------------------------------------------!
-  subroutine chk_read_opt_traj(step, natom, xyz, fail)
+  subroutine chk_read_opt_traj(step, natom, xyz)
     implicit none
     integer,                               intent(in)  :: step
     integer,                               intent(in)  :: natom
     double precision, dimension(3, natom), intent(out) :: xyz
-    integer,                               intent(out) :: fail
 
-    fail = 0
 #if defined(RESTART_HDF5)
     call read_hdf5_opt_traj(step, natom, xyz)
 #else

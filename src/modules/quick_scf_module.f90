@@ -691,7 +691,7 @@ contains
         if (master) then
 
           if (quick_method%writechk) then
-            call chk_update('dense', nbasis, nbasis, quick_qm_struct%dense, fail)
+            call chk_update('dense', nbasis, nbasis, quick_qm_struct%dense)
           end if
 
            current_diis=mod(idiis-1,quick_method%maxdiisscf)

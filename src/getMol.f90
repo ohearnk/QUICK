@@ -40,9 +40,9 @@ subroutine getMol(ierr)
           ! readxyz == 0: CHK_READ_XYZ with no value -> read flat 'xyz' dataset
           ! readxyz  > 0: CHK_READ_XYZ=N -> read step N from 'opt_traj'
           if (quick_method%readxyz == 0) then
-            call chk_read('xyz', 3, natom, xyz, fail)
+            call chk_read('xyz', 3, natom, xyz)
           else
-            call chk_read_opt_traj(quick_method%readxyz, natom, xyz, fail)
+            call chk_read_opt_traj(quick_method%readxyz, natom, xyz)
           endif
           quick_molspec%xyz => xyz
         else
@@ -287,9 +287,9 @@ subroutine initialGuess(ierr)
       !  SAD initial guess or density read from checkpoint
       if (quick_method%readden) then
          if (master) then
-            call chk_read('dense', nbasis, nbasis, quick_qm_struct%dense, fail)
+            call chk_read('dense', nbasis, nbasis, quick_qm_struct%dense)
             if (quick_method%unrst) then
-               call chk_read('denseb', nbasis, nbasis, quick_qm_struct%denseb, fail)
+               call chk_read('denseb', nbasis, nbasis, quick_qm_struct%denseb)
             endif
          endif
       else if (quick_method%SAD) then

@@ -438,9 +438,9 @@ contains
 
       ! read atom positions from checkpoint file
       if (quick_method%readxyz .ge. 0) then
-        call chk_read('natom', natom, fail)
+        call chk_read('natom', natom)
         if (.not. allocated(self%iattype)) allocate(self%iattype(natom))
-        call chk_read('iattype', natom, self%iattype, fail)
+        call chk_read('iattype', natom, self%iattype)
 
         ! Reading external charges from data file is not yet implemented
         nextatom = 0

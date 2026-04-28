@@ -141,10 +141,10 @@
     SAFE_CALL(getMol(ierr))
 
     if (master .and. quick_method%writechk) then
-        call chk_init(natom, nbasis, fail)
+        call chk_init(natom, nbasis)
         if (quick_method%opt) then
-            call chk_create_opt_traj(natom, fail)
-            call chk_write('iattype', natom, quick_molspec%iattype, fail)
+            call chk_create_opt_traj(natom)
+            call chk_write('iattype', natom, quick_molspec%iattype)
         endif
     endif
 
@@ -221,14 +221,14 @@
         call compute_oeprop()
 
         if (master .and. quick_method%writechk) then
-            call chk_write('xyz', 3, natom, quick_molspec%xyz, fail)
-            call chk_write('iattype', natom, quick_molspec%iattype, fail)
+            call chk_write('xyz', 3, natom, quick_molspec%xyz)
+            call chk_write('iattype', natom, quick_molspec%iattype)
 #if !defined(RESTART_HDF5)
-            call chk_write('dense', nbasis, nbasis, quick_qm_struct%dense, fail)
+            call chk_write('dense', nbasis, nbasis, quick_qm_struct%dense)
             if (quick_method%UNRST) then
-                call chk_write('denseb', nbasis, nbasis, quick_qm_struct%denseb, fail)
+                call chk_write('denseb', nbasis, nbasis, quick_qm_struct%denseb)
             end if
-            call chk_close(fail)
+            call chk_close()
 #endif
         endif
     endif
@@ -252,12 +252,12 @@
 
 #if !defined(RESTART_HDF5)
         if (master .and. quick_method%writechk) then
-            call chk_write('xyz', 3, natom, quick_molspec%xyz, fail)
-            call chk_write('dense', nbasis, nbasis, quick_qm_struct%dense, fail)
+            call chk_write('xyz', 3, natom, quick_molspec%xyz)
+            call chk_write('dense', nbasis, nbasis, quick_qm_struct%dense)
             if (quick_method%UNRST) then
-                call chk_write('denseb', nbasis, nbasis, quick_qm_struct%denseb, fail)
+                call chk_write('denseb', nbasis, nbasis, quick_qm_struct%denseb)
             end if
-            call chk_close(fail)
+            call chk_close()
         endif
 #endif
     endif
@@ -273,14 +273,14 @@
         call compute_oeprop()
 
         if (master .and. quick_method%writechk) then
-            call chk_write('xyz', 3, natom, quick_molspec%xyz, fail)
-            call chk_write('iattype', natom, quick_molspec%iattype, fail)
+            call chk_write('xyz', 3, natom, quick_molspec%xyz)
+            call chk_write('iattype', natom, quick_molspec%iattype)
 #if !defined(RESTART_HDF5)
-            call chk_write('dense', nbasis, nbasis, quick_qm_struct%dense, fail)
+            call chk_write('dense', nbasis, nbasis, quick_qm_struct%dense)
             if (quick_method%UNRST) then
-              call chk_write('denseb', nbasis, nbasis, quick_qm_struct%denseb, fail)
+              call chk_write('denseb', nbasis, nbasis, quick_qm_struct%denseb)
             end if
-            call chk_close(fail)
+            call chk_close()
 #endif
         endif
 
