@@ -189,7 +189,6 @@ end subroutine check_fqin
 ! reads the job card from template file with .qin extension and initialize quick
 ! also allocate memory for quick_api internal arrays
 subroutine set_quick_job(fqin, keywd, natoms, atomic_numbers, reusedmx, ierr)
-
   use quick_files_module
   use quick_molspec_module, only : quick_molspec, alloc
   use quick_exception_module
@@ -776,15 +775,12 @@ subroutine gpu_upload_molspecs(ierr)
   call gpu_upload_oei(quick_molspec%nextatom, quick_molspec%extxyz, quick_molspec%extchg, ierr)
 
 end subroutine gpu_upload_molspecs
-
 #endif
 
 
 #ifdef MPIV
-
 ! sets mpi variables in quick api
 subroutine set_quick_mpi(mpi_comm, mpi_rank, mpi_size, ierr)
-
   use quick_mpi_module, only: mpirank, mpisize, libMPIMode, quick_comm
 
   implicit none
@@ -794,16 +790,14 @@ subroutine set_quick_mpi(mpi_comm, mpi_rank, mpi_size, ierr)
 
   ! save information in quick_mpi module
   quick_comm = mpi_comm
-  mpirank    = mpi_rank
-  mpisize    = mpi_size
+  mpirank = mpi_rank
+  mpisize = mpi_size
   libMPIMode = .true.
   ierr = 0
-  
-
 end subroutine set_quick_mpi
 
-! broadcasts results from master to slaves
 
+! broadcasts results from master to slaves
 subroutine broadcast_quick_mpi_results(self,ierr)
   use mpi
   use quick_mpi_module, only: quick_comm
@@ -817,10 +811,9 @@ subroutine broadcast_quick_mpi_results(self,ierr)
   call MPI_BCAST(self%tot_ene,1,mpi_double_precision,0,quick_comm,mpierror)
   call MPI_BCAST(self%gradient,3*self%natoms,mpi_double_precision,0,quick_comm,mpierror)
   call MPI_BCAST(self%ptchg_grad,3*self%nxt_ptchg,mpi_double_precision,0,quick_comm,mpierror)
-
 end subroutine
-
 #endif
+
 
 ! fialize quick and deallocate memory of quick_api internal arrays
 subroutine delete_quick_job(ierr)
