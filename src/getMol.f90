@@ -15,11 +15,7 @@ subroutine getMol(ierr)
    use allmod
    use quick_gridpoints_module
    use quick_exception_module
-#if defined(RESTART_HDF5)
-   use quick_io_module, only: read_hdf5_real8_rank2
-#else
-   use quick_io_module, only: read_real8_rank3
-#endif
+   use quick_io_module, only: chk_read, chk_read_opt_traj
 #ifdef MPIV
    use mpi
 #endif
@@ -40,14 +36,14 @@ subroutine getMol(ierr)
 
       ! read xyz coordinates from the .in file 
       if (.not. isTemplate) then
-        if (quick_method%read_coord) then
-#if defined(RESTART_HDF5)
-          call read_hdf5_real8_rank2('xyz', (/1,1/), (/3,natom/), xyz)
-#else
-          open(unit=iDataFile, file=dataFileName, status='OLD', form='UNFORMATTED')
-          call read_real8_rank3(iDataFile, "xyz", 3, natom, 1, xyz, fail)
-          close(iDataFile)
-#endif
+        if (quick_method%readxyz .ge. 0) then
+          ! readxyz == 0: CHK_READ_XYZ with no value -> read flat 'xyz' dataset
+          ! readxyz  > 0: CHK_READ_XYZ=N -> read step N from 'opt_traj'
+          if (quick_method%readxyz == 0) then
+            call chk_read('xyz', 3, natom, xyz)
+          else
+            call chk_read_opt_traj(quick_method%readxyz, natom, xyz)
+          endif
           quick_molspec%xyz => xyz
         else
           call quick_open(infile,inFileName,'O','F','W',.true.,ierr)
@@ -237,11 +233,12 @@ end subroutine check_quick_method_and_molspec
 !--------------------------------------
 subroutine initialGuess(ierr)
    use allmod
-   use quick_sad_guess_module, only: getSadDense 
+   use quick_sad_guess_module, only: getSadDense
    use quick_exception_module
+   use quick_io_module, only: chk_read
    implicit none
    logical :: present
-   integer :: failed
+   integer :: failed, fail
    character(len=80) :: keyWD
    integer n,sadAtom
    integer Iatm,i,j
@@ -256,10 +253,6 @@ subroutine initialGuess(ierr)
 
    present = .false.
 
-#ifdef USEDAT
-   ! if read matrix is requested, begin to read dmx file
-   if (quick_method%readdmx) inquire (file=dataFileName,exist=present)
-#endif
    if (present) then
       call quick_open(iDataFile, dataFileName, 'O', 'U', 'W',.true.,ierr)
       CHECK_ERROR(ierr)
@@ -291,12 +284,19 @@ subroutine initialGuess(ierr)
       !   call MFCC_initial_guess
       !endif
 
-      !  SAD inital guess
-      if (quick_method%SAD) then
+      !  SAD initial guess or density read from checkpoint
+      if (quick_method%readden) then
+         if (master) then
+            call chk_read('dense', nbasis, nbasis, quick_qm_struct%dense)
+            if (quick_method%unrst) then
+               call chk_read('denseb', nbasis, nbasis, quick_qm_struct%denseb)
+            endif
+         endif
+      else if (quick_method%SAD) then
          call getSadDense
       endif
 
-      if(quick_method%unrst) then
+      if(quick_method%unrst .and. .not. quick_method%readden) then
         do I=1,nbasis
           do J =1,nbasis
             quick_qm_struct%dense(J,I) = quick_qm_struct%dense(J,I)/2.d0

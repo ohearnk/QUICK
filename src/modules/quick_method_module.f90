@@ -45,11 +45,9 @@ module quick_method_module
         ! the second section includes some advanced option
         logical :: debug =  .false.    ! debug mode
         logical :: nodirect = .false.  ! conventional scf
-        logical :: readDMX =  .false.  ! flag to read density matrix
         logical :: readden = .false.  ! flag to read density matrix
-        logical :: read_coord = .false.  ! flag to read coordinates
-        logical :: writeden = .false. ! flag to write density matrix
-        logical :: writexyz = .false. ! flag to write coordinates
+        integer :: readxyz = -1       ! flag to read coordinates
+        logical :: writechk = .false. ! flag to checkpoint data
         logical :: readSAD = .true.    ! flag to read SAD guess
         logical :: writeSAD = .false.  ! flag to write SAD guess
         logical :: diisSCF =  .false.  ! DIIS SCF
@@ -232,7 +230,6 @@ module quick_method_module
             call MPI_BCAST(self%UNRST,1,mpi_logical,0,MPI_COMM_WORLD,mpierror)
             call MPI_BCAST(self%debug,1,mpi_logical,0,MPI_COMM_WORLD,mpierror)
             call MPI_BCAST(self%nodirect,1,mpi_logical,0,MPI_COMM_WORLD,mpierror)
-            call MPI_BCAST(self%readDMX,1,mpi_logical,0,MPI_COMM_WORLD,mpierror)
             call MPI_BCAST(self%diisSCF,1,mpi_logical,0,MPI_COMM_WORLD,mpierror)
             call MPI_BCAST(self%prtGap,1,mpi_logical,0,MPI_COMM_WORLD,mpierror)
             call MPI_BCAST(self%opt,1,mpi_logical,0,MPI_COMM_WORLD,mpierror)
@@ -261,9 +258,8 @@ module quick_method_module
             call MPI_BCAST(self%gridspacing,1,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
             call MPI_BCAST(self%lapGridSpacing,1,mpi_double_precision,0,MPI_COMM_WORLD,mpierror)
             call MPI_BCAST(self%readden,1,mpi_logical,0,MPI_COMM_WORLD,mpierror)
-            call MPI_BCAST(self%read_coord,1,mpi_logical,0,MPI_COMM_WORLD,mpierror)
-            call MPI_BCAST(self%writeden,1,mpi_logical,0,MPI_COMM_WORLD,mpierror)
-            call MPI_BCAST(self%writexyz,1,mpi_logical,0,MPI_COMM_WORLD,mpierror)
+            call MPI_BCAST(self%readxyz,1,mpi_integer,0,MPI_COMM_WORLD,mpierror)
+            call MPI_BCAST(self%writechk,1,mpi_logical,0,MPI_COMM_WORLD,mpierror)
             call MPI_BCAST(self%extCharges,1,mpi_logical,0,MPI_COMM_WORLD,mpierror)
             call MPI_BCAST(self%ext_grid,1,mpi_logical,0,MPI_COMM_WORLD,mpierror)
             call MPI_BCAST(self%extgrid_angstrom,1,mpi_logical,0,MPI_COMM_WORLD,mpierror)
@@ -438,11 +434,9 @@ module quick_method_module
             if (self%prtGap)    write(io,'(" PRINT HOMO-LUMO GAP")')
             if (self%printEnergy) write(io,'(" PRINT ENERGY EVERY CYCLE")')
 
-            if (self%readDMX)   write(io,'(" READ DENSITY MATRIX FROM FILE")')
-            if (self%read_coord) write(io,'(" READ COORDINATES FROM DATA FILE")')
+            if (self%readxyz .ge. 0) write(io,'(" READ COORDINATES FROM DATA FILE")')
             if (self%readden) write(io,'(" READ DENSITY MATRIX FROM DATA FILE")')
-            if (self%writeden) write(io,'(" WRITE DENSITY MATRIX TO DATA FILE")')
-            if (self%writexyz) write(io,'(" WRITE COORDINATES TO DATA FILE")')
+            if (self%writechk) write(io,'(" CHECKPOINTING TO DATA FILE")')
             if (self%readSAD)   write(io,'(" READ SAD GUESS FROM FILE")')
             if (self%writeSAD)   write(io,'(" WRITE SAD GUESS TO FILE")')
     
@@ -682,7 +676,6 @@ module quick_method_module
             if (index(keyWD,'HESSIAN').ne.0)    self%analHess=.true.
             if (index(keyWD,'FREQ').ne.0)       self%freq=.true.
             if (index(keywd,'DEBUG').ne.0)      self%debug=.true.
-            if (index(keyWD,'READ').ne.0)       self%readDMX=.true.
             if (index(keyWD,'RDSAD').ne.0)      self%readSAD=.true.  ! READSAD would clash with READ
             if (index(keyWD,'WRSAD').ne.0) then
                self%writeSAD = .true.
@@ -690,11 +683,8 @@ module quick_method_module
             end if
             if (index(keyWD,'ZMAKE').ne.0)      self%zmat=.true.
             if (index(keyWD,'DIPOLE').ne.0)     self%dipole=.true.
-            if (index(keyWD,'CHK_WRITE_DEN').ne.0) then
-                self%writeden = .true.
-            end if
-            if (index(keyWD,'CHK_WRITE_XYZ').ne.0) then
-                self%writexyz = .true.
+            if (index(keyWD,'CHK_WRITE').ne.0) then
+                self%writechk = .true.
             end if
 
             if (index(keyWD,'EXTCHARGES').ne.0) self%EXTCHARGES=.true.
@@ -722,8 +712,9 @@ module quick_method_module
             endif
 
             !Read coordinates
-            if (index(keyWD,'CHK_READ_COORD').ne.0)then
-              self%read_coord=.true.
+            if (index(keyWD,'CHK_READ_XYZ').ne.0)then
+                self%readxyz=0
+                call read(keywd, 'CHK_READ_XYZ', self%readxyz, .false.)
             endif
 
             if (self%DFT) then
@@ -936,7 +927,6 @@ module quick_method_module
 
             self%debug =  .false.     ! debug mode
             self%nodirect = .false.   ! conventional SCF
-            self%readDMX =  .false.   ! flag to read density matrix
             self%readSAD =  .true.    ! flag to read sad guess
             self%writeSAD = .false.   ! flag to write sad guess
             self%diisSCF =  .false.   ! DIIS SCF
@@ -969,9 +959,8 @@ module quick_method_module
             self%calcDens = .false.    ! calculate density
             self%calcDensLap = .false. ! calculate density lap
             self%readden = .false.    ! Input density matrix
-            self%read_coord = .false.    ! Input coordinates
-            self%writeden = .false.   ! Write density matrix to data file
-            self%writexyz = .false.   ! Write coordinates to data file
+            self%readxyz = -1         ! Input coordinates
+            self%writechk = .false.   ! Checkpoint information to data file
             self%extCharges = .false.  ! external charge
             self%ext_grid = .false.    ! external grid points
             self%extgrid_angstrom = .false.   ! external grid points (same as above) output in angstrom

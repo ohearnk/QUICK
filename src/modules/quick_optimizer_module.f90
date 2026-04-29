@@ -29,7 +29,7 @@ contains
 ! IOPT to control the cycles
 ! Ed Brothers. August 18,2002.
 ! 3456789012345678901234567890123456789012345678901234567890123456789012<<STOP
-  subroutine optimize(ierr)
+   subroutine optimize(ierr)
      use allmod
      use quick_gridpoints_module
      use quick_cutoff_module, only: schwarzoff
@@ -41,6 +41,7 @@ contains
 #ifdef MPIV
      use mpi
 #endif
+     use quick_io_module, only: chk_append_opt_traj
      implicit double precision(a-h,o-z)
 
      logical :: done,diagco
@@ -51,7 +52,7 @@ contains
      COMMON /LB3/MP,LP,GTOL,STPMIN,STPMAX
 
      logical lsearch,diis
-     integer IMCSRCH,nstor,ndiis
+     integer IMCSRCH,nstor,ndiis, fail
      double precision gnorm,dnorm,diagter,safeDX,gntest,gtest,sqnpar,accls,oldGrad(3*natom),coordsold(natom*3)
      double precision EChg
      integer, intent(inout) :: ierr
@@ -248,6 +249,10 @@ contains
                quick_molden%iexport_snapshot = quick_molden%iexport_snapshot + 1
            endif
 
+           if (master .and. quick_method%writechk) then
+               call chk_append_opt_traj(natom, xyz)
+           endif
+
            geomax = -1.d0
            georms = 0.d0
            do J=1,natom
@@ -329,8 +334,6 @@ contains
            call PrtAct(ioutfile,"Finish Optimization for This Step")
            Elast = quick_qm_struct%Etot
 
-           ! If read is on, write out a restart file.
-           if (quick_method%readdmx) call wrtrestart
         endif
 
         !-------------- END MPI/MASTER --------------------
