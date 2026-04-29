@@ -69,11 +69,6 @@ contains
   subroutine uscf(ierr)
      use allmod
      use quick_molden_module, only: quick_molden, exportMO, exportSCF
-#if defined(RESTART_HDF5)
-     use quick_io_module, only: read_hdf5_int_rank0, read_hdf5_real8_rank2
-#else
-     use quick_io_module, only: read_int_rank0, read_real8_rank3
-#endif
 
      implicit none
 
@@ -101,22 +96,6 @@ contains
      ! number of scfcycles has been reached.
      jscf=0
  
-      if (quick_method%readden) then
-        if (master) then
-#if defined(RESTART_HDF5)
-         call read_hdf5_int_rank0('molinfo', 2, nbasis)
-         call read_hdf5_real8_rank2('dense', (/1,1/), (/nbasis,nbasis/), quick_qm_struct%dense)
-         call read_hdf5_real8_rank2('denseb', (/1,1/), (/nbasis,nbasis/), quick_qm_struct%denseb)
-#else
-         open(unit=iDataFile, file=dataFileName, status='OLD', form='UNFORMATTED')
-         call read_int_rank0(iDataFile, "nbasis", nbasis, fail)
-         call read_real8_rank3(iDataFile, "dense", nbasis, nbasis, 1, quick_qm_struct%dense, fail)
-         call read_real8_rank3(iDataFile, "denseb", nbasis, nbasis, 1, quick_qm_struct%denseb, fail)
-         close(iDataFile)
-#endif
-       endif
-     endif
-  
      ! Alessandro GENONI 03/21/2007
      ! ECP integrals computation exploiting Alexander V. Mitin Subroutine
      ! Note: the integrals are stored in the array ecp_int that corresponds
@@ -163,6 +142,7 @@ contains
      use mpi
      use quick_mpi_module, only: quick_comm
 #endif
+     use quick_io_module, only: chk_update
 
      implicit none
  
@@ -181,7 +161,7 @@ contains
      integer :: IDIIS_Error_Start, IDIIS_Error_End
      double precision :: BIJ,DENSEJI,errormax,OJK,temp
      double precision :: Sum2Mat,rms, shift, bandgap, bandgapb
-     integer :: I,J,K,L,IERROR, homo, homob
+     integer :: I,J,K,L,IERROR, homo, homob, fail
   
       double precision :: oldEnergy=0.0d0,E1e ! energy for last iteriation, and 1e-energy
       double precision :: PRMS,PRMS2,PCHANGE, tmp
@@ -784,13 +764,12 @@ contains
         !--------------- END MPI/ALL NODES -------------------------------------
   
         if (master) then
-#ifdef USEDAT
-           ! open data file then write calculated info to dat file
-           SAFE_CALL(quick_open(iDataFile, dataFileName, 'R', 'U', 'R',.true.,ierr)
-           rewind(iDataFile)
-           call dat(quick_qm_struct, iDataFile)
-           close(iDataFile)
-#endif
+
+          if (quick_method%writechk) then
+              call chk_update('dense', nbasis, nbasis, quick_qm_struct%dense)
+              call chk_update('denseb', nbasis, nbasis, quick_qm_struct%denseb)
+          end if
+
            current_diis=mod(idiis-1,quick_method%maxdiisscf)
            current_diis=current_diis+1
   

@@ -138,13 +138,13 @@ contains
    !-------------------
    ! allocate
    !-------------------
-   subroutine allocate_quick_molspec(self, read_coord, ierr)
+   subroutine allocate_quick_molspec(self, readxyz, ierr)
       use quick_exception_module
 
       implicit none
 
       type (quick_molspec_type), intent(inout) :: self
-      logical, intent(in) :: read_coord
+      integer, intent(in) :: readxyz
       integer, intent(inout) :: ierr
 
       integer i, j
@@ -155,11 +155,6 @@ contains
       if (.not. allocated(self%chg)) allocate(self%chg(natom))
       if (.not. allocated(self%AtomDistance)) allocate(self%AtomDistance(natom,natom))
       if (.not. allocated(self%dlfind_freezeatm)) allocate(self%dlfind_freezeatm(natom))
-      if (.not. read_coord) then
-         do i=1,natom
-            self%iattype(i)=0
-         enddo
-      end if
       do i=1,natom
          self%distnbor(i)=0
          self%chg(i)=0d0
@@ -370,11 +365,7 @@ contains
     use quick_exception_module
     use quick_method_module, only: quick_method
     use quick_files_module, only : iDataFile, dataFileName
-#if defined(RESTART_HDF5)
-    use quick_io_module, only: read_hdf5_int_rank0, read_hdf5_int_rank1
-#else
-    use quick_io_module, only: read_int_rank0, read_int_rank3
-#endif
+    use quick_io_module, only: chk_read
 
     implicit none
 
@@ -447,18 +438,10 @@ contains
     if( .not. isTemplate) then
 
       ! read atom positions from checkpoint file
-      if (quick_method%read_coord) then
-#if defined(RESTART_HDF5)
-        call read_hdf5_int_rank0('molinfo', 1, natom)
+      if (quick_method%readxyz .ge. 0) then
+        call chk_read('natom', natom)
         if (.not. allocated(self%iattype)) allocate(self%iattype(natom))
-        call read_hdf5_int_rank1('iattype', 1, natom, self%iattype)
-#else
-        open(unit=iDataFile, file=dataFileName, status='OLD', form='UNFORMATTED')
-        call read_int_rank0(iDataFile, "natom", natom, fail)
-        if (.not. allocated(self%iattype)) allocate(self%iattype(natom))
-        call read_int_rank3(iDataFile, "iattype", natom, 1, 1, self%iattype, fail)
-        close(iDataFile)
-#endif
+        call chk_read('iattype', natom, self%iattype)
 
         ! Reading external charges from data file is not yet implemented
         nextatom = 0

@@ -44,19 +44,24 @@ contains
      use quick_cew_module, only : quick_cew
 #endif
   
-     implicit double precision(a-h,o-z)
-  
+     implicit none
+
      logical :: present, MPIsaved, readSAD
-     double precision:: xyzsaved(3,natom)
+     double precision :: xyzsaved(3,natom)
      character(len=80) :: keywd
      character(len=20) :: tempstring
      character(len=340) :: sadfile
-     integer natomsaved
+     integer :: natomsaved
      type(quick_method_type) quick_method_save
      type(quick_molspec_type) quick_molspec_save
      integer, intent(inout) :: ierr
      logical :: use_cew_save
+     integer :: iitemp, i, j, ii, jj, nsenhai
+     double precision :: diagelement, diagelementb, temp
   
+     ! If density will be read from checkpoint, the SAD guess is not needed.
+     if (quick_method%readden) return
+
      ! first save some important value
      quick_method_save=quick_method
      quick_molspec_save=quick_molspec
@@ -68,11 +73,6 @@ contains
      natomsaved=natom
      xyzsaved=xyz
      MPIsaved=bMPI
-  
-     istart = 1
-     ifinal = 80
-     ibasisstart = 1
-     ibasisend = 80
   
      ! Then give them new value
      bMPI=.false.
@@ -154,19 +154,13 @@ contains
            !if (quick_method%DFT .OR. quick_method%SEDFT) call get_sigrad
   
            ! Initialize Density arrays. Create initial density matrix guess.
-           present = .false.
-           if (quick_method%readdmx) inquire (file=dmxfilename,exist=present)
-           if (present) then
-              return
-           else
-              ! Initial Guess
-              diagelement=dble(quick_molspec%nelec)/dble(nbasis)
-              diagelementb=dble(quick_molspec%nelecb)/dble(nbasis)+1.d-8
-              do I=1,nbasis
-                 quick_qm_struct%dense(I,I)=diagelement
-                 quick_qm_struct%denseb(I,I)=diagelementb
-              enddo
-           endif
+           ! Initial Guess
+           diagelement=dble(quick_molspec%nelec)/dble(nbasis)
+           diagelementb=dble(quick_molspec%nelecb)/dble(nbasis)+1.d-8
+           do I=1,nbasis
+              quick_qm_struct%dense(I,I)=diagelement
+              quick_qm_struct%denseb(I,I)=diagelementb
+           enddo
   
            ! AWG Check if SAD file is present when requesting readSAD
            ! AWG If not present fall back to computing SAD guess

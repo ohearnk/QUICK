@@ -114,11 +114,6 @@ contains
   ! 3456789012345678901234567890123456789012345678901234567890123456789012<<STOP
   subroutine scf(ierr)
      use allmod
-#if defined(RESTART_HDF5)
-     use quick_io_module, only: read_hdf5_int_rank0, read_hdf5_real8_rank2
-#else
-     use quick_io_module, only: read_int_rank0, read_real8_rank3
-#endif
 
      implicit none
 
@@ -130,20 +125,6 @@ contains
 
      done = .false.
 
-      if (quick_method%readden) then
-        if (master) then
-#if defined(RESTART_HDF5)
-         call read_hdf5_int_rank0('molinfo', 2, nbasis)
-         call read_hdf5_real8_rank2('dense', (/1,1/), (/nbasis,nbasis/), quick_qm_struct%dense)
-#else
-         open(unit=iDataFile, file=dataFileName, status='OLD', form='UNFORMATTED')
-         call read_int_rank0(iDataFile, "nbasis", nbasis, fail)
-         call read_real8_rank3(iDataFile, "dense", nbasis, nbasis, 1, quick_qm_struct%dense, fail)
-         close(iDataFile)
-#endif
-       endif
-     endif
-  
      !-----------------------------------------------------------------
      ! The purpose of this subroutine is to perform scf cycles.  At this
      ! point, X has been formed. The remaining steps are:
@@ -195,6 +176,7 @@ contains
      use mpi
      use quick_mpi_module, only: quick_comm
 #endif
+     use quick_io_module, only: chk_update
 
      implicit none
  
@@ -212,7 +194,7 @@ contains
      integer :: IDIIS_Error_Start, IDIIS_Error_End
      double precision :: BIJ,DENSEJI,errormax,OJK,temp
      double precision :: Sum2Mat,rms, shift, bandgap
-     integer :: I,J,K,L,IERROR, homo
+     integer :: I,J,K,L,IERROR, homo, fail
   
       double precision :: oldEnergy=0.0d0,E1e ! energy for last iteration, and 1e-energy
       double precision :: PRMS,PCHANGE, tmp
@@ -708,13 +690,11 @@ contains
         !--------------- END MPI/ALL NODES -------------------------------------
   
         if (master) then
-#ifdef USEDAT
-           ! open data file then write calculated info to dat file
-           SAFE_CALL(quick_open(iDataFile, dataFileName, 'R', 'U', 'R',.true.,ierr)
-           rewind(iDataFile)
-           call dat(quick_qm_struct, iDataFile)
-           close(iDataFile)
-#endif
+
+          if (quick_method%writechk) then
+            call chk_update('dense', nbasis, nbasis, quick_qm_struct%dense)
+          end if
+
            current_diis=mod(idiis-1,quick_method%maxdiisscf)
            current_diis=current_diis+1
            
