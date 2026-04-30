@@ -125,11 +125,6 @@ contains
 
 ! allocates memory for a new quick_api_type variable
 subroutine new_quick_api_type(self, natoms, atomic_numbers, ierr)
-#ifdef MPIV
-  use mpi
-  use quick_mpi_module, only: quick_comm
-#endif
-
   implicit none
 
   type(quick_api_type), intent(inout) :: self
@@ -139,31 +134,27 @@ subroutine new_quick_api_type(self, natoms, atomic_numbers, ierr)
   integer :: atm_type_id(natoms)
   integer :: i, natm_type
 
-#ifdef MPIV
-  !quick_comm = comm
-#endif
-
   ! get atom types and number of types
   call get_atom_types(natoms, atomic_numbers, natm_type, atm_type_id, ierr)
 
   if ( .not. allocated(self%atm_type_id))    allocate(self%atm_type_id(natm_type), stat=ierr)
   if ( .not. allocated(self%atomic_numbers)) allocate(self%atomic_numbers(natoms), stat=ierr)
   if ( .not. allocated(self%coords))         allocate(self%coords(3,natoms), stat=ierr)
-  if ( .not. allocated(self%gradient))          allocate(self%gradient(3,natoms), stat=ierr)
+  if ( .not. allocated(self%gradient))       allocate(self%gradient(3,natoms), stat=ierr)
 
  ! save values in the quick_api struct
-  self%natoms         = natoms
-  self%natm_type      = natm_type
+  self%natoms = natoms
+  self%natm_type = natm_type
   self%atomic_numbers = atomic_numbers
 
-  do i=1, natm_type
+  do i = 1, natm_type
     self%atm_type_id(i) = atm_type_id(i)
   enddo
 
   ! set result vectors and matrices to zero
-  self%gradient  = 0.0d0
-
+  self%gradient = 0.0d0
 end subroutine new_quick_api_type
+
 
 ! this subroutine checks if the string passed through api is a file name
 ! or a job card
