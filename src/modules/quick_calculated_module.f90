@@ -223,10 +223,6 @@ module quick_calculated_module
       module procedure init_quick_qm_struct
    end interface init
 
-   interface dat
-      module procedure dat_quick_qm_struct
-   end interface dat
-
    !----------------------
    ! Inner subroutines
    !----------------------
@@ -393,62 +389,6 @@ contains
      endif
 
    end subroutine reallocate_quick_qm_struct
-
-   !--------------
-   ! subroutine to write data to dat file
-   !--------------
-
-   subroutine dat_quick_qm_struct(self, idatafile)
-
-      use quick_method_module, only: quick_method
-      use quick_molspec_module, only: quick_molspec
-      use quick_io_module, only: write_int_rank0, write_int_rank3, write_real8_rank3
-      integer fail
-
-      integer nbasis
-      integer NBSuse
-      integer natom
-      integer nelec
-      integer idimA
-      integer nelecb
-
-      
-      integer idatafile
-      type (quick_qm_struct_type) self
-
-      nbasis=self%nbasis
-      NBSuse=self%NBSuse
-      natom=quick_molspec%natom
-      nelec=quick_molspec%nelec
-      nelecb=quick_molspec%nelecb
-
-      call write_int_rank0(idatafile, "nbasis", nbasis, fail)
-      call write_int_rank0(idatafile, "natom",  natom, fail)
-      call write_int_rank0(idatafile, "nelec",  nelec, fail)
-      call write_int_rank0(idatafile, "nelecb", nelecb, fail)
-      call write_real8_rank3(idatafile, "s", nbasis, nbasis, 1, self%s, fail)
-      call write_real8_rank3(idatafile, "x", nbasis, NBSuse, 1, self%x, fail)
-      call write_real8_rank3(idatafile, "o", nbasis, nbasis, 1, self%o, fail)
-      call write_real8_rank3(idatafile, "co", nbasis, NBSuse, 1, self%co, fail)
-      call write_real8_rank3(idatafile, "vec", NBSuse, NBSuse, 1, self%vec, fail)
-      call write_real8_rank3(idatafile, "dense", nbasis, nbasis, 1, self%dense, fail)
-      call write_real8_rank3(idatafile, "E", NBSuse, 1, 1, self%E, fail)
-      call write_int_rank3(idatafile, "iDegen", nbasis, 1, 1, self%iDegen, fail)
-      call write_real8_rank3(idatafile, "Mulliken", nbasis, 1, 1, self%Mulliken, fail)
-      call write_real8_rank3(idatafile, "Lowdin", nbasis, 1, 1, self%Lowdin, fail)
-
-      ! if unrestricted, some more variables need to be allocated
-      if (quick_method%unrst) then
-         call write_real8_rank3(idatafile, "cob", nbasis, NBSuse, 1, self%cob, fail)
-         call write_real8_rank3(idatafile, "Eb", NBSuse, 1, 1, self%Eb, fail)
-      endif
-
-      if (quick_method%unrst .or. quick_method%DFT) then
-         call write_real8_rank3(idatafile, "denseb", nbasis, 1, 1, self%denseb, fail)
-      endif
-
-
-   end subroutine dat_quick_qm_struct
 
    !--------------
    ! subroutine to deallocate variables
