@@ -46,6 +46,9 @@ if(HDF5)
 endif()
 
 option(ENABLEF "Enables the support for f functions in the ERI code." FALSE)
+option(MIXED_PRECISION 
+	"Enables support for floating point calculations in mixed precision (single/double) in the GPU ERI code." 
+	FALSE)
 
 # Compiler flags
 # These should really go into cmake/CompilerFlags.cmake but with the
@@ -393,6 +396,10 @@ endif()
 # set general preprocessor flag for enabling F functions
 if(ENABLEF)
   add_definitions(-DENABLEF)
+endif()
+
+if(MIXED_PRECISION)
+  add_definitions(-DMIXED_PRECISION)
 endif()
 
 # CUDA compiler flags

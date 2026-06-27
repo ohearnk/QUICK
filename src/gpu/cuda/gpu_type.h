@@ -33,13 +33,15 @@ struct gpu_calculated_type {
     uint32_t natom; // number of atom
     uint32_t nbasis; // number of basis sets
     gpu_buffer_type<QUICKDouble> *o;      // O matrix
-    gpu_buffer_type<float> *o_f;          // O matrix
     gpu_buffer_type<QUICKDouble> *ob;     // beta O matrix
-    gpu_buffer_type<float> *ob_f;         // beta O matrix
     gpu_buffer_type<QUICKDouble> *dense;  // Density Matrix
-    gpu_buffer_type<float> *dense_f;      // Density Matrix
     gpu_buffer_type<QUICKDouble> *denseb; // Beta Density Matrix
+#if defined(MIXED_PRECISION)
+    gpu_buffer_type<float> *o_f;          // O matrix
+    gpu_buffer_type<float> *ob_f;         // beta O matrix
+    gpu_buffer_type<float> *dense_f;      // Density Matrix
     gpu_buffer_type<float> *denseb_f;     // Beta Density Matrix
+#endif
 #if defined(USE_LEGACY_ATOMICS)
     gpu_buffer_type<QUICKULL> *oULL;   // Unsigned long long int type O matrix
     gpu_buffer_type<QUICKULL> *obULL;  // Unsigned long long int type Ob matrix
@@ -78,24 +80,28 @@ struct gpu_cutoff_type {
 
     // Cutoff matrix
     gpu_buffer_type<QUICKDouble> *cutMatrix;
-    gpu_buffer_type<float> *cutMatrix_f;
     gpu_buffer_type<QUICKDouble> *YCutoff;
-    gpu_buffer_type<float> *YCutoff_f;
     gpu_buffer_type<QUICKDouble> *cutPrim;
+#if defined(MIXED_PRECISION)
+    gpu_buffer_type<float> *cutMatrix_f;
+    gpu_buffer_type<float> *YCutoff_f;
     gpu_buffer_type<float> *cutPrim_f;
+#endif
 
     // Cutoff criteria
     QUICKDouble integralCutoff;
-    float integralCutoff_f;
     QUICKDouble integralCutoff2;
-    float integralCutoff2_f;
     QUICKDouble coreIntegralCutoff;
     QUICKDouble primLimit;
-    float primLimit_f;
     QUICKDouble DMCutoff;
     QUICKDouble XCCutoff;
     QUICKDouble gradCutoff;
+#if defined(MIXED_PRECISION)
+    float integralCutoff_f;
+    float integralCutoff2_f;
+    float primLimit_f;
     float gradCutoff_f;
+#endif
 
     // One electron pre-sorting cutoff
     gpu_buffer_type<int2> *sorted_OEICutoffIJ;
@@ -194,8 +200,10 @@ struct gpu_simulation_type {
     DFT_calculated_type *DFT_calculated;
     XC_quadrature_type *xcq;
     QUICKDouble hyb_coeff;
-    float hyb_coeff_f;
     bool is_oshell;
+#if defined(MIXED_PRECISION)
+    float hyb_coeff_f;
+#endif
 
     // used for DFT
     int32_t isg;        // isg algrothm
@@ -294,10 +302,12 @@ struct gpu_simulation_type {
 
     // Some more infos about basis function
     QUICKDouble *xyz;
-    float *xyz_f;
     QUICKDouble *allxyz; // coordinates of nuclei and external charges for oei
     QUICKDouble *extpointxyz; // coordinates of points on which one electron properties are obtained
     int *ncenter;
+#if defined(MIXED_PRECISION)
+    float *xyz_f;
+#endif
 
     uint32_t *kstart;
     uint32_t *katom;
@@ -312,24 +322,28 @@ struct gpu_simulation_type {
     uint32_t *sorted_Q;
     QUICKDouble *gccoeff;
     QUICKDouble *cons;
-    float *cons_f;
     QUICKDouble *gcexpo;
-    float *gcexpo_f;
     uint32_t *KLMN;
     uint32_t prim_total;
     uint32_t *prim_start;
+#if defined(MIXED_PRECISION)
+    float *cons_f;
+    float *gcexpo_f;
+#endif
 
     // Some more infos about pre-calculated values
     QUICKDouble *o;
-    float *o_f;
     QUICKDouble *ob;
-    float *ob_f;
     QUICKULL *oULL;
     QUICKULL *obULL;
     QUICKDouble *dense;
-    float *dense_f;
     QUICKDouble *denseb;
+#if defined(MIXED_PRECISION)
     float *denseb_f;
+    float *o_f;
+    float *ob_f;
+    float *dense_f;
+#endif
 
     // OEPROP
     QUICKDouble *esp_electronic;
@@ -337,38 +351,42 @@ struct gpu_simulation_type {
 
     QUICKDouble *distance;
     QUICKDouble *Xcoeff;
-    float *Xcoeff_f;
     QUICKDouble *Xcoeff_oei; // precomputed overlap prefactor for oei
     QUICKDouble *expoSum;
-    float *expoSum_f;
     QUICKDouble *weightedCenterX;
-    float *weightedCenterX_f;
     QUICKDouble *weightedCenterY;
-    float *weightedCenterY_f;
     QUICKDouble *weightedCenterZ;
+#if defined(MIXED_PRECISION)
+    float *Xcoeff_f;
+    float *expoSum_f;
+    float *weightedCenterX_f;
+    float *weightedCenterY_f;
     float *weightedCenterZ_f;
+#endif
 
     // cutoff
     uint32_t sqrQshell;
     int2 *sorted_YCutoffIJ;
     QUICKDouble *cutMatrix;
-    float *cutMatrix_f;
     QUICKDouble *YCutoff;
-    float *YCutoff_f;
     QUICKDouble *cutPrim;
-    float *cutPrim_f;
     QUICKDouble integralCutoff;
-    float integralCutoff_f;
     QUICKDouble integralCutoff2;
-    float integralCutoff2_f;
     QUICKDouble coreIntegralCutoff;
     QUICKDouble primLimit;
-    float primLimit_f;
     QUICKDouble DMCutoff;
     QUICKDouble XCCutoff;
     QUICKDouble gradCutoff;
-    float gradCutoff_f;
     int2 *sorted_OEICutoffIJ;
+#if defined(MIXED_PRECISION)
+    float *cutMatrix_f;
+    float *YCutoff_f;
+    float *cutPrim_f;
+    float integralCutoff_f;
+    float integralCutoff2_f;
+    float primLimit_f;
+    float gradCutoff_f;
+#endif
 
     // for ERI generator
 #if defined(COMPILE_GPU_AOINT)
@@ -376,19 +394,23 @@ struct gpu_simulation_type {
 #endif
 
     QUICKDouble maxIntegralCutoff;
-    float maxIntegralCutoff_f;
     QUICKDouble leastIntegralCutoff;
-    float leastIntegralCutoff_f;
     uint32_t iBatchSize;
+#if defined(MIXED_PRECISION)
+    float maxIntegralCutoff_f;
+    float leastIntegralCutoff_f;
+#endif
     QUICKULL *intCount;
 
     // For Grad
     QUICKDouble *grad;
-    float *grad_f;
     QUICKDouble *ptchg_grad;
 #if defined(USE_LEGACY_ATOMICS)
     QUICKULL *gradULL;
     QUICKULL *ptchg_gradULL;
+#endif
+#if defined(MIXED_PRECISION)
+    float *grad_f;
 #endif
 
     // mpi variable definitions
@@ -405,15 +427,17 @@ struct gpu_simulation_type {
 
     // pointers to temporary data structures
     QUICKDouble *store;
-    float *store_f;
     QUICKDouble *store2;
-    float *store2_f;
     QUICKDouble *storeAA;
-    float *storeAA_f;
     QUICKDouble *storeBB;
-    float *storeBB_f;
     QUICKDouble *storeCC;
+#if defined(MIXED_PRECISION)
+    float *store_f;
+    float *store2_f;
+    float *storeAA_f;
+    float *storeBB_f;
     float *storeCC_f;
+#endif
 
     // for long range integrals
     QUICKDouble lri_zeta;
@@ -461,20 +485,13 @@ struct gpu_basis_type {
     gpu_buffer_type<uint32_t> *sorted_Q;
     gpu_buffer_type<QUICKDouble> *gccoeff;
     gpu_buffer_type<QUICKDouble> *Xcoeff;                     // 4-dimension one
-    gpu_buffer_type<float> *Xcoeff_f;                         // 4-dimension one
     gpu_buffer_type<QUICKDouble> *Xcoeff_oei;                 // 4-dimension one, precomputed overlap prefactor for oei
     gpu_buffer_type<QUICKDouble> *expoSum;                    // 4-dimension one
-    gpu_buffer_type<float> *expoSum_f;                        // 4-dimension one
     gpu_buffer_type<QUICKDouble> *weightedCenterX;            // 4-dimension one
-    gpu_buffer_type<float> *weightedCenterX_f;                // 4-dimension one
     gpu_buffer_type<QUICKDouble> *weightedCenterY;            // 4-dimension one
-    gpu_buffer_type<float> *weightedCenterY_f;                // 4-dimension one
     gpu_buffer_type<QUICKDouble> *weightedCenterZ;            // 4-dimension one
-    gpu_buffer_type<float> *weightedCenterZ_f;                // 4-dimension one
     gpu_buffer_type<QUICKDouble> *cons;
-    gpu_buffer_type<float> *cons_f;
     gpu_buffer_type<QUICKDouble> *gcexpo;
-    gpu_buffer_type<float> *gcexpo_f;
     gpu_buffer_type<uint32_t> *KLMN;
     gpu_buffer_type<QUICKDouble> *Apri;
     gpu_buffer_type<QUICKDouble> *Kpri;
@@ -482,6 +499,15 @@ struct gpu_basis_type {
     gpu_buffer_type<QUICKDouble> *PpriY;
     gpu_buffer_type<QUICKDouble> *PpriZ;
     gpu_buffer_type<uint32_t> *prim_start;
+#if defined(MIXED_PRECISION)
+    gpu_buffer_type<float> *Xcoeff_f;                         // 4-dimension one
+    gpu_buffer_type<float> *expoSum_f;                        // 4-dimension one
+    gpu_buffer_type<float> *weightedCenterX_f;                // 4-dimension one
+    gpu_buffer_type<float> *weightedCenterY_f;                // 4-dimension one
+    gpu_buffer_type<float> *weightedCenterZ_f;                // 4-dimension one
+    gpu_buffer_type<float> *cons_f;
+    gpu_buffer_type<float> *gcexpo_f;
+#endif
 
     // For multi GPU version
     gpu_buffer_type<unsigned char> *mpi_bcompute;
@@ -531,20 +557,24 @@ struct gpu_type {
 
     gpu_buffer_type<int> *iattype;
     gpu_buffer_type<QUICKDouble> *xyz;
-    gpu_buffer_type<float> *xyz_f;
     gpu_buffer_type<QUICKDouble> *allxyz; // coordinates of nuclei and external point charges
     gpu_buffer_type<QUICKDouble> *extpointxyz; // coordinates of points on which one electron properties are obtained
     gpu_buffer_type<QUICKDouble> *chg;
     gpu_buffer_type<QUICKDouble> *allchg; // charges of nuclei and external point charges
     gpu_buffer_type<DFT_calculated_type> *DFT_calculated;
+#if defined(MIXED_PRECISION)
+    gpu_buffer_type<float> *xyz_f;
+#endif
 
     // For gradient
     gpu_buffer_type<QUICKDouble> *grad;
-    gpu_buffer_type<float> *grad_f;
     gpu_buffer_type<QUICKDouble> *ptchg_grad;
     gpu_buffer_type<QUICKULL> *gradULL;
     gpu_buffer_type<QUICKULL> *ptchg_gradULL;
     gpu_buffer_type<QUICKDouble> *cew_grad;
+#if defined(MIXED_PRECISION)
+    gpu_buffer_type<float> *grad_f;
+#endif
 
     gpu_calculated_type *gpu_calculated;
     gpu_basis_type *gpu_basis;

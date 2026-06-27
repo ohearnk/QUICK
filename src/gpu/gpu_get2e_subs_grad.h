@@ -2655,7 +2655,10 @@ __launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) k_get_grad_cshell_spdf8
         QUICKDouble const * const weightedCenterX, QUICKDouble const * const weightedCenterY,
         QUICKDouble const * const weightedCenterZ, uint32_t sqrQshell, int2 const * const sorted_YCutoffIJ,
         QUICKDouble const * const cutMatrix, QUICKDouble const * const YCutoff,
-        QUICKDouble const * const cutPrim, QUICKDouble integralCutoff2,
+        QUICKDouble const * const cutPrim,
+#if defined(MIXED_PRECISION)
+        QUICKDouble integralCutoff2,
+#endif
         QUICKDouble primLimit, QUICKDouble gradCutoff,
 #if defined(USE_LEGACY_ATOMICS)
         QUICKULL * const gradULL,
@@ -2750,12 +2753,14 @@ __launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) k_get_grad_cshell_spdf8
                                     MAX(LOC2(cutMatrix, jj, kk, nshell, nshell),
                                         LOC2(cutMatrix, jj, ll, nshell, nshell))));
 
-#if defined(SINGLE_PRECISION)
+#if defined(MIXED_PRECISION)
+#  if defined(SINGLE_PRECISION)
                     if (LOC2(YCutoff, kk, ll, nshell, nshell) * LOC2(YCutoff, ii, jj, nshell, nshell) < integralCutoff2
                             && LOC2(YCutoff, kk, ll, nshell, nshell) * LOC2(YCutoff, ii, jj, nshell, nshell) * DNMax < integralCutoff2) {
-#else
+#  else
                     if (!(LOC2(YCutoff, kk, ll, nshell, nshell) * LOC2(YCutoff, ii, jj, nshell, nshell) < integralCutoff2
                             && LOC2(YCutoff, kk, ll, nshell, nshell) * LOC2(YCutoff, ii, jj, nshell, nshell) * DNMax < integralCutoff2)) {
+#  endif
 #endif
 
                     if ((LOC2(YCutoff, kk, ll, nshell, nshell) * LOC2(YCutoff, ii, jj, nshell, nshell))
@@ -2847,7 +2852,9 @@ __launch_bounds__(SM_2X_GRAD_THREADS_PER_BLOCK, 1) k_get_grad_cshell_spdf8
                              strans, sSumindex);
                         }
                     }
+#if defined(MIXED_PRECISION)
                     }
+#endif
                 }
 #if defined(int_sp) || defined(int_spd)
             }

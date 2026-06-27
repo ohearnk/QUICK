@@ -776,6 +776,11 @@ module quick_method_module
                 self%primLimit=self%integralCutoff*1.0d-1
             endif
 
+            ! 2e-cutoff mixed precision
+            if (index(keywd,'CUTOFF2') /= 0) then
+                call read(keywd, 'CUTOFF2', self%integralCutoff2)
+            endif
+
             ! Overlap-cutoff
             if (index(keywd,'OVCUT') /= 0) then
                 call read(keywd, 'OVCUT', self%overlapCutoff)
